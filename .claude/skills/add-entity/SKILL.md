@@ -1,6 +1,6 @@
 ---
 name: add-entity
-description: Add a new domain entity to the Clean Architecture template — entity class, error catalog, domain events, EF Core configuration, DbContext wiring, and migration. Use when the user asks to add an entity, aggregate, domain model, or table.
+description: Add a new domain entity to the VorgaVet backend — entity class, error catalog, domain events, EF Core configuration, DbContext wiring, and migration. Use when the user asks to add an entity, aggregate, domain model, or table.
 argument-hint: <entity description, e.g. "Project with a name, owner, and list of todos">
 ---
 

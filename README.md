@@ -1,6 +1,6 @@
-# Vorga Vet
+# VorgaVet
 
-Vorga Vet is organized as a monorepo so the API, web application, and deployment
+VorgaVet is organized as a monorepo so the API, web application, and deployment
 configuration can evolve together.
 
 ## Repository structure
@@ -23,7 +23,7 @@ dotnet run --project src/Web.Api
 Run the backend test suite with:
 
 ```bash
-dotnet test backend/CleanArchitecture.slnx
+dotnet test backend/VorgaVet.slnx
 ```
 
 See [`backend/README.md`](backend/README.md) for details about the current backend

@@ -1,6 +1,6 @@
-# Clean Architecture Agent Skills for Claude Code
+# VorgaVet Backend Agent Skills for Claude Code
 
-A skill pack that teaches Claude Code the conventions of the Clean Architecture template — so every feature it builds looks like you wrote it: vertical-slice use cases, custom command/query handlers (no MediatR), Result-based error handling, minimal API endpoints, and full test coverage.
+A skill pack that teaches Claude Code the conventions of the VorgaVet backend — so every feature it builds follows its Clean Architecture design: vertical-slice use cases, custom command/query handlers (no MediatR), Result-based error handling, minimal API endpoints, and full test coverage.
 
 ## What's inside
 
@@ -45,4 +45,4 @@ Each skill is a plain Markdown file (`SKILL.md`, plus templates under `reference
 
 ---
 
-Built for the [Clean Architecture template](https://www.milanjovanovic.tech) by Milan Jovanović.
+Originally based on the [Clean Architecture template](https://www.milanjovanovic.tech) by Milan Jovanović.

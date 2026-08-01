@@ -1,6 +1,6 @@
 ---
 name: add-feature
-description: Scaffold a complete Clean Architecture feature slice — command or query, custom handler, FluentValidation validator, minimal API endpoint, and tests (unit, validator, integration). Use when the user asks to add a feature, use case, command, query, or endpoint to this Clean Architecture template.
+description: Scaffold a complete Clean Architecture feature slice for the VorgaVet backend — command or query, custom handler, FluentValidation validator, minimal API endpoint, and tests (unit, validator, integration). Use when the user asks to add a feature, use case, command, query, or endpoint.
 argument-hint: <feature description, e.g. "archive a todo item" or "get todos due this week">
 ---
 

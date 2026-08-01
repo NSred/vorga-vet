@@ -1,6 +1,6 @@
 ---
 name: add-tests
-description: Backfill missing tests for existing use cases in the Clean Architecture template — handler unit tests, FluentValidation validator tests, and HTTP integration tests. Use when the user asks to add, improve, or backfill test coverage.
+description: Backfill missing tests for existing VorgaVet backend use cases — handler unit tests, FluentValidation validator tests, and HTTP integration tests. Use when the user asks to add, improve, or backfill test coverage.
 argument-hint: <use case or feature to cover, e.g. "CopyTodoCommand" or "the Users feature">
 ---
 

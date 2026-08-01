@@ -1,8 +1,8 @@
-# Clean Architecture Template
+# VorgaVet Backend
 
-A pragmatic Clean Architecture starter for **.NET 10**. Batteries included, opinionated where it matters, and easy to extend.
+The VorgaVet backend is a **.NET 10** API organized using Clean Architecture.
 
-## What's included in the template?
+## Architecture and capabilities
 
 - **SharedKernel** project with common Domain-Driven Design abstractions.
 - **Domain** layer with sample entities and domain events.
@@ -40,14 +40,14 @@ Run the full test suite (the integration tests spin up a throwaway PostgreSQL co
 Docker must be running):
 
 ```bash
-dotnet test CleanArchitecture.slnx
+dotnet test VorgaVet.slnx
 ```
 
 To target .NET 8 or .NET 9 instead of .NET 10, see the notes in `Directory.Build.props`.
 
-I'm open to hearing your feedback about the template and what you'd like to see in future iterations.
-
-If you're ready to learn more, check out [**Pragmatic Clean Architecture**](https://www.milanjovanovic.tech/pragmatic-clean-architecture?utm_source=ca-template):
+The original backend foundation was based on Milan Jovanovic's
+[**Pragmatic Clean Architecture**](https://www.milanjovanovic.tech/pragmatic-clean-architecture?utm_source=ca-template)
+template, covering topics such as:
 
 - Domain-Driven Design
 - Role-based authorization
@@ -59,5 +59,3 @@ If you're ready to learn more, check out [**Pragmatic Clean Architecture**](http
 - Unit testing
 - Functional testing
 - Integration testing
-
-Stay awesome!

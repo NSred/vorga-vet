@@ -1,10 +1,10 @@
 ---
 name: ca-review
-description: Review pending changes against the Clean Architecture template's conventions — layer boundaries, Result-based error handling, slice structure, validation, endpoints, and test coverage. Use when the user asks to review changes, check conventions, or audit a feature before committing.
+description: Review pending changes against the VorgaVet backend conventions — layer boundaries, Result-based error handling, slice structure, validation, endpoints, and test coverage. Use when the user asks to review changes, check conventions, or audit a feature before committing.
 argument-hint: [optional: specific files or feature to review; defaults to the working-tree diff]
 ---
 
-# Clean Architecture Convention Review
+# VorgaVet Backend Convention Review
 
 Review the given scope (default: `git diff` + untracked files) against this template's conventions. Report findings with file:line references, ordered by severity. Do not fix anything unless asked.
 

@@ -9,7 +9,7 @@ public abstract class BaseHandlerTest
     protected static TestDbContext CreateDbContext()
     {
         DbContextOptions<TestDbContext> options = new DbContextOptionsBuilder<TestDbContext>()
-            .UseInMemoryDatabase($"clean-architecture-{Guid.NewGuid()}")
+            .UseInMemoryDatabase($"vorga-vet-{Guid.NewGuid()}")
             .Options;
 
         return new TestDbContext(options);
