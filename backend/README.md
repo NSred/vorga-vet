@@ -32,9 +32,20 @@ The VorgaVet backend is a **.NET 10** API organized using Clean Architecture.
 ## Getting started
 
 ```bash
-docker compose up -d        # PostgreSQL + Seq
-dotnet run --project src/Web.Api
+docker compose up --build -d
 ```
+
+This starts the complete local backend stack:
+
+- API and Swagger: http://localhost:5000/swagger
+- API health check: http://localhost:5000/health
+- PostgreSQL: `localhost:5432` (database `vorga-vet`, user/password `postgres`)
+- Seq: http://localhost:8081
+
+To run the API from Rider instead, start only PostgreSQL and Seq with
+`docker compose up -d postgres seq`, then run the `http` launch profile. The local
+development connection string uses `localhost`; the container receives an override
+that uses Docker's internal `postgres` service hostname.
 
 Run the full test suite (the integration tests spin up a throwaway PostgreSQL container, so
 Docker must be running):

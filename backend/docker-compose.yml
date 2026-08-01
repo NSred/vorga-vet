@@ -1,30 +1,47 @@
+name: vorga-vet
+
 services:
   web-api:
-    image: ${DOCKER_REGISTRY-}webapi
-    container_name: web-api
+    image: ${DOCKER_REGISTRY-}vorga-vet-api
+    container_name: vorga-vet-api
     build:
       context: .
       dockerfile: src/Web.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=vorga-vet;Username=postgres;Password=postgres;Include Error Detail=true
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
-      - 5000:8080
-      - 5001:8081
+      - "5000:8080"
 
   postgres:
     image: postgres:17
-    container_name: postgres
+    container_name: vorga-vet-postgres
     environment:
-      - POSTGRES_DB=vorga-vet
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      POSTGRES_DB: vorga-vet
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - ./.containers/db:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vorga-vet"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   seq:
     image: datalust/seq:2024.3
-    container_name: seq
+    container_name: vorga-vet-seq
     environment:
-      - ACCEPT_EULA=Y
+      ACCEPT_EULA: "Y"
     ports:
-      - 8081:80
+      - "8081:80"
+
+volumes:
+  postgres-data:

@@ -16,9 +16,11 @@ From the repository root:
 
 ```bash
 cd backend
-docker compose up -d
-dotnet run --project src/Web.Api
+docker compose up --build -d
 ```
+
+Swagger is then available at http://localhost:5000/swagger and Seq at
+http://localhost:8081.
 
 Run the backend test suite with:
 
