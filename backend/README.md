@@ -40,10 +40,16 @@ This starts the complete local backend stack:
 - API and Swagger: http://localhost:5000/swagger
 - API health check: http://localhost:5000/health
 - PostgreSQL: `localhost:5432` (database `vorga-vet`, user/password `postgres`)
+- pgAdmin: http://localhost:5050
 - Seq: http://localhost:8081
 
-To run the API from Rider instead, start only PostgreSQL and Seq with
-`docker compose up -d postgres seq`, then run the `http` launch profile. The local
+Sign in to pgAdmin with `admin@vorgavet.com` / `vorgavet`. The
+`VorgaVet PostgreSQL` server is registered automatically; enter `postgres` when
+pgAdmin asks for its database password. The pgAdmin credentials can be overridden
+with `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` in a local `.env` file.
+
+To run the API from Rider instead, start the supporting services with
+`docker compose up -d postgres pgadmin seq`, then run the `http` launch profile. The local
 development connection string uses `localhost`; the container receives an override
 that uses Docker's internal `postgres` service hostname.
 

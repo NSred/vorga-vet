@@ -35,6 +35,23 @@ services:
       retries: 10
       start_period: 5s
 
+  pgadmin:
+    image: dpage/pgadmin4:9.17
+    container_name: vorga-vet-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@vorgavet.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-vorgavet}
+      PGADMIN_DISABLE_POSTFIX: "True"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+
   seq:
     image: datalust/seq:2024.3
     container_name: vorga-vet-seq
@@ -45,3 +62,4 @@ services:
 
 volumes:
   postgres-data:
+  pgadmin-data:

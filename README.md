@@ -19,8 +19,8 @@ cd backend
 docker compose up --build -d
 ```
 
-Swagger is then available at http://localhost:5000/swagger and Seq at
-http://localhost:8081.
+Swagger is then available at http://localhost:5000/swagger, pgAdmin at
+http://localhost:5050, and Seq at http://localhost:8081.
 
 Run the backend test suite with:
 
