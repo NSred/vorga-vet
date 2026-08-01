@@ -1,0 +1,5 @@
+# Frontend
+
+The Vorga Vet frontend application will live in this directory.
+
+The framework and project structure have intentionally not been selected yet.
