@@ -3,4 +3,4 @@ updates:
   - package-ecosystem: "nuget"
     directory: "/backend"
     schedule:
-      interval: "daily"
+      interval: "monthly"
