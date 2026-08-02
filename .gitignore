@@ -442,3 +442,6 @@ Desktop.ini
 
 # Local container data
 .containers/
+
+# Claude Code superpowers skill working docs (design specs, plans) — not tracked
+docs/superpowers/
