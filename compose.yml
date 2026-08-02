@@ -1,0 +1,79 @@
+name: vorga-vet
+
+services:
+  frontend:
+    image: vorga-vet-frontend
+    container_name: vorga-vet-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+    depends_on:
+      web-api:
+        condition: service_started
+    ports:
+      - "5173:80"
+
+  web-api:
+    image: ${DOCKER_REGISTRY-}vorga-vet-api
+    container_name: vorga-vet-api
+    build:
+      context: ./backend
+      dockerfile: src/Web.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__Database: Host=postgres;Port=5432;Database=vorga-vet;Username=postgres;Password=postgres;Include Error Detail=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5000:8080"
+
+  postgres:
+    image: postgres:17
+    container_name: vorga-vet-postgres
+    environment:
+      POSTGRES_DB: vorga-vet
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vorga-vet"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  pgadmin:
+    image: dpage/pgadmin4:9.17
+    container_name: vorga-vet-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@vorgavet.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-vorgavet}
+      PGADMIN_DISABLE_POSTFIX: "True"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./backend/docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+
+  seq:
+    image: datalust/seq:2024.3
+    container_name: vorga-vet-seq
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "8081:80"
+
+volumes:
+  postgres-data:
+  pgadmin-data:

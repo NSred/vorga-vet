@@ -41,14 +41,12 @@ function YorkshireMascot({ isCovering }: { isCovering: boolean }) {
           <ellipse cx="60" cy="79" rx="17" ry="13" fill="#f6efdf" />
           <ellipse cx="46" cy="60" rx="7.4" ry="7" fill="#3a2c22" />
           <ellipse cx="74" cy="60" rx="7.4" ry="7" fill="#3a2c22" />
-          <g className={styles.pupils}>
+          <g>
             <circle cx="46" cy="60" r="4.4" fill="#140f0b" />
             <circle cx="44.1" cy="57.9" r="1.7" fill="#fff" opacity=".85" />
             <circle cx="74" cy="60" r="4.4" fill="#140f0b" />
             <circle cx="72.1" cy="57.9" r="1.7" fill="#fff" opacity=".85" />
           </g>
-          <ellipse className={styles.eyelid} cx="46" cy="60" rx="8.6" ry="8.2" fill="#efe4cd" />
-          <ellipse className={styles.eyelid} cx="74" cy="60" rx="8.6" ry="8.2" fill="#efe4cd" />
           <ellipse cx="60" cy="74" rx="6.6" ry="5.2" fill="#231c17" />
           <path
             d="M60 79v4m0 0q-5 4-9 1m9-1q5 4 9 1"
