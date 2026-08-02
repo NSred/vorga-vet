@@ -1,0 +1,451 @@
+.page {
+  --auth-accent: #2f6f52;
+  --auth-accent-strong: #24553f;
+  --auth-text: #1b1a17;
+  --auth-muted: #6f6a61;
+  --auth-faint: #9d978c;
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  place-items: start center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: clamp(3rem, 11vh, 5.5rem) 1.5rem 3rem;
+  color: var(--auth-text);
+  background: linear-gradient(
+    178deg,
+    #eeecf1 0%,
+    #f2f1ec 34%,
+    #eef1e6 62%,
+    #e7edd6 82%,
+    #dfe9c6 100%
+  );
+}
+
+.backgroundGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(56% 40% at 50% 106%, rgba(148, 183, 96, 0.34), transparent 70%);
+}
+
+.floatingPaws {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.floatingPaws span {
+  --paw-rotation: 0deg;
+  position: absolute;
+  top: 110%;
+  color: var(--auth-accent);
+  opacity: 0;
+  filter: grayscale(1);
+  animation: pawDrift linear infinite;
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 25.5rem;
+  text-align: center;
+  animation: cardRise 480ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+}
+
+.mascot {
+  display: grid;
+  width: 7.375rem;
+  height: 7.375rem;
+  margin: 0 auto 0.875rem;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: radial-gradient(120% 120% at 30% 22%, #f3efe6, #e7e2d5 60%, #dcd6c6);
+  box-shadow: 0 0.625rem 1.625rem rgba(47, 111, 82, 0.16);
+}
+
+.mascot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pupils {
+  transition: transform 220ms cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+.eyelid {
+  transform: scaleY(0);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascotBlink 5.2s ease-in-out infinite;
+}
+
+.mascotPaws {
+  transform: translateY(4.75rem);
+  transition: transform 340ms cubic-bezier(0.34, 1.24, 0.5, 1);
+}
+
+.mascotCovering .mascotPaws {
+  transform: translateY(0);
+}
+
+.mascotCovering .eyelid {
+  animation-play-state: paused;
+}
+
+.wordmark {
+  margin-bottom: 0.125rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.wordmark span {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--auth-faint);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.heading {
+  margin: 1.125rem 0 1.5rem;
+  font-size: clamp(1.6rem, 5vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.segmentedControl {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  margin-bottom: 1.375rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(27, 26, 23, 0.06);
+}
+
+.segmentThumb {
+  position: absolute;
+  z-index: 0;
+  top: 0.1875rem;
+  bottom: 0.1875rem;
+  left: 0.1875rem;
+  width: calc(50% - 0.1875rem);
+  border-radius: 999px;
+  background: var(--auth-accent);
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.segmentThumbRight {
+  transform: translateX(100%);
+}
+
+.segmentLink {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 0.65rem 0.75rem;
+  color: var(--auth-muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.segmentLink:hover {
+  color: var(--auth-accent-strong);
+}
+
+.segmentActive,
+.segmentActive:hover {
+  color: #fffdfa;
+}
+
+.formPane {
+  text-align: left;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  animation: paneIn 300ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.label {
+  padding-left: 1rem;
+  color: var(--auth-muted);
+  font-size: 0.75rem;
+  font-weight: 550;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 999px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(27, 26, 23, 0.05);
+  color: var(--auth-text);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.78rem 1.125rem;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.input::placeholder {
+  color: var(--auth-faint);
+}
+
+.input:focus {
+  background: #fffdfa;
+  box-shadow:
+    inset 0 0 0 1px var(--auth-accent),
+    0 0 0 4px rgba(47, 111, 82, 0.13);
+}
+
+.inputInvalid {
+  box-shadow: inset 0 0 0 1px #a63f2e;
+}
+
+.inputInvalid:focus {
+  box-shadow:
+    inset 0 0 0 1px #a63f2e,
+    0 0 0 4px rgba(166, 63, 46, 0.12);
+}
+
+.fieldError {
+  margin: 0.05rem 0 0;
+  padding-left: 1rem;
+  color: #a63f2e;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap .input {
+  padding-right: 3rem;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 0.4rem;
+  display: grid;
+  width: 2.125rem;
+  height: 2.125rem;
+  padding: 0;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--auth-faint);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background 150ms ease;
+}
+
+.passwordToggle:hover,
+.passwordToggle:focus-visible,
+.passwordToggleActive {
+  background: rgba(47, 111, 82, 0.08);
+  color: var(--auth-accent-strong);
+  outline: none;
+}
+
+.passwordToggle svg {
+  width: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.8;
+}
+
+.error {
+  margin: 0;
+  border-radius: 999px;
+  background: #f7e6e2;
+  color: #a63f2e;
+  font-size: 0.78rem;
+  padding: 0.65rem 1rem;
+  text-align: center;
+  animation: errorShake 320ms ease;
+}
+
+.button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(96deg, #2f6f52 0%, #3f8a5f 52%, #6f9c4e 100%);
+  box-shadow: 0 0.375rem 1.125rem rgba(47, 111, 82, 0.24);
+  color: #fffdfa;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 650;
+  padding: 0.82rem 1rem;
+  transition:
+    filter 150ms ease,
+    transform 120ms ease,
+    box-shadow 150ms ease;
+}
+
+.button:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 0.5rem 1.375rem rgba(47, 111, 82, 0.3);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.button:focus-visible {
+  outline: 3px solid rgba(47, 111, 82, 0.28);
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fffdfa;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes cardRise {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes paneIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pawDrift {
+  0% {
+    transform: translateY(0) rotate(var(--paw-rotation));
+    opacity: 0;
+  }
+  12%,
+  88% {
+    opacity: 0.07;
+  }
+  100% {
+    transform: translateY(-125vh) rotate(calc(var(--paw-rotation) + 24deg));
+    opacity: 0;
+  }
+}
+
+@keyframes mascotBlink {
+  0%,
+  93%,
+  97%,
+  100% {
+    transform: scaleY(0);
+  }
+  95% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes errorShake {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateX(-0.3rem);
+  }
+  45% {
+    transform: translateX(0.25rem);
+  }
+  70% {
+    transform: translateX(-0.125rem);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 30rem) {
+  .page {
+    align-items: start;
+    overflow-y: auto;
+    padding: 2rem 1.125rem 3rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .form,
+  .floatingPaws span,
+  .eyelid,
+  .spinner,
+  .error {
+    animation-duration: 0.001ms;
+    animation-iteration-count: 1;
+  }
+
+  .mascotPaws,
+  .segmentThumb {
+    transition-duration: 0.01ms;
+  }
+}

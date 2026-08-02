@@ -1,0 +1,41 @@
+.page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #fff;
+  padding: 1rem 1.5rem;
+}
+
+.brand {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.userArea {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.logoutButton {
+  border: none;
+  background: none;
+  padding: 0;
+  font-weight: 500;
+  color: #0f172a;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.main {
+  padding: 1.5rem;
+}
