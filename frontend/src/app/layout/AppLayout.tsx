@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router'
+import { NavLink, Outlet } from 'react-router'
 import { useAuth } from '@/features/auth'
 import styles from './AppLayout.module.css'
 
@@ -8,7 +8,18 @@ export function AppLayout() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <span className={styles.brand}>VorgaVet</span>
+        <div className={styles.headerLeft}>
+          <span className={styles.brand}>VorgaVet</span>
+          <nav className={styles.nav}>
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+            >
+              Kartoteka
+            </NavLink>
+          </nav>
+        </div>
         <div className={styles.userArea}>
           <span>{user?.email}</span>
           <button onClick={logout} className={styles.logoutButton}>

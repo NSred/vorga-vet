@@ -1,0 +1,7 @@
+.nameCell {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-faint);
+}

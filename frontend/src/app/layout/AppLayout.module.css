@@ -12,10 +12,39 @@
   padding: 1rem 1.5rem;
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
 .brand {
   font-size: 1.125rem;
   font-weight: 600;
   color: #0f172a;
+}
+
+.nav {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.navLink {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  text-decoration: none;
+}
+
+.navLink:hover {
+  background-color: #f1f5f9;
+}
+
+.navLinkActive {
+  background-color: #e5eee8;
+  color: #24553f;
 }
 
 .userArea {

@@ -1,0 +1,43 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 1rem 1.1rem;
+}
+
+.icon {
+  font-size: 1.1rem;
+}
+
+.label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  letter-spacing: 0.03em;
+}
+
+.value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sublabel {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 60rem) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

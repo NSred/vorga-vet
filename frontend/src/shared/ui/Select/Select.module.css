@@ -1,0 +1,60 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+}
+
+.trigger:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.icon {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.content {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: 0 0.5rem 1.25rem rgba(27, 26, 23, 0.14);
+  z-index: 50;
+}
+
+.item {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.item[data-highlighted] {
+  outline: none;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
