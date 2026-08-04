@@ -1,19 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Badge, EmptyState, Pagination, Table, type TableColumn } from '@/shared/ui'
 import type { Patient } from '../types'
+import { SPECIES_EMOJI } from '../lib/speciesEmoji'
 import styles from './PatientTable.module.css'
 
 export interface PatientTableProps {
   patients: Patient[]
   isLoading: boolean
   onRowClick: (patient: Patient) => void
-}
-
-const SPECIES_EMOJI: Record<Patient['species'], string> = {
-  pas: '🐶',
-  macka: '🐱',
-  ptica: '🐦',
-  ostalo: '🐾',
 }
 
 function formatValue(value: string | number | undefined): string {

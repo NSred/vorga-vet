@@ -1,5 +1,6 @@
 import { Badge, Button, SlidePanel } from '@/shared/ui'
 import type { Patient } from '../types'
+import { SPECIES_EMOJI } from '../lib/speciesEmoji'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import styles from './PatientDetailPanel.module.css'
 
@@ -9,13 +10,6 @@ export interface PatientDetailPanelProps {
   onOpenChange: (open: boolean) => void
   onEdit: () => void
   onDelete: () => void
-}
-
-const SPECIES_EMOJI: Record<Patient['species'], string> = {
-  pas: '🐶',
-  macka: '🐱',
-  ptica: '🐦',
-  ostalo: '🐾',
 }
 
 function formatValue(value: string | number | undefined): string {
