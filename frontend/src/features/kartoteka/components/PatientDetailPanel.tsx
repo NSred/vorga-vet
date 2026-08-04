@@ -1,5 +1,6 @@
 import { Badge, Button, SlidePanel } from '@/shared/ui'
 import type { Patient } from '../types'
+import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import styles from './PatientDetailPanel.module.css'
 
 export interface PatientDetailPanelProps {
@@ -120,7 +121,7 @@ export function PatientDetailPanel({ patient, open, onOpenChange, onEdit, onDele
               <li key={visit.id} className={styles.visitCard}>
                 <div className={styles.visitHeader}>
                   <Badge tone="ok">{visit.type}</Badge>
-                  <span className={styles.visitDate}>{visit.date}</span>
+                  <span className={styles.visitDate}>{formatDisplayDate(visit.date)}</span>
                 </div>
                 <div className={styles.visitTitle}>{visit.title}</div>
                 {visit.description && <div className={styles.visitDescription}>{visit.description}</div>}
