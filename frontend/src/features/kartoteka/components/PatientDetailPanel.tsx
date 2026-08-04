@@ -1,7 +1,7 @@
 import { Badge, Button, SlidePanel } from '@/shared/ui'
+import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import type { Patient } from '../types'
 import { SPECIES_EMOJI } from '../lib/speciesEmoji'
-import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import styles from './PatientDetailPanel.module.css'
 
 export interface PatientDetailPanelProps {
