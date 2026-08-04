@@ -20,7 +20,7 @@ interface RegisterFormValues {
 
 export function RegisterPage() {
   const { register: registerUser } = useAuth()
-  const { setMascotIsCovering } = useAuthOutlet()
+  const { setMascotPose } = useAuthOutlet()
   const navigate = useNavigate()
   const {
     control,
@@ -141,7 +141,7 @@ export function RegisterPage() {
               value={field.value}
               onChange={field.onChange}
               autoComplete="new-password"
-              onMascotChange={setMascotIsCovering}
+              onMascotChange={setMascotPose}
               onValidationBlur={field.onBlur}
               inputRef={field.ref}
               isInvalid={Boolean(fieldState.error)}

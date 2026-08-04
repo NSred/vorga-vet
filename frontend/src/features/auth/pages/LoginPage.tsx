@@ -14,7 +14,7 @@ interface LoginFormValues {
 
 export function LoginPage() {
   const { login } = useAuth()
-  const { setMascotIsCovering } = useAuthOutlet()
+  const { setMascotPose } = useAuthOutlet()
   const navigate = useNavigate()
   const {
     control,
@@ -89,7 +89,7 @@ export function LoginPage() {
               value={field.value}
               onChange={field.onChange}
               autoComplete="current-password"
-              onMascotChange={setMascotIsCovering}
+              onMascotChange={setMascotPose}
               onValidationBlur={field.onBlur}
               inputRef={field.ref}
               isInvalid={Boolean(fieldState.error)}

@@ -1,4 +1,5 @@
 import { useRef, useState, type ChangeEvent, type FocusEvent } from 'react'
+import type { MascotPose } from '@/features/auth/context/AuthLayoutContext'
 import styles from './AuthForm.module.css'
 
 interface PasswordFieldProps {
@@ -7,7 +8,7 @@ interface PasswordFieldProps {
   value: string
   autoComplete: 'current-password' | 'new-password'
   onChange: (event: ChangeEvent<HTMLInputElement>) => void
-  onMascotChange: (isCovering: boolean) => void
+  onMascotChange: (pose: MascotPose) => void
   inputRef?: (element: HTMLInputElement | null) => void
   errorId?: string
   isInvalid?: boolean
@@ -34,15 +35,16 @@ export function PasswordField({
     const nextIsVisible = !isVisibleRef.current
     isVisibleRef.current = nextIsVisible
     setIsVisible(nextIsVisible)
-    onMascotChange(!nextIsVisible)
+    onMascotChange(nextIsVisible ? 'peeking' : 'covering')
     inputRef.current?.focus()
   }
 
   const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
-    onMascotChange(false)
-    if (!(
+    const blurredToToggle =
       event.relatedTarget instanceof HTMLElement && event.relatedTarget.dataset.passwordToggle
-    )) {
+
+    if (!blurredToToggle) {
+      onMascotChange('idle')
       onValidationBlur?.()
     }
   }
@@ -61,7 +63,7 @@ export function PasswordField({
         minLength={8}
         value={value}
         onChange={onChange}
-        onFocus={() => onMascotChange(!isVisibleRef.current)}
+        onFocus={() => onMascotChange(isVisibleRef.current ? 'peeking' : 'covering')}
         onBlur={handleBlur}
         className={`${styles.input} ${isInvalid ? styles.inputInvalid : ''}`}
         autoComplete={autoComplete}

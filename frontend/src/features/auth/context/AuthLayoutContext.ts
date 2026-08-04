@@ -1,7 +1,9 @@
 import { useOutletContext } from 'react-router'
 
+export type MascotPose = 'idle' | 'covering' | 'peeking'
+
 export interface AuthOutletContext {
-  setMascotIsCovering: (isCovering: boolean) => void
+  setMascotPose: (pose: MascotPose) => void
 }
 
 export function useAuthOutlet(): AuthOutletContext {
