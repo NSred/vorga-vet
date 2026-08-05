@@ -1,0 +1,25 @@
+.chip {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font: inherit;
+  font-size: 0.72rem;
+  text-align: left;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+}
+
+.chip:hover {
+  filter: brightness(0.97);
+}
+
+.reminder {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
