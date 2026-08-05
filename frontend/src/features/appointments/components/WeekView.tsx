@@ -1,5 +1,6 @@
 import { addDays, startOfWeek } from 'date-fns'
 import type { Patient } from '@/features/patients'
+import { Skeleton } from '@/shared/ui'
 import { formatDateOnly, todayIso } from '@/shared/lib/dateOnly'
 import { AppointmentChip } from './AppointmentChip'
 import type { Appointment } from '../types'
@@ -11,12 +12,13 @@ export interface WeekViewProps {
   patients: Map<string, Patient>
   onAppointmentClick: (appointment: Appointment) => void
   onDateSelect: (date: Date) => void
+  isLoading?: boolean
 }
 
 const WEEKDAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const VISIBLE_CHIP_LIMIT = 3
 
-export function WeekView({ date, appointments, patients, onAppointmentClick, onDateSelect }: WeekViewProps) {
+export function WeekView({ date, appointments, patients, onAppointmentClick, onDateSelect, isLoading }: WeekViewProps) {
   const weekStart = startOfWeek(date, { weekStartsOn: 1 })
   const days = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index))
   const today = todayIso()
@@ -39,18 +41,24 @@ export function WeekView({ date, appointments, patients, onAppointmentClick, onD
               {dayAppointments.length > 0 && <span className={styles.countBadge}>{dayAppointments.length}</span>}
             </div>
             <div className={styles.chips}>
-              {visible.map((appointment) => (
-                <AppointmentChip
-                  key={appointment.id}
-                  appointment={appointment}
-                  patient={patients.get(appointment.patientId)}
-                  onClick={() => onAppointmentClick(appointment)}
-                />
-              ))}
-              {overflowCount > 0 && (
-                <button type="button" className={styles.overflow} onClick={() => onDateSelect(day)}>
-                  +{overflowCount} more
-                </button>
+              {isLoading ? (
+                <Skeleton height="1.25rem" />
+              ) : (
+                <>
+                  {visible.map((appointment) => (
+                    <AppointmentChip
+                      key={appointment.id}
+                      appointment={appointment}
+                      patient={patients.get(appointment.patientId)}
+                      onClick={() => onAppointmentClick(appointment)}
+                    />
+                  ))}
+                  {overflowCount > 0 && (
+                    <button type="button" className={styles.overflow} onClick={() => onDateSelect(day)}>
+                      +{overflowCount} more
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>

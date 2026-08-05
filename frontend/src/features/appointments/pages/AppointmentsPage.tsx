@@ -135,30 +135,33 @@ export function AppointmentsPage() {
         onToday={() => setCurrentDate(new Date())}
       />
 
-      {!isLoadingAppointments && view === 'day' && (
+      {view === 'day' && (
         <DayView
           date={currentDate}
           appointments={appointments}
           patients={patientsById}
           onAppointmentClick={(appointment) => setPanel({ mode: 'view', appointment })}
+          isLoading={isLoadingAppointments}
         />
       )}
-      {!isLoadingAppointments && view === 'week' && (
+      {view === 'week' && (
         <WeekView
           date={currentDate}
           appointments={appointments}
           patients={patientsById}
           onAppointmentClick={(appointment) => setPanel({ mode: 'view', appointment })}
           onDateSelect={handleDateSelect}
+          isLoading={isLoadingAppointments}
         />
       )}
-      {!isLoadingAppointments && view === 'month' && (
+      {view === 'month' && (
         <MonthView
           date={currentDate}
           appointments={appointments}
           patients={patientsById}
           onAppointmentClick={(appointment) => setPanel({ mode: 'view', appointment })}
           onDateSelect={handleDateSelect}
+          isLoading={isLoadingAppointments}
         />
       )}
 
