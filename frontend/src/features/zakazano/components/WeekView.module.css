@@ -1,0 +1,60 @@
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.dayCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  min-height: 8rem;
+}
+
+.today {
+  background: var(--accent-soft);
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.dayNumber {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.countBadge {
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  padding: 0.05rem 0.4rem;
+}
+
+.chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.overflow {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.7rem;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.overflow:hover {
+  text-decoration: underline;
+}
