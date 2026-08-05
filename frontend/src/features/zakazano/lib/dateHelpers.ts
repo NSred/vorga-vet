@@ -1,6 +1,6 @@
 import { formatDateOnly, formatDisplayDate, parseDateOnly, todayIso } from '@/shared/lib/dateOnly'
 
-const WEEKDAYS = ['Nedelja', 'Ponedeljak', 'Utorak', 'Sreda', 'Četvrtak', 'Petak', 'Subota']
+export const WEEKDAYS = ['Nedelja', 'Ponedeljak', 'Utorak', 'Sreda', 'Četvrtak', 'Petak', 'Subota']
 
 export function formatWeekday(dateIso: string): string {
   return WEEKDAYS[parseDateOnly(dateIso).getDay()]
