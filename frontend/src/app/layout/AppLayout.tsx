@@ -18,6 +18,12 @@ export function AppLayout() {
             >
               Kartoteka
             </NavLink>
+            <NavLink
+              to="/zakazano"
+              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+            >
+              Zakazano
+            </NavLink>
           </nav>
         </div>
         <div className={styles.userArea}>

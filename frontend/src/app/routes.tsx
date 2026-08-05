@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router'
 import { AuthLayout, LoginPage, RegisterPage, ProtectedRoute } from '@/features/auth'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { KartotekaPage } from '@/features/kartoteka'
+import { ZakazanoPage } from '@/features/zakazano'
 
 export const router = createBrowserRouter([
   {
@@ -16,7 +17,10 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        children: [{ path: '/', element: <KartotekaPage /> }],
+        children: [
+          { path: '/', element: <KartotekaPage /> },
+          { path: '/zakazano', element: <ZakazanoPage /> },
+        ],
       },
     ],
   },
