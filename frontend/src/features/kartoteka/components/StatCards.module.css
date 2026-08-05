@@ -38,6 +38,14 @@
   color: var(--text-muted);
 }
 
+.cardButton {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  border: 1px solid var(--border);
+}
+
 @media (max-width: 60rem) {
   .grid {
     grid-template-columns: repeat(2, 1fr);

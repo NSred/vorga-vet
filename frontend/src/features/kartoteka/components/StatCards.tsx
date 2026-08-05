@@ -7,9 +7,10 @@ import styles from './StatCards.module.css'
 export interface StatCardsProps {
   stats: DashboardStats | null
   isLoading: boolean
+  onPeakHoursClick: () => void
 }
 
-export function StatCards({ stats, isLoading }: StatCardsProps) {
+export function StatCards({ stats, isLoading, onPeakHoursClick }: StatCardsProps) {
   return (
     <div className={styles.grid}>
       <div className={styles.card}>
@@ -22,7 +23,7 @@ export function StatCards({ stats, isLoading }: StatCardsProps) {
         )}
       </div>
 
-      <div className={styles.card}>
+      <button type="button" className={`${styles.card} ${styles.cardButton}`} onClick={onPeakHoursClick}>
         <span className={styles.icon}>⏰</span>
         <span className={styles.label}>NAJTRAŽENIJI SAT</span>
         {isLoading || !stats ? (
@@ -37,7 +38,7 @@ export function StatCards({ stats, isLoading }: StatCardsProps) {
             )}
           </>
         )}
-      </div>
+      </button>
 
       <Link to={`/zakazano?view=dan&date=${todayIso()}`} className={styles.card}>
         <span className={styles.icon}>📅</span>

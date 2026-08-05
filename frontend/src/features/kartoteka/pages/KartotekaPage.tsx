@@ -5,6 +5,7 @@ import { PatientDetailPanel } from '../components/PatientDetailPanel'
 import { PatientFilters } from '../components/PatientFilters'
 import { PatientFormPanel } from '../components/PatientFormPanel'
 import { PatientTable } from '../components/PatientTable'
+import { PeakHoursPanel } from '../components/PeakHoursPanel'
 import { StatCards } from '../components/StatCards'
 import { getPatients, createPatient, updatePatient, softDeletePatient } from '../api/patientsApi'
 import { getDashboardStats, type DashboardStats } from '../api/statsApi'
@@ -29,6 +30,7 @@ export function KartotekaPage() {
   if (panel.mode !== 'closed' && panel !== displayPanel) {
     setDisplayPanel(panel)
   }
+  const [peakHoursOpen, setPeakHoursOpen] = useState(false)
 
   const refreshPatients = useCallback((nextFilters: PatientFiltersType) => {
     setIsLoadingPatients(true)
@@ -108,7 +110,7 @@ export function KartotekaPage() {
         </Button>
       </div>
 
-      <StatCards stats={stats} isLoading={isLoadingStats} />
+      <StatCards stats={stats} isLoading={isLoadingStats} onPeakHoursClick={() => setPeakHoursOpen(true)} />
 
       <PatientFilters filters={filters} onChange={setFilters} />
 
@@ -147,6 +149,8 @@ export function KartotekaPage() {
           onDelete={() => handleDelete(displayPanel.patient.id)}
         />
       )}
+
+      <PeakHoursPanel open={peakHoursOpen} onOpenChange={setPeakHoursOpen} />
     </div>
   )
 }
