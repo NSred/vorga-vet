@@ -16,13 +16,13 @@ export function AppLayout() {
               end
               className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
             >
-              Kartoteka
+              Patient Records
             </NavLink>
             <NavLink
-              to="/zakazano"
+              to="/appointments"
               className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
             >
-              Zakazano
+              Appointments
             </NavLink>
           </nav>
         </div>

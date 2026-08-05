@@ -33,7 +33,7 @@ export function SlidePanel({
           <div className={`${styles.header} ${styles[`header_${headerTone}`]}`}>
             <div className={styles.headerBody}>{header}</div>
             <Dialog.Close asChild>
-              <IconButton label="Zatvori">✕</IconButton>
+              <IconButton label="Close">✕</IconButton>
             </Dialog.Close>
           </div>
           <div className={styles.body}>{children}</div>

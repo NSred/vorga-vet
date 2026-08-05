@@ -25,7 +25,7 @@ export function Pagination({
           className={styles.arrow}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          aria-label="Prethodna strana"
+          aria-label="Previous page"
         >
           ‹
         </button>
@@ -44,7 +44,7 @@ export function Pagination({
           className={styles.arrow}
           disabled={page >= pageCount}
           onClick={() => onPageChange(page + 1)}
-          aria-label="Sledeća strana"
+          aria-label="Next page"
         >
           ›
         </button>
@@ -53,11 +53,11 @@ export function Pagination({
         className={styles.pageSizeSelect}
         value={pageSize}
         onChange={(event) => onPageSizeChange(Number(event.target.value))}
-        aria-label="Broj redova po strani"
+        aria-label="Rows per page"
       >
         {pageSizeOptions.map((option) => (
           <option key={option} value={option}>
-            {option} / str.
+            {option} / page
           </option>
         ))}
       </select>

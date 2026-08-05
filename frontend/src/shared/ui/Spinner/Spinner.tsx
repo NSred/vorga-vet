@@ -5,6 +5,6 @@ export interface SpinnerProps {
   label?: string
 }
 
-export function Spinner({ size = 'md', label = 'Učitavanje…' }: SpinnerProps) {
+export function Spinner({ size = 'md', label = 'Loading…' }: SpinnerProps) {
   return <span role="status" aria-label={label} className={`${styles.spinner} ${styles[size]}`} />
 }

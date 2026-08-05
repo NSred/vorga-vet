@@ -1,8 +1,8 @@
 import { createBrowserRouter } from 'react-router'
 import { AuthLayout, LoginPage, RegisterPage, ProtectedRoute } from '@/features/auth'
 import { AppLayout } from '@/app/layout/AppLayout'
-import { KartotekaPage } from '@/features/kartoteka'
-import { ZakazanoPage } from '@/features/zakazano'
+import { PatientsPage } from '@/features/patients'
+import { AppointmentsPage } from '@/features/appointments'
 
 export const router = createBrowserRouter([
   {
@@ -18,8 +18,8 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/', element: <KartotekaPage /> },
-          { path: '/zakazano', element: <ZakazanoPage /> },
+          { path: '/', element: <PatientsPage /> },
+          { path: '/appointments', element: <AppointmentsPage /> },
         ],
       },
     ],
