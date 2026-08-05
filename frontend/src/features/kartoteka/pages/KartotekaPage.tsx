@@ -25,6 +25,10 @@ export function KartotekaPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
   const [panel, setPanel] = useState<PanelState>({ mode: 'closed' })
+  const [displayPanel, setDisplayPanel] = useState<PanelState>({ mode: 'closed' })
+  if (panel.mode !== 'closed' && panel !== displayPanel) {
+    setDisplayPanel(panel)
+  }
 
   const refreshPatients = useCallback((nextFilters: PatientFiltersType) => {
     setIsLoadingPatients(true)
@@ -114,33 +118,33 @@ export function KartotekaPage() {
         onRowClick={(patient) => setPanel({ mode: 'view', patient })}
       />
 
-      {panel.mode === 'view' && (
+      {displayPanel.mode === 'view' && (
         <PatientDetailPanel
-          patient={panel.patient}
-          open
+          patient={displayPanel.patient}
+          open={panel.mode === 'view'}
           onOpenChange={(open) => !open && closePanel()}
-          onEdit={() => setPanel({ mode: 'edit', patient: panel.patient })}
-          onDelete={() => handleDelete(panel.patient.id)}
+          onEdit={() => setPanel({ mode: 'edit', patient: displayPanel.patient })}
+          onDelete={() => handleDelete(displayPanel.patient.id)}
         />
       )}
 
-      {panel.mode === 'create' && (
+      {displayPanel.mode === 'create' && (
         <PatientFormPanel
-          open
+          open={panel.mode === 'create'}
           onOpenChange={(open) => !open && closePanel()}
           mode="create"
           onSubmit={handleCreateSubmit}
         />
       )}
 
-      {panel.mode === 'edit' && (
+      {displayPanel.mode === 'edit' && (
         <PatientFormPanel
-          open
+          open={panel.mode === 'edit'}
           onOpenChange={(open) => !open && closePanel()}
           mode="edit"
-          initialPatient={panel.patient}
+          initialPatient={displayPanel.patient}
           onSubmit={handleEditSubmit}
-          onDelete={() => handleDelete(panel.patient.id)}
+          onDelete={() => handleDelete(displayPanel.patient.id)}
         />
       )}
     </div>

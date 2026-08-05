@@ -39,6 +39,10 @@ export function ZakazanoPage() {
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true)
   const [patients, setPatients] = useState<Patient[]>([])
   const [panel, setPanel] = useState<PanelState>({ mode: 'closed' })
+  const [displayPanel, setDisplayPanel] = useState<PanelState>({ mode: 'closed' })
+  if (panel.mode !== 'closed' && panel !== displayPanel) {
+    setDisplayPanel(panel)
+  }
 
   const patientsById = useMemo(() => new Map(patients.map((patient) => [patient.id, patient])), [patients])
 
@@ -107,7 +111,7 @@ export function ZakazanoPage() {
     setPanel((prev) => (prev.mode === 'view' && prev.appointment.id === updated.id ? { mode: 'view', appointment: updated } : prev))
   }
 
-  const viewPatient = panel.mode === 'view' ? patientsById.get(panel.appointment.patientId) : undefined
+  const viewPatient = displayPanel.mode === 'view' ? patientsById.get(displayPanel.appointment.patientId) : undefined
 
   return (
     <div className={styles.page}>
@@ -158,21 +162,21 @@ export function ZakazanoPage() {
         />
       )}
 
-      {panel.mode === 'view' && viewPatient && (
+      {displayPanel.mode === 'view' && viewPatient && (
         <AppointmentDetailPanel
-          appointment={panel.appointment}
+          appointment={displayPanel.appointment}
           patient={viewPatient}
-          open
+          open={panel.mode === 'view'}
           onOpenChange={(open) => !open && closePanel()}
-          onEdit={() => setPanel({ mode: 'edit', appointment: panel.appointment })}
-          onDelete={() => handleDelete(panel.appointment.id)}
+          onEdit={() => setPanel({ mode: 'edit', appointment: displayPanel.appointment })}
+          onDelete={() => handleDelete(displayPanel.appointment.id)}
           onAppointmentChange={handleAppointmentChange}
         />
       )}
 
-      {panel.mode === 'create' && (
+      {displayPanel.mode === 'create' && (
         <AppointmentFormPanel
-          open
+          open={panel.mode === 'create'}
           onOpenChange={(open) => !open && closePanel()}
           mode="create"
           patients={patients}
@@ -180,15 +184,15 @@ export function ZakazanoPage() {
         />
       )}
 
-      {panel.mode === 'edit' && (
+      {displayPanel.mode === 'edit' && (
         <AppointmentFormPanel
-          open
+          open={panel.mode === 'edit'}
           onOpenChange={(open) => !open && closePanel()}
           mode="edit"
-          initialAppointment={panel.appointment}
+          initialAppointment={displayPanel.appointment}
           patients={patients}
           onSubmit={handleEditSubmit}
-          onDelete={() => handleDelete(panel.appointment.id)}
+          onDelete={() => handleDelete(displayPanel.appointment.id)}
         />
       )}
     </div>
