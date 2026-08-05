@@ -25,17 +25,33 @@
 }
 
 .nav {
+  position: relative;
   display: flex;
   gap: 0.25rem;
 }
 
+.navThumb {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  transition:
+    left 250ms cubic-bezier(0.4, 0, 0.2, 1),
+    width 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .navLink {
+  position: relative;
+  z-index: 1;
   padding: 0.4rem 0.75rem;
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
   color: #475569;
   text-decoration: none;
+  transition: color 200ms ease;
 }
 
 .navLink:hover {
@@ -43,8 +59,17 @@
 }
 
 .navLinkActive {
-  background-color: #e5eee8;
-  color: #24553f;
+  color: var(--surface);
+}
+
+.navLinkActive:hover {
+  background-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navThumb {
+    transition-duration: 0.01ms;
+  }
 }
 
 .userArea {

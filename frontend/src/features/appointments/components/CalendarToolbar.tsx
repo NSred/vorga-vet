@@ -1,8 +1,14 @@
 import type { ChangeEvent } from 'react'
-import { Button } from '@/shared/ui'
+import { Button, SegmentedControl } from '@/shared/ui'
 import { formatDateOnly, parseDateOnly } from '@/shared/lib/dateOnly'
 import type { CalendarView } from '../types'
 import styles from './CalendarToolbar.module.css'
+
+const VIEW_OPTIONS = [
+  { value: 'day', label: 'Day' },
+  { value: 'week', label: 'Week' },
+  { value: 'month', label: 'Month' },
+] as const
 
 export interface CalendarToolbarProps {
   view: CalendarView
@@ -31,18 +37,7 @@ export function CalendarToolbar({
 
   return (
     <div className={styles.toolbar}>
-      <div className={styles.segmented}>
-        {(['day', 'week', 'month'] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={`${styles.segment} ${view === value ? styles.segmentActive : ''}`}
-            onClick={() => onViewChange(value)}
-          >
-            {value === 'day' ? 'Day' : value === 'week' ? 'Week' : 'Month'}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl value={view} onChange={onViewChange} options={VIEW_OPTIONS} />
 
       <div className={styles.nav}>
         <button type="button" className={styles.arrow} onClick={onPrev} aria-label="Previous period">

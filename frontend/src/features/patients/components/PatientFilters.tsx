@@ -1,4 +1,4 @@
-import { Button, Select, SearchInput } from '@/shared/ui'
+import { Button, Select, SearchInput, SegmentedControl } from '@/shared/ui'
 import type { PatientFilters as PatientFiltersType } from '../types'
 import styles from './PatientFilters.module.css'
 
@@ -8,6 +8,12 @@ export interface PatientFiltersProps {
 }
 
 const DEFAULT_FILTERS: PatientFiltersType = { status: 'active' }
+
+const STATUS_OPTIONS = [
+  { value: 'active', label: 'Active' },
+  { value: 'all', label: 'All' },
+  { value: 'deleted', label: 'Deleted' },
+] as const
 
 export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
   const status = filters.status ?? 'active'
@@ -86,18 +92,11 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
         Debtors
       </label>
 
-      <div className={styles.segmented}>
-        {(['active', 'all', 'deleted'] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            className={`${styles.segment} ${status === value ? styles.segmentActive : ''}`}
-            onClick={() => onChange({ ...filters, status: value })}
-          >
-            {value === 'active' ? 'Active' : value === 'all' ? 'All' : 'Deleted'}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        value={status}
+        onChange={(value) => onChange({ ...filters, status: value })}
+        options={STATUS_OPTIONS}
+      />
 
       <Button variant="outline" type="button" onClick={() => onChange(DEFAULT_FILTERS)}>
         Reset
