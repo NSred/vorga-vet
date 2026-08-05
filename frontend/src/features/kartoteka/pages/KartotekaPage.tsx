@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { Button } from '@/shared/ui'
 import { PatientDetailPanel } from '../components/PatientDetailPanel'
 import { PatientFilters } from '../components/PatientFilters'
@@ -17,6 +18,7 @@ type PanelState =
   | { mode: 'edit'; patient: Patient }
 
 export function KartotekaPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [filters, setFilters] = useState<PatientFiltersType>({ status: 'aktivan' })
   const [patients, setPatients] = useState<Patient[]>([])
   const [isLoadingPatients, setIsLoadingPatients] = useState(true)
@@ -45,6 +47,23 @@ export function KartotekaPage() {
   useEffect(() => {
     refreshStats()
   }, [refreshStats])
+
+  useEffect(() => {
+    const patientId = searchParams.get('patient')
+    if (!patientId) return
+    const found = patients.find((patient) => patient.id === patientId)
+    if (found) {
+      setPanel({ mode: 'view', patient: found })
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          next.delete('patient')
+          return next
+        },
+        { replace: true },
+      )
+    }
+  }, [searchParams, patients, setSearchParams])
 
   const closePanel = () => setPanel({ mode: 'closed' })
 

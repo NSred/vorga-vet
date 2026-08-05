@@ -12,6 +12,8 @@
   border-radius: var(--radius);
   background: var(--surface);
   padding: 1rem 1.1rem;
+  text-decoration: none;
+  color: inherit;
 }
 
 .icon {

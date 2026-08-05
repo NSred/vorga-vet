@@ -1,4 +1,6 @@
+import { Link } from 'react-router'
 import { Skeleton } from '@/shared/ui'
+import { todayIso } from '@/shared/lib/dateOnly'
 import type { DashboardStats } from '../api/statsApi'
 import styles from './StatCards.module.css'
 
@@ -29,13 +31,15 @@ export function StatCards({ stats, isLoading }: StatCardsProps) {
           <>
             <span className={styles.value}>{stats.peakHour?.hour ?? '—'}</span>
             {stats.peakHour && (
-              <span className={styles.sublabel}>{stats.peakHour.count} od 10 termina</span>
+              <span className={styles.sublabel}>
+                {stats.peakHour.count} od {stats.todayAppointmentsCount} termina
+              </span>
             )}
           </>
         )}
       </div>
 
-      <div className={styles.card}>
+      <Link to={`/zakazano?view=dan&date=${todayIso()}`} className={styles.card}>
         <span className={styles.icon}>📅</span>
         <span className={styles.label}>DANAS ZAKAZANO</span>
         {isLoading || !stats ? (
@@ -43,7 +47,7 @@ export function StatCards({ stats, isLoading }: StatCardsProps) {
         ) : (
           <span className={styles.value}>{stats.todayAppointmentsCount}</span>
         )}
-      </div>
+      </Link>
 
       <div className={styles.card}>
         <span className={styles.icon}>⚠️</span>
