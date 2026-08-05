@@ -27,7 +27,16 @@ export function setUnauthorizedHandler(handler: () => void): void {
   onUnauthorized = handler
 }
 
-export async function refreshAccessToken(): Promise<boolean> {
+let inFlightRefresh: Promise<boolean> | null = null
+
+export function refreshAccessToken(): Promise<boolean> {
+  inFlightRefresh ??= performRefresh().finally(() => {
+    inFlightRefresh = null
+  })
+  return inFlightRefresh
+}
+
+async function performRefresh(): Promise<boolean> {
   const refreshToken = tokenStorage.get()
   if (!refreshToken) return false
 

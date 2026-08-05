@@ -1,4 +1,5 @@
 import type { ChangeEvent } from 'react'
+import { Link } from 'react-router'
 import { SPECIES_EMOJI, type Patient } from '@/features/kartoteka'
 import { Button, IconButton, SlidePanel } from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
@@ -147,7 +148,12 @@ export function AppointmentDetailPanel({
       </section>
 
       <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Pacijent iz kartoteke</h3>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>Pacijent iz kartoteke</h3>
+          <Link to={`/?patient=${patient.id}`} className={styles.cardLink}>
+            Otvori karton →
+          </Link>
+        </div>
         <div className={styles.grid}>
           <Field label="Broj kartona" value={patient.cardNumber} />
           <Field label="Ime" value={`${SPECIES_EMOJI[patient.species]} ${patient.name}`} />
