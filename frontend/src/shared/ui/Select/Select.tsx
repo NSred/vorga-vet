@@ -13,24 +13,30 @@ export interface SelectProps {
   options: SelectOption[]
   id?: string
   className?: string
+  hideLabel?: boolean
 }
 
-export function Select({ label, value, onChange, options, id, className }: SelectProps) {
+export function Select({ label, value, onChange, options, id, className, hideLabel }: SelectProps) {
   return (
     <div className={`${styles.field} ${className ?? ''}`}>
-      <label htmlFor={id} className={styles.label}>
-        {label}
-      </label>
+      {!hideLabel && (
+        <label htmlFor={id} className={styles.label}>
+          {label}
+        </label>
+      )}
       <RadixSelect.Root value={value} onValueChange={onChange}>
         <RadixSelect.Trigger id={id} className={styles.trigger} aria-label={label}>
           <RadixSelect.Value />
           <RadixSelect.Icon className={styles.icon}>▾</RadixSelect.Icon>
         </RadixSelect.Trigger>
         <RadixSelect.Portal>
-          <RadixSelect.Content className={styles.content} position="popper" sideOffset={4}>
-            <RadixSelect.Viewport>
+          <RadixSelect.Content className={styles.content} position="popper" sideOffset={6}>
+            <RadixSelect.Viewport className={styles.viewport}>
               {options.map((option) => (
                 <RadixSelect.Item key={option.value} value={option.value} className={styles.item}>
+                  <span className={styles.check} aria-hidden="true">
+                    <RadixSelect.ItemIndicator>✓</RadixSelect.ItemIndicator>
+                  </span>
                   <RadixSelect.ItemText>{option.label}</RadixSelect.ItemText>
                 </RadixSelect.Item>
               ))}

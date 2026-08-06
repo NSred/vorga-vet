@@ -14,6 +14,28 @@
   padding: 1rem 1.1rem;
   text-decoration: none;
   color: inherit;
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.85, 0.25, 1),
+    box-shadow 220ms ease,
+    border-color 200ms ease;
+}
+
+.cardClickable {
+  cursor: pointer;
+}
+
+.cardClickable:hover {
+  transform: translateY(-3px) scale(1.015);
+  border-color: var(--border-strong);
+  box-shadow:
+    0 1rem 1.75rem -1rem rgba(27, 26, 23, 0.24),
+    0 0.25rem 0.5rem -0.2rem rgba(27, 26, 23, 0.1);
+}
+
+.cardClickable:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .icon {

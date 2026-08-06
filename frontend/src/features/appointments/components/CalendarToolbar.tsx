@@ -1,5 +1,4 @@
-import type { ChangeEvent } from 'react'
-import { Button, SegmentedControl } from '@/shared/ui'
+import { Button, DatePicker, SegmentedControl } from '@/shared/ui'
 import { formatDateOnly, parseDateOnly } from '@/shared/lib/dateOnly'
 import type { CalendarView } from '../types'
 import styles from './CalendarToolbar.module.css'
@@ -29,12 +28,6 @@ export function CalendarToolbar({
   onNext,
   onToday,
 }: CalendarToolbarProps) {
-  const handleDateInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.value) {
-      onDateChange(parseDateOnly(event.target.value))
-    }
-  }
-
   return (
     <div className={styles.toolbar}>
       <SegmentedControl value={view} onChange={onViewChange} options={VIEW_OPTIONS} />
@@ -51,12 +44,13 @@ export function CalendarToolbar({
         </button>
       </div>
 
-      <input
-        type="date"
+      <DatePicker
+        id="calendar-date"
+        label="Select date"
+        hideLabel
         value={formatDateOnly(currentDate)}
-        onChange={handleDateInputChange}
-        className={styles.dateInput}
-        aria-label="Select date"
+        onChange={(next) => next && onDateChange(parseDateOnly(next))}
+        className={styles.datePicker}
       />
 
       <Button variant="outline" type="button" disabled>

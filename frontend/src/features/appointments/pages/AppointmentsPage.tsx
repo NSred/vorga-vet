@@ -53,9 +53,10 @@ export function AppointmentsPage() {
       .finally(() => setIsLoadingAppointments(false))
   }, [])
 
+  // Re-runs on view/date changes, not just mount, so switching views or navigating dates re-fetches and shows the loading skeleton.
   useEffect(() => {
     refreshAppointments()
-  }, [refreshAppointments])
+  }, [view, currentDate, refreshAppointments])
 
   useEffect(() => {
     getPatients({ status: 'all' }).then(setPatients)

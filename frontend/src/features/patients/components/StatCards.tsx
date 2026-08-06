@@ -23,7 +23,11 @@ export function StatCards({ stats, isLoading, onPeakHoursClick }: StatCardsProps
         )}
       </div>
 
-      <button type="button" className={`${styles.card} ${styles.cardButton}`} onClick={onPeakHoursClick}>
+      <button
+        type="button"
+        className={`${styles.card} ${styles.cardButton} ${styles.cardClickable}`}
+        onClick={onPeakHoursClick}
+      >
         <span className={styles.icon}>⏰</span>
         <span className={styles.label}>PEAK HOUR</span>
         {isLoading || !stats ? (
@@ -40,7 +44,10 @@ export function StatCards({ stats, isLoading, onPeakHoursClick }: StatCardsProps
         )}
       </button>
 
-      <Link to={`/appointments?view=day&date=${todayIso()}`} className={styles.card}>
+      <Link
+        to={`/appointments?view=day&date=${todayIso()}`}
+        className={`${styles.card} ${styles.cardClickable}`}
+      >
         <span className={styles.icon}>📅</span>
         <span className={styles.label}>SCHEDULED TODAY</span>
         {isLoading || !stats ? (

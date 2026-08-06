@@ -1,3 +1,4 @@
+import { Select } from '../Select/Select'
 import styles from './Pagination.module.css'
 
 export interface PaginationProps {
@@ -9,6 +10,16 @@ export interface PaginationProps {
   onPageSizeChange: (pageSize: number) => void
 }
 
+const WINDOW_SIZE = 5
+
+function getPageWindow(page: number, pageCount: number): number[] {
+  if (pageCount <= WINDOW_SIZE) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1)
+  }
+  const start = Math.min(Math.max(page - Math.floor(WINDOW_SIZE / 2), 1), pageCount - WINDOW_SIZE + 1)
+  return Array.from({ length: WINDOW_SIZE }, (_, index) => start + index)
+}
+
 export function Pagination({
   page,
   pageCount,
@@ -17,9 +28,20 @@ export function Pagination({
   onPageChange,
   onPageSizeChange,
 }: PaginationProps) {
+  const pageWindow = getPageWindow(page, pageCount)
+
   return (
     <div className={styles.pagination}>
       <div className={styles.pages}>
+        <button
+          type="button"
+          className={styles.arrow}
+          disabled={page <= 1}
+          onClick={() => onPageChange(1)}
+          aria-label="First page"
+        >
+          «
+        </button>
         <button
           type="button"
           className={styles.arrow}
@@ -29,7 +51,7 @@ export function Pagination({
         >
           ‹
         </button>
-        {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
+        {pageWindow.map((pageNumber) => (
           <button
             key={pageNumber}
             type="button"
@@ -48,19 +70,24 @@ export function Pagination({
         >
           ›
         </button>
+        <button
+          type="button"
+          className={styles.arrow}
+          disabled={page >= pageCount}
+          onClick={() => onPageChange(pageCount)}
+          aria-label="Last page"
+        >
+          »
+        </button>
       </div>
-      <select
-        className={styles.pageSizeSelect}
-        value={pageSize}
-        onChange={(event) => onPageSizeChange(Number(event.target.value))}
-        aria-label="Rows per page"
-      >
-        {pageSizeOptions.map((option) => (
-          <option key={option} value={option}>
-            {option} / page
-          </option>
-        ))}
-      </select>
+      <Select
+        className={styles.pageSize}
+        label="Rows per page"
+        hideLabel
+        value={String(pageSize)}
+        onChange={(next) => onPageSizeChange(Number(next))}
+        options={pageSizeOptions.map((option) => ({ value: String(option), label: `${option} / page` }))}
+      />
     </div>
   )
 }

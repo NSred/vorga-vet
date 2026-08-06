@@ -1,7 +1,9 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(27, 26, 23, 0.32);
+  background: linear-gradient(125deg, rgba(27, 26, 23, 0.4) 0%, rgba(27, 26, 23, 0.22) 55%, rgba(27, 26, 23, 0.34) 100%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   animation: fadeIn 180ms ease;
   z-index: 100;
 }
@@ -18,7 +20,9 @@
   width: min(35rem, 100vw);
   display: flex;
   flex-direction: column;
-  background: var(--surface);
+  background: linear-gradient(165deg, rgba(255, 253, 250, 0.92) 0%, rgba(255, 253, 250, 0.76) 100%);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
   box-shadow: -0.75rem 0 2rem rgba(27, 26, 23, 0.18);
   animation: slideIn 220ms cubic-bezier(0.16, 0.84, 0.44, 1);
   z-index: 101;
@@ -51,15 +55,15 @@
 }
 
 .header_plain {
-  background: var(--surface);
+  background: transparent;
 }
 
 .header_accent {
-  background: var(--accent-soft);
+  background: rgba(229, 238, 232, 0.72);
 }
 
 .header_warn {
-  background: var(--warn-soft);
+  background: rgba(246, 236, 224, 0.72);
 }
 
 .headerBody {
@@ -79,7 +83,7 @@
   gap: 0.6rem;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border);
-  background: var(--surface);
+  background: transparent;
 }
 
 @keyframes fadeIn {

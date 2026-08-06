@@ -13,10 +13,16 @@
   text-align: left;
   padding: 0.2rem 0.45rem;
   cursor: pointer;
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.85, 0.25, 1),
+    box-shadow 160ms ease,
+    filter 160ms ease;
 }
 
 .chip:hover {
   filter: brightness(0.97);
+  transform: scale(1.035);
+  box-shadow: 0 0.3rem 0.6rem -0.2rem rgba(27, 26, 23, 0.22);
 }
 
 .reminder {

@@ -11,7 +11,8 @@
   transition:
     filter 150ms ease,
     background 150ms ease,
-    border-color 150ms ease;
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .button:disabled {
@@ -46,7 +47,11 @@
 }
 
 .outline:hover:not(:disabled) {
-  background: var(--surface-2);
+  background: var(--surface-glass-hover);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: var(--text-faint);
+  box-shadow: 0 0.25rem 0.6rem -0.15rem rgba(27, 26, 23, 0.12);
 }
 
 .danger {

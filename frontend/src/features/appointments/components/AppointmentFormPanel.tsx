@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { SPECIES_EMOJI, type Patient } from '@/features/patients'
-import { Button, Select, SlidePanel, TextField, Textarea } from '@/shared/ui'
+import { Button, DatePicker, Select, SlidePanel, TextField, Textarea } from '@/shared/ui'
 import { todayIso } from '@/shared/lib/dateOnly'
 import type { Appointment, AppointmentInput } from '../types'
 import styles from './AppointmentFormPanel.module.css'
@@ -107,12 +107,19 @@ export function AppointmentFormPanel({
     >
       <form id="appointment-form" onSubmit={submit} className={styles.form}>
         <div className={styles.row}>
-          <TextField
-            id="date"
-            label="Date *"
-            type="date"
-            {...register('date', { required: 'Date is required' })}
-            error={errors.date?.message}
+          <Controller
+            name="date"
+            control={control}
+            rules={{ required: 'Date is required' }}
+            render={({ field }) => (
+              <DatePicker
+                id="date"
+                label="Date *"
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.date?.message}
+              />
+            )}
           />
           <TextField id="time" label="Time" type="time" {...register('time')} />
         </div>

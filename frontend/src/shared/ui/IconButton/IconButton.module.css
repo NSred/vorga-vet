@@ -11,10 +11,12 @@
   font-size: 1rem;
   transition:
     background 150ms ease,
-    color 150ms ease;
+    color 150ms ease,
+    transform 150ms cubic-bezier(0.2, 0.85, 0.25, 1);
 }
 
 .iconButton:hover {
   background: var(--surface-2);
   color: var(--text);
+  transform: scale(1.08);
 }

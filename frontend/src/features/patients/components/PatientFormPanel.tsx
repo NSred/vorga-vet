@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Button, Select, SlidePanel, TextField, Textarea } from '@/shared/ui'
+import { Button, DatePicker, Select, SlidePanel, TextField, Textarea } from '@/shared/ui'
 import { generatePatientCardNumber } from '../api/patientsApi'
 import type { Patient, PatientInput } from '../types'
 import styles from './PatientFormPanel.module.css'
@@ -201,7 +201,13 @@ export function PatientFormPanel({
               />
             )}
           />
-          <TextField id="birthDate" label="Date of birth" type="date" {...register('birthDate')} />
+          <Controller
+            name="birthDate"
+            control={control}
+            render={({ field }) => (
+              <DatePicker id="birthDate" label="Date of birth" value={field.value} onChange={field.onChange} />
+            )}
+          />
         </div>
 
         <div className={styles.row}>

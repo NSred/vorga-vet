@@ -22,4 +22,6 @@
   --ok: #2f6f52;
   --radius: 10px;
   --radius-sm: 7px;
+  --surface-glass: rgba(255, 253, 250, 0.6);
+  --surface-glass-hover: rgba(255, 253, 250, 0.88);
 }
