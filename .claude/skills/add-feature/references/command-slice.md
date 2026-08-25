@@ -121,7 +121,7 @@ Notes:
 - `IDateTimeProvider` (from `SharedKernel`) for timestamps — never `DateTime.UtcNow` directly.
 - If the command invalidates cached query data, inject `HybridCache` and call `cache.RemoveAsync({Feature}CacheKeys.X(...), cancellationToken)` after saving.
 - For a returning command (`ICommand<Guid>`), return the value directly — `Result<T>` has an implicit conversion: `return todoItem.Id;`.
-- Creation commands call the entity's `Create(...)` factory (from `add-entity`) instead of an object initializer: `var todoItem = TodoItem.Create(command.UserId, command.Description, ...);` then `context.TodoItems.Add(todoItem);`.
+- Creation commands call the entity's `Create(...)` factory (from `add-entity`) instead of an object initializer: `var todoItem = TodoItem.Create(command.UserId, command.Description, ...);` then `context.TodoItems.Add(todoItem);`. Use `var` here, not the explicit type — the repo's analyzer (IDE0007) errors on `TodoItem todoItem = TodoItem.Create(...)` because the type is apparent from a static factory call.
 
 ## Domain additions (if needed)
 

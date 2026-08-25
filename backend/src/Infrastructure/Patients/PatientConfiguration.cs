@@ -12,7 +12,7 @@ internal sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
     {
         builder.HasKey(p => p.Id);
 
-        builder.HasOne<Owner>().WithMany().HasForeignKey(p => p.OwnerId);
-        builder.HasOne<Breed>().WithMany().HasForeignKey(p => p.BreedId);
+        builder.HasOne<Owner>().WithMany().HasForeignKey(p => p.OwnerId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Breed>().WithMany().HasForeignKey(p => p.BreedId).OnDelete(DeleteBehavior.Restrict);
     }
 }
