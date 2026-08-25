@@ -1,0 +1,10 @@
+using SharedKernel;
+
+namespace Domain.Patients;
+
+public static class PatientErrors
+{
+    public static Error NotFound(Guid patientId) => Error.NotFound(
+        "Patients.NotFound",
+        $"The patient with the Id = '{patientId}' was not found");
+}

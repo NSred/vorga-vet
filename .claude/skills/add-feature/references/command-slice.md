@@ -58,7 +58,7 @@ public class CreateTodoCommandValidator : AbstractValidator<CreateTodoCommand>
 
 ## Handler
 
-`internal sealed`, primary constructor, `IApplicationDbContext` for data access. Guard clauses return `Result.Failure` with Domain errors; the happy path mutates, raises a domain event, saves, and returns.
+`internal sealed`, primary constructor, `IApplicationDbContext` for data access. Guard clauses return `Result.Failure` with Domain errors; the happy path calls a method on the entity (never assigns its properties directly — they're `private set`), saves, and returns. The entity raises its own domain event from inside that method, not the handler.
 
 ```csharp
 using Application.Abstractions.Authentication;
@@ -93,10 +93,7 @@ internal sealed class ArchiveTodoCommandHandler(
             return Result.Failure(TodoItemErrors.AlreadyArchived(command.TodoItemId));
         }
 
-        todoItem.IsArchived = true;
-        todoItem.ArchivedAt = dateTimeProvider.UtcNow;
-
-        todoItem.Raise(new TodoItemArchivedDomainEvent(todoItem.Id));
+        todoItem.Archive(dateTimeProvider.UtcNow);
 
         await context.SaveChangesAsync(cancellationToken);
 
@@ -105,11 +102,26 @@ internal sealed class ArchiveTodoCommandHandler(
 }
 ```
 
+The corresponding entity method (added to `Domain/Todos/TodoItem.cs` as part of this slice, not by `add-entity`):
+
+```csharp
+public void Archive(DateTime archivedAtUtc)
+{
+    IsArchived = true;
+    ArchivedAt = archivedAtUtc;
+
+    Raise(new TodoItemArchivedDomainEvent(Id));
+}
+```
+
+If several fields change together with no individual rule (a general "edit details" command), give the entity one bulk method for all of them (e.g. `UpdateDetails(string description, DateTime? dueDate, List<string> labels)`) rather than one method per field — reserve separate dedicated methods for fields that carry their own invariant, like `Archive` above bundling a flag, a timestamp, and an event together. The `AlreadyArchived` guard stays in the handler (it's about whether the command is *allowed to run*, not about keeping the entity's own state internally consistent) — put a check inside the entity method itself only when the entity must refuse to reach the resulting state at all, from any caller, always.
+
 Notes:
 - Ownership: either filter by `userContext.UserId` in the query (preferred) or compare explicitly and return `Result.Failure(UserErrors.Unauthorized())`.
 - `IDateTimeProvider` (from `SharedKernel`) for timestamps — never `DateTime.UtcNow` directly.
 - If the command invalidates cached query data, inject `HybridCache` and call `cache.RemoveAsync({Feature}CacheKeys.X(...), cancellationToken)` after saving.
 - For a returning command (`ICommand<Guid>`), return the value directly — `Result<T>` has an implicit conversion: `return todoItem.Id;`.
+- Creation commands call the entity's `Create(...)` factory (from `add-entity`) instead of an object initializer: `var todoItem = TodoItem.Create(command.UserId, command.Description, ...);` then `context.TodoItems.Add(todoItem);`.
 
 ## Domain additions (if needed)
 

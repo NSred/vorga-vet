@@ -19,14 +19,35 @@ namespace Domain.Projects;
 
 public sealed class Project : Entity
 {
-    public Guid Id { get; set; }
-    public Guid OwnerId { get; set; }
-    public string Name { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public Guid Id { get; private set; }
+    public Guid OwnerId { get; private set; }
+    public string Name { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+
+    private Project() { } // EF Core
+
+    public static Project Create(Guid ownerId, string name, DateTime createdAtUtc)
+    {
+        var project = new Project
+        {
+            Id = Guid.NewGuid(),
+            OwnerId = ownerId,
+            Name = name,
+            CreatedAt = createdAtUtc
+        };
+
+        project.Raise(new ProjectCreatedDomainEvent(project.Id));
+
+        return project;
+    }
 }
 ```
 
-`sealed class`, inherits `Entity` (gives it `DomainEvents` + `Raise(...)`), `Guid Id`, plain settable properties, collections initialized with `= [];`.
+`sealed class`, inherits `Entity` (gives it `DomainEvents` + `Raise(...)`). All properties `private set` — nothing outside the entity mutates them directly. A private parameterless constructor exists for EF Core, which materializes entities via reflection regardless of setter visibility, so this costs nothing at the persistence layer. Collections initialized with `= [];`.
+
+The entity's only public write path here is `Create(...)`: it assigns `Id`, sets the given fields, and raises the `Created` event from *inside* the entity, not from the calling handler. Don't add update/delete methods in this step — those get added by `add-feature`, one at a time, only when a real use case needs them (see that skill's command-slice reference). A method should exist because a command needs it, not because the entity might need it eventually.
+
+For fields with no individual business rule, `add-feature` will group them into one bulk method (e.g. `UpdateDetails(...)`) rather than a setter-method per field. A field only gets its own dedicated method when it has a real invariant to protect (e.g. `MarkDeleted()` bundling a deleted flag, a timestamp, and an event together) — most fields on most entities won't need one. Value objects, if a field ever needs one, are plain C# `record` types (matching `Error` and the domain events above) — no custom `ValueObject` base class.
 
 2. **Error catalog** — `backend/src/Domain/{Feature}/{Entity}Errors.cs`
 
