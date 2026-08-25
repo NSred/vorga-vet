@@ -12,6 +12,8 @@ internal sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
     {
         builder.HasKey(p => p.Id);
 
+        builder.HasIndex(p => p.CardNumber).IsUnique();
+
         builder.HasOne<Owner>().WithMany().HasForeignKey(p => p.OwnerId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Breed>().WithMany().HasForeignKey(p => p.BreedId).OnDelete(DeleteBehavior.Restrict);
     }

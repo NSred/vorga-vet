@@ -76,7 +76,7 @@ Conventions:
 - Test names: `Handle_Should_{Outcome}_When{Condition}`.
 - `// Arrange` / `// Act` / `// Assert` comments in every test.
 - Assert failures by comparing the exact error: `result.Error.ShouldBe(TodoItemErrors.NotFound(id))`.
-- `GlobalUsings.cs` already imports `Xunit`, `NSubstitute`, `Shouldly`, and `SharedKernel` — don't re-add those usings.
+- `GlobalUsings.cs` already imports `Xunit`, `NSubstitute`, and `Shouldly` — don't re-add those usings. `SharedKernel` (for `Result`, `IDateTimeProvider`, etc.) is *not* global — add it explicitly whenever a test references those types (confirmed by an actual CS0246 build failure, not assumed).
 - If the entity gains new properties, `TestDbContext` picks them up automatically; only touch it when adding a whole new `DbSet`.
 - Entities have private setters — always seed test data through the entity's `Create(...)` factory (and any mutation methods), never an object initializer. `new TodoItem { ... }` won't compile.
 

@@ -76,4 +76,60 @@ public sealed class BreedsTests(IntegrationTestWebAppFactory factory) : BaseInte
         Guid catBreedId = await catResponse.Content.ReadFromJsonAsync<Guid>();
         catBreedId.ShouldNotBe(dogBreedId);
     }
+
+    [Fact]
+    public async Task SearchBreeds_Should_ReturnUnauthorized_WhenTokenIsMissing()
+    {
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync("breeds?species=0");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task SearchBreeds_Should_FindBreed_ByNameSubstring_CaseInsensitive()
+    {
+        // Arrange
+        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        string name = $"Jazavičar {Guid.NewGuid()}";
+        HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("breeds", ValidRequest(name, species: 0));
+        createResponse.EnsureSuccessStatusCode();
+        Guid breedId = await createResponse.Content.ReadFromJsonAsync<Guid>();
+
+        // Act — uppercase substring against a title-case name
+        HttpResponseMessage response = await HttpClient.GetAsync($"breeds?species=0&search=JAZAVI");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        List<BreedDto>? breeds = await response.Content.ReadFromJsonAsync<List<BreedDto>>();
+        breeds.ShouldNotBeNull();
+        breeds.ShouldContain(b => b.Id == breedId);
+    }
+
+    [Fact]
+    public async Task SearchBreeds_Should_NotReturnBreed_WhenQueriedUnderADifferentSpecies()
+    {
+        // Arrange
+        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        string name = $"Persijska {Guid.NewGuid()}";
+        HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("breeds", ValidRequest(name, species: 1));
+        createResponse.EnsureSuccessStatusCode();
+        Guid breedId = await createResponse.Content.ReadFromJsonAsync<Guid>();
+
+        // Act — same search term, but species = Dog (0) instead of the Cat (1) it was created under
+        HttpResponseMessage response = await HttpClient.GetAsync($"breeds?species=0&search={Uri.EscapeDataString(name)}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        List<BreedDto>? breeds = await response.Content.ReadFromJsonAsync<List<BreedDto>>();
+        breeds.ShouldNotBeNull();
+        breeds.ShouldNotContain(b => b.Id == breedId);
+    }
+
+    private sealed record BreedDto(Guid Id, string Name);
 }
