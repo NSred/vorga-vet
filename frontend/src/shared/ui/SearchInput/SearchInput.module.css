@@ -20,7 +20,6 @@
 .box:hover {
   background: var(--surface-glass-hover);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border-color: var(--text-faint);
   box-shadow: 0 0.25rem 0.6rem -0.15rem rgba(27, 26, 23, 0.12);
 }
@@ -30,7 +29,6 @@
   border-color: var(--accent);
   background: var(--surface-glass-hover);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transform: scale(1.035);
   box-shadow:
     0 1.25rem 2.75rem -1.375rem rgba(27, 26, 23, 0.32),
