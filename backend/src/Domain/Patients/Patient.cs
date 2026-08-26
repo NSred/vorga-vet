@@ -59,4 +59,40 @@ public sealed class Patient : Entity
 
         return patient;
     }
+
+    public void UpdateDetails(
+        Guid ownerId,
+        Guid breedId,
+        string cardNumber,
+        string name,
+        Sex sex,
+        DateTime? birthDate,
+        decimal? weightKg,
+        string? color,
+        string? chipNumber,
+        string? anamnesis,
+        string? note)
+    {
+        OwnerId = ownerId;
+        BreedId = breedId;
+        CardNumber = cardNumber;
+        Name = name;
+        Sex = sex;
+        BirthDate = birthDate;
+        WeightKg = weightKg;
+        Color = color;
+        ChipNumber = chipNumber;
+        Anamnesis = anamnesis;
+        Note = note;
+
+        Raise(new PatientUpdatedDomainEvent(Id));
+    }
+
+    public void MarkDeleted(DateTime deletedAtUtc)
+    {
+        IsDeleted = true;
+        DeletedAt = deletedAtUtc;
+
+        Raise(new PatientDeletedDomainEvent(Id));
+    }
 }
