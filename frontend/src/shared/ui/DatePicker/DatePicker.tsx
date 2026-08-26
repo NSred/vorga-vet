@@ -26,10 +26,12 @@ export interface DatePickerProps {
   hideLabel?: boolean
   placeholder?: string
   className?: string
+  maxDate?: string
 }
 
 const WEEKDAY_HEADERS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const YEARS_PER_PAGE = 12
 
 function buildDayGrid(displayDate: Date): Date[] {
   const monthStart = startOfMonth(displayDate)
@@ -51,10 +53,19 @@ export function DatePicker({
   hideLabel,
   placeholder = 'Select date',
   className,
+  maxDate,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
-  const [view, setView] = useState<'days' | 'months'>('days')
+  const [view, setView] = useState<'days' | 'months' | 'years'>('days')
   const [displayDate, setDisplayDate] = useState<Date>(() => (value ? parseDateOnly(value) : new Date()))
+  const [yearPageStart, setYearPageStart] = useState<number>(() => getYear(displayDate) - 5)
+
+  const maxDay = maxDate ? parseDateOnly(maxDate) : undefined
+
+  const isAfterMax = (day: Date) => (maxDay ? day > maxDay : false)
+  const isMonthAfterMax = (monthDate: Date) =>
+    maxDay ? startOfMonth(monthDate) > startOfMonth(maxDay) : false
+  const isYearAfterMax = (year: number) => (maxDay ? year > getYear(maxDay) : false)
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
@@ -72,6 +83,16 @@ export function DatePicker({
   const handleSelectMonth = (monthDate: Date) => {
     setDisplayDate(monthDate)
     setView('days')
+  }
+
+  const openYearsView = () => {
+    setYearPageStart(getYear(displayDate) - 5)
+    setView('years')
+  }
+
+  const handleSelectYear = (year: number) => {
+    setDisplayDate((prev) => new Date(year, prev.getMonth(), 1))
+    setView('months')
   }
 
   const handleClear = () => {
@@ -120,13 +141,23 @@ export function DatePicker({
                   >
                     ‹
                   </button>
-                  <button type="button" className={styles.navLabel} onClick={() => setView('months')}>
-                    {format(displayDate, 'MMMM yyyy')}
-                  </button>
+                  <div className={styles.navLabelGroup}>
+                    <button
+                      type="button"
+                      className={styles.navLabel}
+                      onClick={() => setView('months')}
+                    >
+                      {format(displayDate, 'MMMM')}
+                    </button>
+                    <button type="button" className={styles.navLabel} onClick={openYearsView}>
+                      {getYear(displayDate)}
+                    </button>
+                  </div>
                   <button
                     type="button"
                     className={styles.navArrow}
                     onClick={() => setDisplayDate((prev) => addMonths(prev, 1))}
+                    disabled={isMonthAfterMax(addMonths(displayDate, 1))}
                     aria-label="Next month"
                   >
                     ›
@@ -144,15 +175,19 @@ export function DatePicker({
                     const inMonth = isSameMonth(day, displayDate)
                     const selected = selectedDate ? isSameDay(day, selectedDate) : false
                     const today = isToday(day)
+                    const disabled = isAfterMax(day)
                     return (
                       <button
                         key={day.toISOString()}
                         type="button"
+                        disabled={disabled}
+                        aria-label={formatDisplayDate(formatDateOnly(day))}
                         className={[
                           styles.day,
                           !inMonth && styles.dayMuted,
                           selected && styles.daySelected,
                           today && !selected && styles.dayToday,
+                          disabled && styles.dayDisabled,
                         ]
                           .filter(Boolean)
                           .join(' ')}
@@ -170,7 +205,7 @@ export function DatePicker({
                   </button>
                 </div>
               </>
-            ) : (
+            ) : view === 'months' ? (
               <>
                 <div className={styles.nav}>
                   <button
@@ -181,11 +216,14 @@ export function DatePicker({
                   >
                     ‹
                   </button>
-                  <span className={styles.navLabel}>{getYear(displayDate)}</span>
+                  <button type="button" className={styles.navLabel} onClick={openYearsView}>
+                    {getYear(displayDate)}
+                  </button>
                   <button
                     type="button"
                     className={styles.navArrow}
                     onClick={() => setDisplayDate((prev) => addYears(prev, 1))}
+                    disabled={isMonthAfterMax(startOfMonth(addYears(displayDate, 1)))}
                     aria-label="Next year"
                   >
                     ›
@@ -196,17 +234,76 @@ export function DatePicker({
                   {MONTH_LABELS.map((monthLabel, index) => {
                     const monthDate = new Date(getYear(displayDate), index, 1)
                     const isCurrent = isSameMonth(monthDate, displayDate)
+                    const disabled = isMonthAfterMax(monthDate)
                     return (
                       <button
                         key={monthLabel}
                         type="button"
-                        className={`${styles.month} ${isCurrent ? styles.monthActive : ''}`}
+                        disabled={disabled}
+                        className={[
+                          styles.month,
+                          isCurrent && styles.monthActive,
+                          disabled && styles.monthDisabled,
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
                         onClick={() => handleSelectMonth(monthDate)}
                       >
                         {monthLabel}
                       </button>
                     )
                   })}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.nav}>
+                  <button
+                    type="button"
+                    className={styles.navArrow}
+                    onClick={() => setYearPageStart((prev) => prev - YEARS_PER_PAGE)}
+                    aria-label="Previous years"
+                  >
+                    ‹
+                  </button>
+                  <span className={styles.navLabel}>
+                    {yearPageStart} – {yearPageStart + YEARS_PER_PAGE - 1}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.navArrow}
+                    onClick={() => setYearPageStart((prev) => prev + YEARS_PER_PAGE)}
+                    disabled={isYearAfterMax(yearPageStart + YEARS_PER_PAGE)}
+                    aria-label="Next years"
+                  >
+                    ›
+                  </button>
+                </div>
+
+                <div className={styles.years}>
+                  {Array.from({ length: YEARS_PER_PAGE }, (_, index) => yearPageStart + index).map(
+                    (year) => {
+                      const isCurrent = year === getYear(displayDate)
+                      const disabled = isYearAfterMax(year)
+                      return (
+                        <button
+                          key={year}
+                          type="button"
+                          disabled={disabled}
+                          className={[
+                            styles.year,
+                            isCurrent && styles.yearActive,
+                            disabled && styles.yearDisabled,
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                          onClick={() => handleSelectYear(year)}
+                        >
+                          {year}
+                        </button>
+                      )
+                    },
+                  )}
                 </div>
               </>
             )}

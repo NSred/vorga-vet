@@ -135,9 +135,20 @@
     color 140ms ease;
 }
 
-.navArrow:hover {
+.navArrow:hover:not(:disabled) {
   background: var(--surface-2);
   color: var(--text);
+}
+
+.navArrow:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.navLabelGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
 }
 
 .navLabel {
@@ -193,12 +204,19 @@
     color 140ms ease;
 }
 
-.day:hover {
+.day:hover:not(:disabled) {
   background: var(--surface-2);
 }
 
 .dayMuted {
   color: var(--text-faint);
+}
+
+.dayDisabled,
+.monthDisabled,
+.yearDisabled {
+  opacity: 0.32;
+  cursor: default;
 }
 
 .dayToday {
@@ -239,17 +257,20 @@
   background: var(--surface-2);
 }
 
-.months {
+.months,
+.years {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.4rem;
 }
 
-.month {
+.month,
+.year {
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text);
+  font: inherit;
   font-size: 0.82rem;
   font-weight: 600;
   padding: 0.55rem 0;
@@ -259,11 +280,13 @@
     color 140ms ease;
 }
 
-.month:hover {
+.month:hover:not(:disabled),
+.year:hover:not(:disabled) {
   background: var(--surface-2);
 }
 
-.monthActive {
+.monthActive,
+.yearActive {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
