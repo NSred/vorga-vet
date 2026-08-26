@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Button, DatePicker, Select, SlidePanel, TextField, Textarea } from '@/shared/ui'
-import { generatePatientCardNumber } from '../api/patientsApi'
 import type { Patient, PatientInput } from '../types'
 import styles from './PatientFormPanel.module.css'
 
@@ -62,7 +61,7 @@ function buildDefaultValues(mode: 'create' | 'edit', initialPatient?: Patient): 
     }
   }
   return {
-    cardNumber: generatePatientCardNumber(),
+    cardNumber: '',
     name: '',
     species: 'dog',
     breed: '',

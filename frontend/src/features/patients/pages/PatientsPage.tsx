@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { Button } from '@/shared/ui'
+import { Button, useToast } from '@/shared/ui'
+import { PatientCreatePanel } from '../components/PatientCreatePanel'
 import { PatientDetailPanel } from '../components/PatientDetailPanel'
 import { PatientFilters } from '../components/PatientFilters'
 import { PatientFormPanel } from '../components/PatientFormPanel'
 import { PatientTable } from '../components/PatientTable'
 import { PeakHoursPanel } from '../components/PeakHoursPanel'
 import { StatCards } from '../components/StatCards'
-import { getPatients, createPatient, updatePatient, softDeletePatient } from '../api/patientsApi'
+import { getPatients, updatePatient, softDeletePatient } from '../api/patientsApi'
 import { getDashboardStats, type DashboardStats } from '../api/statsApi'
 import type { Patient, PatientFilters as PatientFiltersType, PatientInput } from '../types'
 import styles from './PatientsPage.module.css'
@@ -19,6 +20,7 @@ type PanelState =
   | { mode: 'edit'; patient: Patient }
 
 export function PatientsPage() {
+  const { showToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filters, setFilters] = useState<PatientFiltersType>({ status: 'active' })
   const [patients, setPatients] = useState<Patient[]>([])
@@ -73,13 +75,6 @@ export function PatientsPage() {
 
   const closePanel = () => setPanel({ mode: 'closed' })
 
-  const handleCreateSubmit = async (input: PatientInput) => {
-    await createPatient(input)
-    closePanel()
-    refreshPatients(filters)
-    refreshStats()
-  }
-
   const handleEditSubmit = async (input: PatientInput) => {
     if (panel.mode !== 'edit') return
     await updatePatient(panel.patient.id, input)
@@ -131,11 +126,18 @@ export function PatientsPage() {
       )}
 
       {displayPanel.mode === 'create' && (
-        <PatientFormPanel
+        <PatientCreatePanel
           open={panel.mode === 'create'}
           onOpenChange={(open) => !open && closePanel()}
-          mode="create"
-          onSubmit={handleCreateSubmit}
+          onCreated={(patientName) => {
+            closePanel()
+            showToast({
+              tone: 'success',
+              title: `${patientName} was created`,
+              description:
+                'The patient list still shows sample data, so the new record is not in the table yet.',
+            })
+          }}
         />
       )}
 
