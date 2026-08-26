@@ -40,6 +40,71 @@ export interface Patient {
 
 export type PatientInput = Omit<Patient, 'id' | 'visits' | 'cardStatus'>
 
+export interface OwnerOption {
+  id: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
+}
+
+export interface BreedOption {
+  id: string
+  name: string
+}
+
+export interface AllergenOption {
+  id: string
+  name: string
+}
+
+export interface CreateOwnerRequest {
+  firstName: string
+  lastName: string
+  phoneNumber: string
+  address: string
+  city: string
+}
+
+export interface CreateBreedRequest {
+  name: string
+  species: Species
+}
+
+export interface CreateAllergenRequest {
+  name: string
+}
+
+export interface CreatePatientRequest {
+  ownerId: string
+  breedId: string
+  cardNumber: string
+  name: string
+  sex: number
+  birthDate?: string
+  weightKg?: number
+  color?: string
+  chipNumber?: string
+  anamnesis?: string
+  note?: string
+  allergenIds: string[]
+}
+
+export interface PatientFormValues {
+  cardNumber: string
+  name: string
+  species: Species
+  owner: OwnerOption | null
+  breed: BreedOption | null
+  sex: Sex
+  birthDate?: string
+  weightKg?: number
+  color?: string
+  chipNumber?: string
+  allergens: AllergenOption[]
+  anamnesis?: string
+  note?: string
+}
+
 export interface PatientFilters {
   search?: string
   species?: Species | 'all'

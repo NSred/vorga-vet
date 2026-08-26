@@ -1,10 +1,7 @@
+import { apiFetch } from '@/shared/lib/apiClient'
 import { simulateLatency } from '@/shared/lib/simulateLatency'
 import { patients } from './mockData'
-import type { Patient, PatientFilters, PatientInput } from '../types'
-
-export function generatePatientCardNumber(): string {
-  return String(Math.floor(10000 + Math.random() * 90000))
-}
+import type { CreatePatientRequest, Patient, PatientFilters, PatientInput } from '../types'
 
 function matchesFilters(patient: Patient, filters?: PatientFilters): boolean {
   if (!filters) return true
@@ -60,15 +57,11 @@ export async function getPatient(id: string): Promise<Patient> {
   return simulateLatency(patient)
 }
 
-export async function createPatient(input: PatientInput): Promise<Patient> {
-  const patient: Patient = {
-    ...input,
-    id: crypto.randomUUID(),
-    cardStatus: 'active',
-    visits: [],
-  }
-  patients.unshift(patient)
-  return simulateLatency(patient)
+export function createPatient(request: CreatePatientRequest): Promise<string> {
+  return apiFetch<string>('/patients', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  })
 }
 
 export async function updatePatient(id: string, input: PatientInput): Promise<Patient> {
