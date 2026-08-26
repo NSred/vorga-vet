@@ -15,7 +15,8 @@ Scaffold a full use case following this template's conventions: an Application-l
 3. **Create the Application slice** in `backend/src/Application/{Feature}/{UseCase}/` — command/query, handler, validator (commands only), response DTO (queries only). Templates: [references/command-slice.md](references/command-slice.md) and [references/query-slice.md](references/query-slice.md).
 4. **Create the endpoint** in `backend/src/Web.Api/Endpoints/{Feature}/{UseCase}.cs`. Template: [references/endpoint.md](references/endpoint.md).
 5. **Write tests** — handler unit tests, validator tests, and an integration test. Templates: [references/tests.md](references/tests.md).
-6. **Verify:** `dotnet build` then `dotnet test`. All three test projects must pass, including `ArchitectureTests` (layer dependency rules).
+6. **Readability pass, before verifying.** If the handler has more than one distinct concern — several optional filters, a multi-step pipeline, a secondary enrichment query, anything that wouldn't fit in one screenful read top-to-bottom — decompose it into small, well-named private methods so `Handle` itself reads as a short narrative, not the full implementation. Don't apply this to simple handlers (most `Create`/`Update`/single-entity `Get` slices are 3-10 lines and already read fine as one block) — decompose because a handler is genuinely multi-phase, not by default regardless of size. See `references/query-slice.md`'s "Multi-entity queries" section for the concrete pattern and a real EF Core translation trap to avoid when doing this.
+7. **Verify:** `dotnet build` then `dotnet test`. All three test projects must pass, including `ArchitectureTests` (layer dependency rules). Re-run this after the readability pass too — restructuring a query is exactly the kind of change that can silently break EF Core's translation of it; verify, don't assume the refactor is behavior-preserving just because it compiles.
 
 ## Non-negotiable conventions
 
