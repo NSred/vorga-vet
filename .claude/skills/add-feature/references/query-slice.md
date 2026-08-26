@@ -2,6 +2,18 @@
 
 Files go in `backend/src/Application/{Feature}/{UseCase}/`. Queries are reads: no validator, no domain events, no `SaveChangesAsync`.
 
+## Multi-entity queries: filter on the plain entity type, join only at the final projection
+
+No navigation properties exist anywhere in this domain, so a query spanning multiple entities (e.g. patients filtered by their owner's city, or their breed's species) needs explicit `join`s or correlated subqueries. **Do not project an intermediate `join` result into a named type (a `record`, a custom class) and then keep filtering/composing against it** — confirmed by an actual runtime failure, not a guess:
+
+```
+System.InvalidOperationException: The LINQ expression '... .Where(ti0 => !(new PatientJoinRow(ti0.Outer.Outer, ti0.Outer.Inner, ti0.Inner).Patient.IsDeleted))' could not be translated.
+```
+
+EF Core has special first-class translation support for **anonymous types** (`new { a, b, c }`) as an intermediate projection that gets filtered afterward. A named type constructed via a parameterized constructor — including a `record`, which is exactly that under the hood — does not get the same treatment once something downstream filters against it.
+
+The fix, and the better pattern generally for a query with several independent optional filters (see `GetPatientsQueryHandler` for the full example): filter against the **plain root entity type** (`IQueryable<Patient>`) using correlated subqueries for anything that depends on a related entity (`query.Where(p => context.Owners.Any(o => o.Id == p.OwnerId && o.City == city))`), and only bring in the related entities via an actual `join` once, right at the end, feeding directly into the final `.Select()` projection to the response DTO. This has two benefits beyond just avoiding the translation failure: filter methods get a real, already-named type in their signature (no synthetic type needed at all), and ordering/pagination (`OrderBy`/`Skip`/`Take`) can happen on the plain entity *before* the join, so the join only ever processes one page's worth of rows instead of the whole filtered result set.
+
 ## Query
 
 ```csharp
