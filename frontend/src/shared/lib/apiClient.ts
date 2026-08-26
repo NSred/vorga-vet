@@ -4,16 +4,26 @@ import { tokenStorage } from '@/shared/lib/tokenStorage'
 
 export class ApiError extends Error {
   status: number
+  code?: string
+  validationMessages?: string[]
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string, validationMessages?: string[]) {
     super(message)
     this.status = status
+    this.code = code
+    this.validationMessages = validationMessages
   }
+}
+
+interface ProblemEntry {
+  code?: string
+  description?: string
 }
 
 interface ProblemDetails {
   title?: string
   detail?: string
+  errors?: ProblemEntry[]
 }
 
 interface RefreshResponse {
@@ -54,12 +64,21 @@ async function performRefresh(): Promise<boolean> {
   return true
 }
 
-async function parseErrorMessage(response: Response): Promise<string> {
+async function parseProblem(response: Response): Promise<ApiError> {
   try {
     const problem = (await response.json()) as ProblemDetails
-    return problem.detail ?? problem.title ?? response.statusText
+    const messages = problem.errors
+      ?.map((entry) => entry.description)
+      .filter((description): description is string => Boolean(description))
+
+    return new ApiError(
+      response.status,
+      problem.detail ?? problem.title ?? response.statusText,
+      problem.title,
+      messages && messages.length > 0 ? messages : undefined,
+    )
   } catch {
-    return response.statusText
+    return new ApiError(response.status, response.statusText)
   }
 }
 
@@ -89,7 +108,7 @@ export async function apiFetch<T>(
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, await parseErrorMessage(response))
+    throw await parseProblem(response)
   }
 
   if (response.status === 204) {
