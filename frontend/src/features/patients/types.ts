@@ -1,44 +1,5 @@
 export type Species = 'dog' | 'cat' | 'bird' | 'other'
 export type Sex = 'male' | 'female'
-export type Allergy = 'none' | 'food' | 'medication' | 'fleas_ticks' | 'pollen' | 'other'
-export type CardStatus = 'active' | 'deleted'
-
-export interface Visit {
-  id: string
-  type: string
-  date: string
-  title: string
-  description?: string
-  costRsd?: number
-}
-
-export interface Patient {
-  id: string
-  cardNumber: string
-  name: string
-  species: Species
-  breed: string
-  sex: Sex
-  birthDate?: string
-  age?: number
-  weightKg?: number
-  color?: string
-  chipNumber?: string
-  cardStatus: CardStatus
-  allergies: Allergy
-  anamnesis?: string
-  note?: string
-  ownerName: string
-  phone?: string
-  mobile?: string
-  address?: string
-  city: string
-  totalServicesRsd?: number
-  paidRsd?: number
-  visits: Visit[]
-}
-
-export type PatientInput = Omit<Patient, 'id' | 'visits' | 'cardStatus'>
 
 export interface OwnerOption {
   id: string
@@ -74,7 +35,7 @@ export interface CreateAllergenRequest {
   name: string
 }
 
-export interface CreatePatientRequest {
+export interface PatientWriteRequest {
   ownerId: string
   breedId: string
   cardNumber: string
@@ -105,12 +66,83 @@ export interface PatientFormValues {
   note?: string
 }
 
+export type PatientStatus = 'active' | 'all' | 'deleted'
+
 export interface PatientFilters {
   search?: string
-  species?: Species | 'all'
-  sex?: Sex | 'all'
-  allergies?: Allergy | 'all'
+  species?: Species
+  sex?: Sex
+  allergen?: AllergenOption | null
   city?: string
-  debtorsOnly?: boolean
-  status?: 'active' | 'all' | 'deleted'
+  status?: PatientStatus
+}
+
+export interface PatientListItemDto {
+  id: string
+  cardNumber: string
+  name: string
+  species: number
+  breedName: string
+  sex: number
+  birthDate: string | null
+  weightKg: number | null
+  color: string | null
+  chipNumber: string | null
+  isDeleted: boolean
+  ownerName: string
+  phoneNumber: string
+  address: string | null
+  city: string
+  allergies: string[]
+}
+
+export interface PatientDetailDto extends Omit<PatientListItemDto, 'allergies'> {
+  ownerId: string
+  breedId: string
+  anamnesis: string | null
+  note: string | null
+  createdAt: string
+  allergies: AllergenOption[]
+}
+
+export interface GetPatientsResponseDto {
+  items: PatientListItemDto[]
+  totalCount: number
+  page: number
+  pageSize: number
+}
+
+export interface PatientListItem {
+  id: string
+  cardNumber: string
+  name: string
+  species: Species
+  breedName: string
+  sex: Sex
+  birthDate?: string
+  weightKg?: number
+  color?: string
+  chipNumber?: string
+  isDeleted: boolean
+  ownerName: string
+  phoneNumber: string
+  address?: string
+  city: string
+  allergies: string[]
+}
+
+export interface PatientDetail extends Omit<PatientListItem, 'allergies'> {
+  ownerId: string
+  breedId: string
+  anamnesis?: string
+  note?: string
+  createdAt: string
+  allergies: AllergenOption[]
+}
+
+export interface PatientPage {
+  items: PatientListItem[]
+  totalCount: number
+  page: number
+  pageSize: number
 }

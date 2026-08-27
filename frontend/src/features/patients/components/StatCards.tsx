@@ -57,15 +57,6 @@ export function StatCards({ stats, isLoading, onPeakHoursClick }: StatCardsProps
         )}
       </Link>
 
-      <div className={styles.card}>
-        <span className={styles.icon}>⚠️</span>
-        <span className={styles.label}>WITH ALLERGIES</span>
-        {isLoading || !stats ? (
-          <Skeleton width="3rem" height="1.6rem" />
-        ) : (
-          <span className={styles.value}>{stats.allergyCount}</span>
-        )}
-      </div>
     </div>
   )
 }

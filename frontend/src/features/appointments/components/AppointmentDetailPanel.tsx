@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react'
 import { Link } from 'react-router'
-import { SPECIES_EMOJI, type Patient } from '@/features/patients'
+import { SPECIES_EMOJI } from '@/features/patients'
+import type { MockPatient } from '../api/mockPatients'
 import { Button, IconButton, SlidePanel } from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { addAttachment, removeAttachment } from '../api/appointmentsApi'
@@ -10,7 +11,7 @@ import styles from './AppointmentDetailPanel.module.css'
 
 export interface AppointmentDetailPanelProps {
   appointment: Appointment
-  patient: Patient
+  patient: MockPatient
   open: boolean
   onOpenChange: (open: boolean) => void
   onEdit: () => void
@@ -150,7 +151,7 @@ export function AppointmentDetailPanel({
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>Patient record</h3>
-          <Link to={`/?patient=${patient.id}`} className={styles.cardLink}>
+          <Link to={`/patients?patient=${patient.id}`} className={styles.cardLink}>
             Open record →
           </Link>
         </div>

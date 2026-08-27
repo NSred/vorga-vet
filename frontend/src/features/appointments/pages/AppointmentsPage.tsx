@@ -1,7 +1,6 @@
 import { addDays, addMonths, addWeeks } from 'date-fns'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { getPatients, type Patient } from '@/features/patients'
 import { Button } from '@/shared/ui'
 import { parseDateOnly } from '@/shared/lib/dateOnly'
 import { AppointmentDetailPanel } from '../components/AppointmentDetailPanel'
@@ -11,6 +10,7 @@ import { DayView } from '../components/DayView'
 import { MonthView } from '../components/MonthView'
 import { WeekView } from '../components/WeekView'
 import { createAppointment, deleteAppointment, getAppointments, updateAppointment } from '../api/appointmentsApi'
+import { mockPatients, type MockPatient } from '../api/mockPatients'
 import type { Appointment, AppointmentInput, CalendarView } from '../types'
 import styles from './AppointmentsPage.module.css'
 
@@ -37,7 +37,7 @@ export function AppointmentsPage() {
 
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [isLoadingAppointments, setIsLoadingAppointments] = useState(true)
-  const [patients, setPatients] = useState<Patient[]>([])
+  const [patients] = useState<MockPatient[]>(mockPatients)
   const [panel, setPanel] = useState<PanelState>({ mode: 'closed' })
   const [displayPanel, setDisplayPanel] = useState<PanelState>({ mode: 'closed' })
   if (panel.mode !== 'closed' && panel !== displayPanel) {
@@ -57,10 +57,6 @@ export function AppointmentsPage() {
   useEffect(() => {
     refreshAppointments()
   }, [view, currentDate, refreshAppointments])
-
-  useEffect(() => {
-    getPatients({ status: 'all' }).then(setPatients)
-  }, [])
 
   const closePanel = () => setPanel({ mode: 'closed' })
 

@@ -5,3 +5,11 @@
 .muted {
   color: var(--text-faint);
 }
+
+.deletedRow {
+  opacity: 0.55;
+}
+
+.deletedRow .patientName {
+  text-decoration: line-through;
+}

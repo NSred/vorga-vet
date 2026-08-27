@@ -228,7 +228,7 @@
 .daySelected,
 .daySelected:hover {
   background: var(--accent);
-  color: #fffdfa;
+  color: var(--surface);
   font-weight: 700;
 }
 

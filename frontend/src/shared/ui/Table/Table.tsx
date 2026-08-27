@@ -19,6 +19,7 @@ export interface TableProps<T> {
   onSortChange?: (key: string) => void
   isLoading?: boolean
   skeletonRowCount?: number
+  rowClassName?: (row: T) => string | undefined
 }
 
 export function Table<T>({
@@ -31,6 +32,7 @@ export function Table<T>({
   onSortChange,
   isLoading = false,
   skeletonRowCount = 5,
+  rowClassName,
 }: TableProps<T>) {
   return (
     <table className={styles.table}>
@@ -66,7 +68,11 @@ export function Table<T>({
           : rows.map((row) => (
               <tr
                 key={getRowId(row)}
-                className={onRowClick ? styles.clickableRow : undefined}
+                className={
+                  [onRowClick ? styles.clickableRow : undefined, rowClassName?.(row)]
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                }
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
               >
                 {columns.map((column) => (

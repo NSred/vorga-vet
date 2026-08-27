@@ -1,11 +1,12 @@
 import { Badge, Button, SlidePanel } from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import type { Patient } from '../types'
+import { calculateAge } from '../lib/patientAge'
+import type { PatientDetail } from '../types'
 import { SPECIES_EMOJI } from '../lib/speciesEmoji'
 import styles from './PatientDetailPanel.module.css'
 
 export interface PatientDetailPanelProps {
-  patient: Patient
+  patient: PatientDetail
   open: boolean
   onOpenChange: (open: boolean) => void
   onEdit: () => void
@@ -29,7 +30,7 @@ function Field({ label, value }: { label: string; value: string | number | undef
 }
 
 export function PatientDetailPanel({ patient, open, onOpenChange, onEdit, onDelete }: PatientDetailPanelProps) {
-  const balance = (patient.totalServicesRsd ?? 0) - (patient.paidRsd ?? 0)
+  const age = calculateAge(patient.birthDate)
 
   return (
     <SlidePanel
@@ -43,7 +44,7 @@ export function PatientDetailPanel({ patient, open, onOpenChange, onEdit, onDele
           <div>
             <div className={styles.name}>{patient.name}</div>
             <div className={styles.subtitle}>
-              {patient.breed} · {formatValue(patient.age)} yrs
+              {patient.breedName} · {formatValue(age)} yrs
             </div>
           </div>
         </div>
@@ -67,63 +68,43 @@ export function PatientDetailPanel({ patient, open, onOpenChange, onEdit, onDele
         <div className={styles.grid}>
           <Field label="Record no." value={patient.cardNumber} />
           <Field label="Species" value={patient.species} />
-          <Field label="Breed" value={patient.breed} />
+          <Field label="Breed" value={patient.breedName} />
           <Field label="Sex" value={patient.sex === 'female' ? 'Female' : 'Male'} />
-          <Field label="Age" value={patient.age} />
+          <Field label="Age" value={age} />
           <Field label="Weight" value={patient.weightKg} />
           <Field label="Color" value={patient.color} />
           <Field label="Chip no." value={patient.chipNumber} />
-          <Field label="Record status" value={patient.cardStatus === 'active' ? 'Active' : 'Deleted'} />
+          <Field label="Record status" value={patient.isDeleted ? 'Deleted' : 'Active'} />
         </div>
       </section>
 
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Medical records</h3>
-        <div className={styles.grid}>
-          <Field label="Allergies" value={patient.allergies} />
+        <div className={styles.field}>
+          <span className={styles.fieldLabel}>Allergies</span>
+          <span className={styles.fieldValue}>
+            {patient.allergies.length === 0
+              ? '—'
+              : patient.allergies.map((allergen) => (
+                  <Badge key={allergen.id} tone="warn">
+                    {allergen.name}
+                  </Badge>
+                ))}
+          </span>
         </div>
         <Field label="Medical history" value={patient.anamnesis} />
+        <Field label="Note" value={patient.note} />
       </section>
 
       <section className={styles.section}>
         <h3 className={styles.sectionTitle}>Owner contact</h3>
         <div className={styles.grid}>
           <Field label="Owner" value={patient.ownerName} />
-          <Field label="Phone" value={patient.phone} />
-          <Field label="Mobile" value={patient.mobile} />
+          <Field label="Phone" value={patient.phoneNumber} />
           <Field label="Address" value={patient.address} />
           <Field label="City" value={patient.city} />
+          <Field label="Created" value={formatDisplayDate(patient.createdAt)} />
         </div>
-      </section>
-
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Finances</h3>
-        <div className={styles.grid}>
-          <Field label="Total services" value={patient.totalServicesRsd ? `${patient.totalServicesRsd} RSD` : undefined} />
-          <Field label="Paid" value={patient.paidRsd ? `${patient.paidRsd} RSD` : undefined} />
-          <Field label="Balance" value={balance <= 0 ? 'Settled' : `${balance} RSD`} />
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Visit history ({patient.visits.length})</h3>
-        {patient.visits.length === 0 ? (
-          <p className={styles.emptyVisits}>No visits on record.</p>
-        ) : (
-          <ul className={styles.visitList}>
-            {patient.visits.map((visit) => (
-              <li key={visit.id} className={styles.visitCard}>
-                <div className={styles.visitHeader}>
-                  <Badge tone="ok">{visit.type}</Badge>
-                  <span className={styles.visitDate}>{formatDisplayDate(visit.date)}</span>
-                </div>
-                <div className={styles.visitTitle}>{visit.title}</div>
-                {visit.description && <div className={styles.visitDescription}>{visit.description}</div>}
-                {visit.costRsd !== undefined && <div className={styles.visitCost}>💰 {visit.costRsd} RSD</div>}
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
     </SlidePanel>
   )

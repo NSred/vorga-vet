@@ -33,7 +33,7 @@ export function LoginPage() {
     clearErrors('root.server')
     try {
       await login(values)
-      navigate('/')
+      navigate('/patients')
     } catch (error) {
       const isInvalidCredentials =
         error instanceof ApiError && [400, 401, 404].includes(error.status)

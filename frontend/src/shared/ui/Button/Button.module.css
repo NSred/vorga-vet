@@ -23,7 +23,7 @@
 .primary {
   border: 1px solid var(--accent);
   background: var(--accent);
-  color: #fffdfa;
+  color: var(--surface);
 }
 
 .primary:hover:not(:disabled) {

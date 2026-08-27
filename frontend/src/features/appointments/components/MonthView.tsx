@@ -1,5 +1,5 @@
 import { eachDayOfInterval, endOfMonth, getDay, startOfMonth } from 'date-fns'
-import type { Patient } from '@/features/patients'
+import type { MockPatient } from '../api/mockPatients'
 import { Skeleton } from '@/shared/ui'
 import { formatDateOnly, todayIso } from '@/shared/lib/dateOnly'
 import { AppointmentChip } from './AppointmentChip'
@@ -9,7 +9,7 @@ import styles from './MonthView.module.css'
 export interface MonthViewProps {
   date: Date
   appointments: Appointment[]
-  patients: Map<string, Patient>
+  patients: Map<string, MockPatient>
   onAppointmentClick: (appointment: Appointment) => void
   onDateSelect: (date: Date) => void
   isLoading?: boolean

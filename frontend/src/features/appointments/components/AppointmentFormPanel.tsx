@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { SPECIES_EMOJI, type Patient } from '@/features/patients'
+import { SPECIES_EMOJI } from '@/features/patients'
+import type { MockPatient } from '../api/mockPatients'
 import { Button, DatePicker, Select, SlidePanel, TextField, Textarea } from '@/shared/ui'
 import { todayIso } from '@/shared/lib/dateOnly'
 import type { Appointment, AppointmentInput } from '../types'
@@ -11,7 +12,7 @@ export interface AppointmentFormPanelProps {
   onOpenChange: (open: boolean) => void
   mode: 'create' | 'edit'
   initialAppointment?: Appointment
-  patients: Patient[]
+  patients: MockPatient[]
   onSubmit: (input: AppointmentInput) => Promise<void>
   onDelete?: () => void
 }
@@ -19,7 +20,7 @@ export interface AppointmentFormPanelProps {
 function buildDefaultValues(
   mode: 'create' | 'edit',
   initialAppointment: Appointment | undefined,
-  patients: Patient[],
+  patients: MockPatient[],
 ): AppointmentInput {
   if (mode === 'edit' && initialAppointment) {
     const { patientId, date, time, type, note, reminderEnabled } = initialAppointment

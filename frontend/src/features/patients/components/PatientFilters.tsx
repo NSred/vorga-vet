@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Button, Select, SearchInput, SegmentedControl } from '@/shared/ui'
+import { useDebouncedValue } from '@/shared/lib/useDebouncedValue'
 import type { PatientFilters as PatientFiltersType } from '../types'
+import { AllergenFilter } from './AllergenFilter'
 import styles from './PatientFilters.module.css'
 
 export interface PatientFiltersProps {
@@ -17,21 +20,30 @@ const STATUS_OPTIONS = [
 
 export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
   const status = filters.status ?? 'active'
+  const committedSearch = filters.search ?? ''
+  const [searchDraft, setSearchDraft] = useState(committedSearch)
+  const debouncedSearch = useDebouncedValue(searchDraft, 300)
+
+  useEffect(() => {
+    if (debouncedSearch === committedSearch) return
+    onChange({ ...filters, search: debouncedSearch || undefined })
+  }, [debouncedSearch, committedSearch, filters, onChange])
 
   return (
     <div className={styles.bar}>
       <div className={styles.leftGroup}>
-        <SearchInput
-          value={filters.search ?? ''}
-          onChange={(search) => onChange({ ...filters, search })}
-          placeholder="Search"
-        />
+        <SearchInput value={searchDraft} onChange={setSearchDraft} placeholder="Search" />
 
         <Select
           id="filter-species"
           label="Species"
           value={filters.species ?? 'all'}
-          onChange={(species) => onChange({ ...filters, species: species as PatientFiltersType['species'] })}
+          onChange={(species) =>
+            onChange({
+              ...filters,
+              species: species === 'all' ? undefined : (species as PatientFiltersType['species']),
+            })
+          }
           options={[
             { value: 'all', label: 'All' },
             { value: 'dog', label: 'Dog' },
@@ -45,7 +57,12 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
           id="filter-sex"
           label="Sex"
           value={filters.sex ?? 'all'}
-          onChange={(sex) => onChange({ ...filters, sex: sex as PatientFiltersType['sex'] })}
+          onChange={(sex) =>
+            onChange({
+              ...filters,
+              sex: sex === 'all' ? undefined : (sex as PatientFiltersType['sex']),
+            })
+          }
           options={[
             { value: 'all', label: 'All' },
             { value: 'male', label: 'Male' },
@@ -53,22 +70,9 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
           ]}
         />
 
-        <Select
-          id="filter-allergies"
-          label="Allergies"
-          value={filters.allergies ?? 'all'}
-          onChange={(allergies) =>
-            onChange({ ...filters, allergies: allergies as PatientFiltersType['allergies'] })
-          }
-          options={[
-            { value: 'all', label: 'All' },
-            { value: 'none', label: 'None' },
-            { value: 'food', label: 'Food' },
-            { value: 'medication', label: 'Medication' },
-            { value: 'fleas_ticks', label: 'Fleas/ticks' },
-            { value: 'pollen', label: 'Pollen' },
-            { value: 'other', label: 'Other' },
-          ]}
+        <AllergenFilter
+          value={filters.allergen ?? null}
+          onChange={(allergen) => onChange({ ...filters, allergen })}
         />
 
         <Select
@@ -86,22 +90,20 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
       </div>
 
       <div className={styles.rightGroup}>
-        <label className={styles.checkbox}>
-          <input
-            type="checkbox"
-            checked={filters.debtorsOnly ?? false}
-            onChange={(event) => onChange({ ...filters, debtorsOnly: event.target.checked })}
-          />
-          Debtors
-        </label>
-
         <SegmentedControl
           value={status}
           onChange={(value) => onChange({ ...filters, status: value })}
           options={STATUS_OPTIONS}
         />
 
-        <Button variant="outline" type="button" onClick={() => onChange(DEFAULT_FILTERS)}>
+        <Button
+          variant="outline"
+          type="button"
+          onClick={() => {
+            setSearchDraft('')
+            onChange(DEFAULT_FILTERS)
+          }}
+        >
           Reset
         </Button>
       </div>

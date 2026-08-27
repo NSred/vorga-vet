@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate } from 'react-router'
 import { AuthLayout, LoginPage, RegisterPage, ProtectedRoute } from '@/features/auth'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { PatientsPage } from '@/features/patients'
@@ -18,7 +18,8 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/', element: <PatientsPage /> },
+          { index: true, element: <Navigate to="/patients" replace /> },
+          { path: '/patients', element: <PatientsPage /> },
           { path: '/appointments', element: <AppointmentsPage /> },
         ],
       },

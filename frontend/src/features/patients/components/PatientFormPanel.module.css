@@ -25,3 +25,12 @@
 .fullWidth {
   grid-column: 1 / -1;
 }
+
+.submitError {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: 0.8rem;
+}

@@ -46,7 +46,7 @@
 .pageButtonActive {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fffdfa;
+  color: var(--surface);
 }
 
 .arrow:disabled {

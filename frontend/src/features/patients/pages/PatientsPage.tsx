@@ -1,29 +1,44 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
+import { ApiError } from '@/shared/lib/apiClient'
 import { Button, useToast } from '@/shared/ui'
-import { PatientCreatePanel } from '../components/PatientCreatePanel'
 import { PatientDetailPanel } from '../components/PatientDetailPanel'
 import { PatientFilters } from '../components/PatientFilters'
 import { PatientFormPanel } from '../components/PatientFormPanel'
 import { PatientTable } from '../components/PatientTable'
 import { PeakHoursPanel } from '../components/PeakHoursPanel'
 import { StatCards } from '../components/StatCards'
-import { getPatients, updatePatient, softDeletePatient } from '../api/patientsApi'
+import { searchAllergens } from '../api/allergensApi'
+import { deletePatient, getPatient, getPatients } from '../api/patientsApi'
 import { getDashboardStats, type DashboardStats } from '../api/statsApi'
-import type { Patient, PatientFilters as PatientFiltersType, PatientInput } from '../types'
+import { parseFilterParams, toFilterParams } from '../lib/patientFilterParams'
+import type {
+  AllergenOption,
+  PatientDetail,
+  PatientFilters as PatientFiltersType,
+  PatientListItem,
+  PatientPage,
+} from '../types'
 import styles from './PatientsPage.module.css'
 
 type PanelState =
   | { mode: 'closed' }
   | { mode: 'create' }
-  | { mode: 'view'; patient: Patient }
-  | { mode: 'edit'; patient: Patient }
+  | { mode: 'view'; patient: PatientDetail }
+  | { mode: 'edit'; patient: PatientDetail }
+
+const EMPTY_PAGE: PatientPage = { items: [], totalCount: 0, page: 1, pageSize: 10 }
 
 export function PatientsPage() {
   const { showToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [filters, setFilters] = useState<PatientFiltersType>({ status: 'active' })
-  const [patients, setPatients] = useState<Patient[]>([])
+  const { filters, allergenName, page, pageSize } = parseFilterParams(searchParams)
+
+  const [allergenResolution, setAllergenResolution] = useState<{
+    name: string
+    option: AllergenOption | null
+  } | null>(null)
+  const [patientPage, setPatientPage] = useState<PatientPage>(EMPTY_PAGE)
   const [isLoadingPatients, setIsLoadingPatients] = useState(true)
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
@@ -33,13 +48,43 @@ export function PatientsPage() {
     setDisplayPanel(panel)
   }
   const [peakHoursOpen, setPeakHoursOpen] = useState(false)
+  const latestRequest = useRef(0)
 
-  const refreshPatients = useCallback((nextFilters: PatientFiltersType) => {
-    setIsLoadingPatients(true)
-    getPatients(nextFilters)
-      .then(setPatients)
-      .finally(() => setIsLoadingPatients(false))
-  }, [])
+  const isAllergenPending = Boolean(allergenName) && allergenResolution?.name !== allergenName
+  const allergen = isAllergenPending ? null : (allergenResolution?.option ?? null)
+  const activeFilters: PatientFiltersType = { ...filters, allergen }
+
+  const writeParams = useCallback(
+    (nextFilters: PatientFiltersType, nextPage: number, nextPageSize: number) => {
+      setSearchParams(toFilterParams(nextFilters, nextPage, nextPageSize), { replace: true })
+    },
+    [setSearchParams],
+  )
+
+  useEffect(() => {
+    if (!allergenName) {
+      setAllergenResolution(null)
+      return
+    }
+    if (allergenResolution?.name === allergenName) return
+
+    let cancelled = false
+    searchAllergens(allergenName)
+      .then((results) => {
+        if (cancelled) return
+        const match = results.find(
+          (candidate) => candidate.name.toLowerCase() === allergenName.toLowerCase(),
+        )
+        setAllergenResolution({ name: allergenName, option: match ?? null })
+      })
+      .catch(() => {
+        if (!cancelled) setAllergenResolution({ name: allergenName, option: null })
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [allergenName, allergenResolution])
 
   const refreshStats = useCallback(() => {
     setIsLoadingStats(true)
@@ -48,9 +93,31 @@ export function PatientsPage() {
       .finally(() => setIsLoadingStats(false))
   }, [])
 
-  useEffect(() => {
-    refreshPatients(filters)
-  }, [filters, refreshPatients])
+  const searchKey = JSON.stringify([filters, allergen?.id, page, pageSize])
+
+  const loadPatients = useCallback(() => {
+    if (isAllergenPending) return
+
+    const requestId = ++latestRequest.current
+    setIsLoadingPatients(true)
+
+    getPatients(activeFilters, page, pageSize)
+      .then((result) => {
+        if (requestId !== latestRequest.current) return
+        setPatientPage(result)
+      })
+      .catch(() => {
+        if (requestId !== latestRequest.current) return
+        setPatientPage(EMPTY_PAGE)
+        showToast({ tone: 'error', title: 'Could not load patients' })
+      })
+      .finally(() => {
+        if (requestId === latestRequest.current) setIsLoadingPatients(false)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchKey, isAllergenPending, showToast])
+
+  useEffect(loadPatients, [loadPatients])
 
   useEffect(() => {
     refreshStats()
@@ -59,38 +126,58 @@ export function PatientsPage() {
   useEffect(() => {
     const patientId = searchParams.get('patient')
     if (!patientId) return
-    const found = patients.find((patient) => patient.id === patientId)
-    if (found) {
-      setPanel({ mode: 'view', patient: found })
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev)
-          next.delete('patient')
-          return next
-        },
-        { replace: true },
-      )
-    }
-  }, [searchParams, patients, setSearchParams])
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('patient')
+        return next
+      },
+      { replace: true },
+    )
+
+    getPatient(patientId)
+      .then((patient) => setPanel({ mode: 'view', patient }))
+      .catch(() => undefined)
+  }, [searchParams, setSearchParams])
 
   const closePanel = () => setPanel({ mode: 'closed' })
 
-  const handleEditSubmit = async (input: PatientInput) => {
-    if (panel.mode !== 'edit') return
-    await updatePatient(panel.patient.id, input)
+  const afterWrite = (title: string) => {
     closePanel()
-    refreshPatients(filters)
+    loadPatients()
     refreshStats()
+    showToast({ tone: 'success', title })
+  }
+
+  const openPatient = (patient: PatientListItem) => {
+    getPatient(patient.id)
+      .then((detail) => setPanel({ mode: 'view', patient: detail }))
+      .catch(() => {
+        showToast({ tone: 'error', title: 'Could not open that patient' })
+        loadPatients()
+      })
   }
 
   const handleDelete = async (patientId: string) => {
     if (!window.confirm('Are you sure you want to delete this record?')) {
       return
     }
-    await softDeletePatient(patientId)
-    closePanel()
-    refreshPatients(filters)
-    refreshStats()
+
+    try {
+      await deletePatient(patientId)
+    } catch (error: unknown) {
+      const alreadyGone =
+        error instanceof ApiError &&
+        (error.code === 'Patients.NotFound' || error.code === 'Patients.AlreadyDeleted')
+
+      if (!alreadyGone) {
+        showToast({ tone: 'error', title: 'Could not delete that patient' })
+        return
+      }
+    }
+
+    afterWrite('Patient deleted')
   }
 
   return (
@@ -107,12 +194,20 @@ export function PatientsPage() {
 
       <StatCards stats={stats} isLoading={isLoadingStats} onPeakHoursClick={() => setPeakHoursOpen(true)} />
 
-      <PatientFilters filters={filters} onChange={setFilters} />
+      <PatientFilters filters={activeFilters} onChange={(next) => writeParams(next, 1, pageSize)} />
 
       <PatientTable
-        patients={patients}
-        isLoading={isLoadingPatients}
-        onRowClick={(patient) => setPanel({ mode: 'view', patient })}
+        patients={patientPage.items}
+        isLoading={isLoadingPatients || isAllergenPending}
+        page={page}
+        pageSize={pageSize}
+        totalCount={patientPage.totalCount}
+        hasFilters={Boolean(
+          filters.search || filters.species || filters.sex || filters.city || allergenName,
+        )}
+        onPageChange={(next) => writeParams(activeFilters, next, pageSize)}
+        onPageSizeChange={(next) => writeParams(activeFilters, 1, next)}
+        onRowClick={openPatient}
       />
 
       {displayPanel.mode === 'view' && (
@@ -126,29 +221,24 @@ export function PatientsPage() {
       )}
 
       {displayPanel.mode === 'create' && (
-        <PatientCreatePanel
+        <PatientFormPanel
+          mode="create"
           open={panel.mode === 'create'}
           onOpenChange={(open) => !open && closePanel()}
-          onCreated={(patientName) => {
-            closePanel()
-            showToast({
-              tone: 'success',
-              title: `${patientName} was created`,
-              description:
-                'The patient list still shows sample data, so the new record is not in the table yet.',
-            })
-          }}
+          onSaved={(patientName) => afterWrite(`${patientName} was created`)}
+          onMissing={() => afterWrite('That patient no longer exists')}
         />
       )}
 
       {displayPanel.mode === 'edit' && (
         <PatientFormPanel
+          key={displayPanel.patient.id}
+          mode="edit"
+          patient={displayPanel.patient}
           open={panel.mode === 'edit'}
           onOpenChange={(open) => !open && closePanel()}
-          mode="edit"
-          initialPatient={displayPanel.patient}
-          onSubmit={handleEditSubmit}
-          onDelete={() => handleDelete(displayPanel.patient.id)}
+          onSaved={(patientName) => afterWrite(`${patientName} was saved`)}
+          onMissing={() => afterWrite('That patient no longer exists')}
         />
       )}
 

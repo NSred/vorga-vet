@@ -1,84 +1,70 @@
 import { apiFetch } from '@/shared/lib/apiClient'
-import { simulateLatency } from '@/shared/lib/simulateLatency'
-import { patients } from './mockData'
-import type { CreatePatientRequest, Patient, PatientFilters, PatientInput } from '../types'
+import { sexToApi, speciesToApi, statusToApi } from '../lib/enumMapping'
+import { toPatientDetail, toPatientListItem } from '../lib/patientMapping'
+import type {
+  GetPatientsResponseDto,
+  PatientDetail,
+  PatientDetailDto,
+  PatientFilters,
+  PatientPage,
+  PatientWriteRequest,
+} from '../types'
 
-function matchesFilters(patient: Patient, filters?: PatientFilters): boolean {
-  if (!filters) return true
+export function buildPatientsQuery(
+  filters: PatientFilters,
+  page: number,
+  pageSize: number,
+): URLSearchParams {
+  const params = new URLSearchParams()
 
-  const status = filters.status ?? 'active'
-  if (status !== 'all' && patient.cardStatus !== status) return false
+  const search = filters.search?.trim()
+  if (search) params.set('search', search)
+  if (filters.species) params.set('species', String(speciesToApi(filters.species)))
+  if (filters.sex) params.set('sex', String(sexToApi(filters.sex)))
+  if (filters.allergen) params.set('allergenId', filters.allergen.id)
+  if (filters.city) params.set('city', filters.city)
 
-  if (filters.search) {
-    const needle = filters.search.toLowerCase()
-    const haystack = [
-      patient.ownerName,
-      patient.name,
-      patient.breed,
-      patient.phone,
-      patient.chipNumber,
-      patient.address,
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-    if (!haystack.includes(needle)) return false
-  }
+  params.set('status', String(statusToApi(filters.status ?? 'active')))
+  params.set('page', String(page))
+  params.set('pageSize', String(pageSize))
 
-  if (filters.species && filters.species !== 'all' && patient.species !== filters.species) {
-    return false
-  }
-  if (filters.sex && filters.sex !== 'all' && patient.sex !== filters.sex) {
-    return false
-  }
-  if (filters.allergies && filters.allergies !== 'all' && patient.allergies !== filters.allergies) {
-    return false
-  }
-  if (filters.city && filters.city !== 'all' && patient.city !== filters.city) {
-    return false
-  }
-  if (filters.debtorsOnly) {
-    const balance = (patient.totalServicesRsd ?? 0) - (patient.paidRsd ?? 0)
-    if (balance <= 0) return false
-  }
-
-  return true
+  return params
 }
 
-export function getPatients(filters?: PatientFilters): Promise<Patient[]> {
-  return simulateLatency(patients.filter((patient) => matchesFilters(patient, filters)))
-}
+export async function getPatients(
+  filters: PatientFilters,
+  page: number,
+  pageSize: number,
+): Promise<PatientPage> {
+  const query = buildPatientsQuery(filters, page, pageSize)
+  const response = await apiFetch<GetPatientsResponseDto>(`/patients?${query.toString()}`)
 
-export async function getPatient(id: string): Promise<Patient> {
-  const patient = patients.find((item) => item.id === id)
-  if (!patient) {
-    throw new Error(`Patient ${id} not found`)
+  return {
+    items: response.items.map(toPatientListItem),
+    totalCount: response.totalCount,
+    page: response.page,
+    pageSize: response.pageSize,
   }
-  return simulateLatency(patient)
 }
 
-export function createPatient(request: CreatePatientRequest): Promise<string> {
+export async function getPatient(id: string): Promise<PatientDetail> {
+  return toPatientDetail(await apiFetch<PatientDetailDto>(`/patients/${id}`))
+}
+
+export function createPatient(request: PatientWriteRequest): Promise<string> {
   return apiFetch<string>('/patients', {
     method: 'POST',
     body: JSON.stringify(request),
   })
 }
 
-export async function updatePatient(id: string, input: PatientInput): Promise<Patient> {
-  const index = patients.findIndex((item) => item.id === id)
-  if (index === -1) {
-    throw new Error(`Patient ${id} not found`)
-  }
-  const updated: Patient = { ...patients[index], ...input, id, visits: patients[index].visits }
-  patients[index] = updated
-  return simulateLatency(updated)
+export function updatePatient(id: string, request: PatientWriteRequest): Promise<void> {
+  return apiFetch<void>(`/patients/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(request),
+  })
 }
 
-export async function softDeletePatient(id: string): Promise<void> {
-  const index = patients.findIndex((item) => item.id === id)
-  if (index === -1) {
-    throw new Error(`Patient ${id} not found`)
-  }
-  patients[index] = { ...patients[index], cardStatus: 'deleted' }
-  await simulateLatency(undefined)
+export function deletePatient(id: string): Promise<void> {
+  return apiFetch<void>(`/patients/${id}`, { method: 'DELETE' })
 }

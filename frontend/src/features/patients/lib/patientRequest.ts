@@ -1,5 +1,5 @@
 import { sexToApi } from './enumMapping'
-import type { CreatePatientRequest, PatientFormValues } from '../types'
+import type { PatientWriteRequest, PatientFormValues } from '../types'
 
 function optionalText(value: string | undefined): string | undefined {
   const trimmed = value?.trim()
@@ -11,7 +11,7 @@ function optionalUtcDate(value: string | undefined): string | undefined {
   return trimmed ? `${trimmed}T00:00:00Z` : undefined
 }
 
-export function toCreatePatientRequest(values: PatientFormValues): CreatePatientRequest {
+export function toPatientWriteRequest(values: PatientFormValues): PatientWriteRequest {
   if (!values.owner) {
     throw new Error('Cannot build a create-patient request without an owner')
   }

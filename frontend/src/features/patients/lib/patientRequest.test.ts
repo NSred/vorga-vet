@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toCreatePatientRequest } from './patientRequest'
+import { toPatientWriteRequest } from './patientRequest'
 import type { PatientFormValues } from '../types'
 
 const base: PatientFormValues = {
@@ -12,9 +12,9 @@ const base: PatientFormValues = {
   allergens: [],
 }
 
-describe('toCreatePatientRequest', () => {
+describe('toPatientWriteRequest', () => {
   it('maps ids out of the selected objects and sex to its integer', () => {
-    const request = toCreatePatientRequest(base)
+    const request = toPatientWriteRequest(base)
 
     expect(request.ownerId).toBe('owner-1')
     expect(request.breedId).toBe('breed-1')
@@ -24,7 +24,7 @@ describe('toCreatePatientRequest', () => {
   })
 
   it('extracts allergen ids in selection order', () => {
-    const request = toCreatePatientRequest({
+    const request = toPatientWriteRequest({
       ...base,
       allergens: [
         { id: 'a1', name: 'food' },
@@ -36,7 +36,7 @@ describe('toCreatePatientRequest', () => {
   })
 
   it('omits optional fields that are empty rather than sending empty strings', () => {
-    const request = toCreatePatientRequest({ ...base, color: '', chipNumber: '   ', note: '' })
+    const request = toPatientWriteRequest({ ...base, color: '', chipNumber: '   ', note: '' })
 
     expect(request.color).toBeUndefined()
     expect(request.chipNumber).toBeUndefined()
@@ -44,31 +44,31 @@ describe('toCreatePatientRequest', () => {
   })
 
   it('keeps optional fields that have content, trimmed', () => {
-    const request = toCreatePatientRequest({ ...base, color: ' brindle ', weightKg: 24.5 })
+    const request = toPatientWriteRequest({ ...base, color: ' brindle ', weightKg: 24.5 })
 
     expect(request.color).toBe('brindle')
     expect(request.weightKg).toBe(24.5)
   })
 
   it('sends the birth date as an explicit UTC instant', () => {
-    const request = toCreatePatientRequest({ ...base, birthDate: '2026-02-02' })
+    const request = toPatientWriteRequest({ ...base, birthDate: '2026-02-02' })
 
     expect(request.birthDate).toBe('2026-02-02T00:00:00Z')
   })
 
   it('omits the birth date when it is not set', () => {
-    expect(toCreatePatientRequest({ ...base, birthDate: '' }).birthDate).toBeUndefined()
-    expect(toCreatePatientRequest({ ...base, birthDate: undefined }).birthDate).toBeUndefined()
+    expect(toPatientWriteRequest({ ...base, birthDate: '' }).birthDate).toBeUndefined()
+    expect(toPatientWriteRequest({ ...base, birthDate: undefined }).birthDate).toBeUndefined()
   })
 
   it('does not send species, which is a UI-only field', () => {
-    const request = toCreatePatientRequest(base) as unknown as Record<string, unknown>
+    const request = toPatientWriteRequest(base) as unknown as Record<string, unknown>
 
     expect(request.species).toBeUndefined()
   })
 
   it('throws when owner or breed is missing, which validation should have prevented', () => {
-    expect(() => toCreatePatientRequest({ ...base, owner: null })).toThrow(/owner/i)
-    expect(() => toCreatePatientRequest({ ...base, breed: null })).toThrow(/breed/i)
+    expect(() => toPatientWriteRequest({ ...base, owner: null })).toThrow(/owner/i)
+    expect(() => toPatientWriteRequest({ ...base, breed: null })).toThrow(/breed/i)
   })
 })

@@ -18,6 +18,7 @@ export interface ComboboxProps {
   options: ComboboxOption[]
   onSelect: (option: ComboboxOption) => void
   onCreate?: (query: string) => void
+  onClear?: () => void
   createLabel?: string
   selectedIds?: string[]
   isLoading?: boolean
@@ -37,6 +38,7 @@ export function Combobox({
   options,
   onSelect,
   onCreate,
+  onClear,
   createLabel = 'Create',
   selectedIds = [],
   isLoading = false,
@@ -131,6 +133,19 @@ export function Combobox({
             />
 
             <div className={styles.list} role="listbox" aria-label={label}>
+              {onClear && (
+                <button
+                  type="button"
+                  className={styles.clearRow}
+                  onClick={() => {
+                    onClear()
+                    setOpen(false)
+                  }}
+                >
+                  Clear selection
+                </button>
+              )}
+
               {isLoading && <p className={styles.state}>Searching…</p>}
 
               {!isLoading && errorMessage && <p className={styles.stateError}>{errorMessage}</p>}

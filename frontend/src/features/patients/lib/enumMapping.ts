@@ -1,4 +1,4 @@
-import type { Sex, Species } from '../types'
+import type { PatientStatus, Sex, Species } from '../types'
 
 const SPECIES_TO_API: Record<Species, number> = { dog: 0, cat: 1, bird: 2, other: 3 }
 const API_TO_SPECIES: Record<number, Species> = { 0: 'dog', 1: 'cat', 2: 'bird', 3: 'other' }
@@ -27,4 +27,10 @@ export function sexFromApi(value: number): Sex {
     throw new Error(`Unknown sex value received from the API: ${value}`)
   }
   return sex
+}
+
+const STATUS_TO_API: Record<PatientStatus, number> = { active: 0, all: 1, deleted: 2 }
+
+export function statusToApi(status: PatientStatus): number {
+  return STATUS_TO_API[status]
 }

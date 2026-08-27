@@ -1,11 +1,10 @@
 import { simulateLatency } from '@/shared/lib/simulateLatency'
 import { parseDateOnly, todayIso } from '@/shared/lib/dateOnly'
 import { getAppointments, WEEKDAYS } from '@/features/appointments'
-import { patients } from './mockData'
+import { getPatients } from './patientsApi'
 
 export interface DashboardStats {
   totalPatients: number
-  allergyCount: number
   peakHour: { hour: string; count: number } | null
   todayAppointmentsCount: number
 }
@@ -15,8 +14,10 @@ function getHourBucket(time: string): string {
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const active = patients.filter((patient) => patient.cardStatus === 'active')
-  const appointments = await getAppointments()
+  const [activePatients, appointments] = await Promise.all([
+    getPatients({ status: 'active' }, 1, 10),
+    getAppointments(),
+  ])
   const today = todayIso()
   const todaysAppointments = appointments.filter((appointment) => appointment.date === today)
 
@@ -34,8 +35,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   }
 
   const stats: DashboardStats = {
-    totalPatients: active.length,
-    allergyCount: active.filter((patient) => patient.allergies !== 'none').length,
+    totalPatients: activePatients.totalCount,
     peakHour,
     todayAppointmentsCount: todaysAppointments.length,
   }

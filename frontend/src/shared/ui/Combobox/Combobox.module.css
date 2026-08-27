@@ -157,6 +157,24 @@
   font-weight: 600;
 }
 
+.clearRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.6rem;
+  margin-bottom: 0.15rem;
+  cursor: pointer;
+  text-align: left;
+}
+
 .state,
 .stateError {
   margin: 0;

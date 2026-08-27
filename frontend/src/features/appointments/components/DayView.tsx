@@ -1,4 +1,4 @@
-import type { Patient } from '@/features/patients'
+import type { MockPatient } from '../api/mockPatients'
 import { Skeleton } from '@/shared/ui'
 import { formatDateOnly } from '@/shared/lib/dateOnly'
 import { AppointmentChip } from './AppointmentChip'
@@ -8,7 +8,7 @@ import styles from './DayView.module.css'
 export interface DayViewProps {
   date: Date
   appointments: Appointment[]
-  patients: Map<string, Patient>
+  patients: Map<string, MockPatient>
   onAppointmentClick: (appointment: Appointment) => void
   isLoading?: boolean
 }

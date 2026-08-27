@@ -1,10 +1,11 @@
-import { SPECIES_EMOJI, type Patient } from '@/features/patients'
+import { SPECIES_EMOJI } from '@/features/patients'
+import type { MockPatient } from '../api/mockPatients'
 import type { Appointment } from '../types'
 import styles from './AppointmentChip.module.css'
 
 export interface AppointmentChipProps {
   appointment: Appointment
-  patient: Patient | undefined
+  patient: MockPatient | undefined
   onClick: () => void
 }
 

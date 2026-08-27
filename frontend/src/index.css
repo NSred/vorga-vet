@@ -17,8 +17,8 @@ body {
     system-ui,
     Roboto,
     sans-serif;
-  color: #0f172a;
-  background-color: #f8fafc;
+  color: var(--text);
+  background-color: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 
