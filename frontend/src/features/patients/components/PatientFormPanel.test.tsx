@@ -33,8 +33,7 @@ function cardNumberInput(): HTMLInputElement {
 
 async function selectCatSpecies(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('combobox', { name: 'Species' }))
-  await screen.findByRole('option', { name: 'Cat' })
-  await user.keyboard('{ArrowDown}{Enter}')
+  await user.click(await screen.findByRole('option', { name: 'Cat' }))
 }
 
 afterEach(() => {
@@ -44,7 +43,15 @@ afterEach(() => {
 describe('PatientFormPanel', () => {
   it('prefills a card number matching the species letter format', () => {
     stubLookups()
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={vi.fn()} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     expect(cardNumberInput().value).toMatch(/^D\d{2}-\d{5}$/)
   })
@@ -52,7 +59,15 @@ describe('PatientFormPanel', () => {
   it('regenerates the card number when species changes', async () => {
     const user = userEvent.setup()
     stubLookups()
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={vi.fn()} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await selectCatSpecies(user)
 
@@ -64,7 +79,15 @@ describe('PatientFormPanel', () => {
   it('does not regenerate the card number once the user has edited it', async () => {
     const user = userEvent.setup()
     stubLookups()
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={vi.fn()} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await user.clear(cardNumberInput())
     await user.type(cardNumberInput(), 'MANUAL-1')
@@ -80,7 +103,15 @@ describe('PatientFormPanel', () => {
     vi.spyOn(ownersApi, 'createOwner').mockResolvedValue('owner-9')
     const createSpy = vi.spyOn(patientsApi, 'createPatient').mockResolvedValue('id')
 
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={vi.fn()} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await user.click(screen.getByRole('button', { name: /Owner/ }))
     await user.type(screen.getByLabelText('Search Owner *'), 'Petrović')
@@ -105,7 +136,15 @@ describe('PatientFormPanel', () => {
     stubLookups()
     const createSpy = vi.spyOn(patientsApi, 'createPatient').mockResolvedValue('id')
 
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={vi.fn()} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await user.type(screen.getByLabelText('Animal name *'), 'Bela')
     await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -120,7 +159,15 @@ describe('PatientFormPanel', () => {
     const createSpy = vi.spyOn(patientsApi, 'createPatient').mockResolvedValue('new-id')
     const onCreated = vi.fn()
 
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={onCreated} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={onCreated}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await fillRequiredFields(user)
     await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -142,7 +189,15 @@ describe('PatientFormPanel', () => {
       .mockResolvedValueOnce('new-id')
     const onCreated = vi.fn()
 
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={onCreated} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={onCreated}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await fillRequiredFields(user)
     await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -160,7 +215,15 @@ describe('PatientFormPanel', () => {
     )
     const onCreated = vi.fn()
 
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={onCreated} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={onCreated}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await fillRequiredFields(user)
     await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -176,7 +239,15 @@ describe('PatientFormPanel', () => {
       new ApiError(404, 'not found', 'Owners.NotFound'),
     )
 
-    render(<PatientFormPanel open onOpenChange={vi.fn()} onSaved={vi.fn()} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await fillRequiredFields(user)
     await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -191,7 +262,15 @@ describe('PatientFormPanel', () => {
     vi.spyOn(patientsApi, 'createPatient').mockRejectedValue(new ApiError(500, 'Server exploded'))
     const onOpenChange = vi.fn()
 
-    render(<PatientFormPanel open onOpenChange={onOpenChange} onSaved={vi.fn()} onMissing={vi.fn()} mode="create" />)
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={onOpenChange}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
 
     await fillRequiredFields(user)
     await user.click(screen.getByRole('button', { name: 'Save' }))
@@ -253,8 +332,7 @@ describe('PatientFormPanel in edit mode', () => {
     renderEdit()
 
     await user.click(screen.getByRole('combobox', { name: 'Species' }))
-    await screen.findByRole('option', { name: 'Bird' })
-    await user.keyboard('{ArrowDown}{Enter}')
+    await user.click(await screen.findByRole('option', { name: 'Bird' }))
 
     await waitFor(() => {
       expect(cardNumberInput().value).toBe('C26-11111')

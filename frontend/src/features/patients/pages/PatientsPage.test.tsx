@@ -113,8 +113,7 @@ describe('PatientsPage URL state', () => {
     getPatientsSpy.mockClear()
 
     await user.click(screen.getByRole('combobox', { name: 'Sex' }))
-    await screen.findByRole('option', { name: 'Female' })
-    await user.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    await user.click(await screen.findByRole('option', { name: 'Female' }))
 
     await waitFor(() => {
       expect(getPatientsSpy).toHaveBeenCalledWith(expect.objectContaining({ sex: 'female' }), 1, 10)
@@ -131,7 +130,11 @@ describe('PatientsPage URL state', () => {
     await user.click(screen.getByRole('button', { name: 'Next page' }))
 
     await waitFor(() => {
-      expect(getPatientsSpy).toHaveBeenCalledWith(expect.objectContaining({ species: 'dog' }), 2, 10)
+      expect(getPatientsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ species: 'dog' }),
+        2,
+        10,
+      )
     })
   })
 })
