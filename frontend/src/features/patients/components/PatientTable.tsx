@@ -1,7 +1,7 @@
 import { Badge, EmptyState, Pagination, Table, type TableColumn } from '@/shared/ui'
 import { calculateAge } from '../lib/patientAge'
 import type { PatientListItem } from '../types'
-import { SPECIES_EMOJI } from '../lib/speciesEmoji'
+import { SPECIES_EMOJI } from '@/shared/domain/species'
 import styles from './PatientTable.module.css'
 
 export interface PatientTableProps {

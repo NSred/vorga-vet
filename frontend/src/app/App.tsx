@@ -3,7 +3,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider } from 'react-router'
 import { AuthProvider } from '@/features/auth'
 import { ToastProvider } from '@/shared/ui'
-import { queryClient } from '@/shared/lib/queryClient'
+import { queryClient } from '@/app/queryClient'
 import { router } from '@/app/routes'
 
 export function App() {

@@ -1,4 +1,4 @@
-import { SPECIES_EMOJI } from '@/features/patients'
+import { SPECIES_EMOJI } from '@/shared/domain/species'
 import type { MockPatient } from '../api/mockPatients'
 import type { Appointment } from '../types'
 import styles from './AppointmentChip.module.css'

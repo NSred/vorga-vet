@@ -5,10 +5,10 @@ import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PatientsPage } from './PatientsPage'
 import { ToastProvider } from '@/shared/ui'
-import * as allergensApi from '../api/allergensApi'
-import * as patientsApi from '../api/patientsApi'
-import * as statsApi from '../api/statsApi'
-import type { PatientListItem } from '../types'
+import * as allergensApi from '@/features/patients/api/allergensApi'
+import * as patientsApi from '@/features/patients/api/patientsApi'
+import * as appointmentsApi from '@/features/appointments/api/appointmentsApi'
+import type { PatientListItem } from '@/features/patients'
 import { ApiError } from '@/shared/lib/apiClient'
 
 const patient: PatientListItem = {
@@ -43,11 +43,7 @@ beforeEach(() => {
   getPatientsSpy = vi
     .spyOn(patientsApi, 'getPatients')
     .mockResolvedValue({ items: [patient], totalCount: 25, page: 1, pageSize: 10 })
-  vi.spyOn(statsApi, 'getDashboardStats').mockResolvedValue({
-    totalPatients: 25,
-    peakHour: null,
-    todayAppointmentsCount: 0,
-  })
+  vi.spyOn(appointmentsApi, 'getAppointments').mockResolvedValue([])
   vi.spyOn(allergensApi, 'searchAllergens').mockResolvedValue([{ id: 'a1', name: 'Pollen' }])
 })
 

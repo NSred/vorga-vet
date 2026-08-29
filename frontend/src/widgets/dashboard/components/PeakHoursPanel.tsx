@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
 import { SlidePanel } from '@/shared/ui'
-import { getPeakHoursBreakdown, type DayBreakdown, type HourBreakdown, type PeakHoursBreakdown } from '../api/statsApi'
+import { usePeakHoursBreakdown } from '../hooks/usePeakHoursBreakdown'
+import type { DayBreakdown, HourCount } from '../lib/appointmentStats'
 import styles from './PeakHoursPanel.module.css'
 
 export interface PeakHoursPanelProps {
@@ -17,7 +17,7 @@ function Tile({ label, value }: { label: string; value: string }) {
   )
 }
 
-function HourRow({ entry, max, isPeak }: { entry: HourBreakdown; max: number; isPeak: boolean }) {
+function HourRow({ entry, max, isPeak }: { entry: HourCount; max: number; isPeak: boolean }) {
   const width = max === 0 ? 0 : (entry.count / max) * 100
   return (
     <div className={styles.barRow}>
@@ -52,18 +52,7 @@ function DayRow({ entry, max, isBusiest }: { entry: DayBreakdown; max: number; i
 }
 
 export function PeakHoursPanel({ open, onOpenChange }: PeakHoursPanelProps) {
-  const [data, setData] = useState<PeakHoursBreakdown | null>(null)
-
-  useEffect(() => {
-    if (!open) return
-    let cancelled = false
-    getPeakHoursBreakdown().then((result) => {
-      if (!cancelled) setData(result)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [open])
+  const data = usePeakHoursBreakdown(open)
 
   const maxHourCount = data ? Math.max(1, ...data.byHour.map((entry) => entry.count)) : 1
   const maxDayTotal = data ? Math.max(1, ...data.byDay.map((entry) => entry.total)) : 1

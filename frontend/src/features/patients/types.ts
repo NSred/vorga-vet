@@ -1,4 +1,6 @@
-export type Species = 'dog' | 'cat' | 'bird' | 'other'
+import type { Species } from '@/shared/domain/species'
+
+export type { Species }
 export type Sex = 'male' | 'female'
 
 export interface OwnerOption {

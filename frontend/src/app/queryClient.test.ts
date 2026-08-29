@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ApiError } from './apiClient'
+import { ApiError } from '@/shared/lib/apiClient'
 import { shouldRetry } from './queryClient'
 
 describe('shouldRetry', () => {

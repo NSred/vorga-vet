@@ -3,15 +3,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Button } from '@/shared/ui'
 import { parseDateOnly } from '@/shared/lib/dateOnly'
-import { AppointmentDetailPanel } from '../components/AppointmentDetailPanel'
-import { AppointmentFormPanel } from '../components/AppointmentFormPanel'
-import { CalendarToolbar } from '../components/CalendarToolbar'
-import { DayView } from '../components/DayView'
-import { MonthView } from '../components/MonthView'
-import { WeekView } from '../components/WeekView'
-import { createAppointment, deleteAppointment, getAppointments, updateAppointment } from '../api/appointmentsApi'
-import { mockPatients, type MockPatient } from '../api/mockPatients'
-import type { Appointment, AppointmentInput, CalendarView } from '../types'
+import {
+  AppointmentDetailPanel,
+  AppointmentFormPanel,
+  CalendarToolbar,
+  createAppointment,
+  DayView,
+  deleteAppointment,
+  getAppointments,
+  MonthView,
+  mockPatients,
+  updateAppointment,
+  WeekView,
+  type MockPatient,
+} from '@/features/appointments'
+import type { Appointment, AppointmentInput, CalendarView } from '@/features/appointments'
 import styles from './AppointmentsPage.module.css'
 
 type PanelState =

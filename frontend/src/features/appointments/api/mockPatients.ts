@@ -1,4 +1,4 @@
-import type { Species } from '@/features/patients'
+import type { Species } from '@/shared/domain/species'
 
 export interface MockPatient {
   id: string

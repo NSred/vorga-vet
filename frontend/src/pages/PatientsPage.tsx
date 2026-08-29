@@ -3,22 +3,32 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { ApiError } from '@/shared/lib/apiClient'
 import { Button, useToast } from '@/shared/ui'
-import { PatientDetailPanel } from '../components/PatientDetailPanel'
-import { PatientFilters } from '../components/PatientFilters'
-import { PatientFormPanel } from '../components/PatientFormPanel'
-import { PatientTable } from '../components/PatientTable'
-import { PeakHoursPanel } from '../components/PeakHoursPanel'
-import { StatCards } from '../components/StatCards'
-import { patientKeys } from '../api/patientKeys'
-import { deletePatient, getPatient } from '../api/patientsApi'
-import { useAllergenByName, useDashboardStats, usePatientsQuery } from '../hooks/usePatientsQuery'
-import { parseFilterParams, toFilterParams } from '../lib/patientFilterParams'
+import {
+  PeakHoursPanel,
+  PeakHourTile,
+  ScheduledTodayTile,
+  StatGrid,
+  TotalPatientsTile,
+} from '@/widgets/dashboard'
+import {
+  deletePatient,
+  getPatient,
+  parseFilterParams,
+  patientKeys,
+  PatientDetailPanel,
+  PatientFilters,
+  PatientFormPanel,
+  PatientTable,
+  toFilterParams,
+  useAllergenByName,
+  usePatientsQuery,
+} from '@/features/patients'
 import type {
   PatientDetail,
-  PatientFilters as PatientFiltersType,
+  PatientFiltersType,
   PatientListItem,
   PatientPage,
-} from '../types'
+} from '@/features/patients'
 import styles from './PatientsPage.module.css'
 
 type PanelState =
@@ -46,7 +56,6 @@ export function PatientsPage() {
   const activeFilters: PatientFiltersType = { ...filters, allergen }
 
   const patientsQuery = usePatientsQuery(activeFilters, page, pageSize, !isAllergenPending)
-  const statsQuery = useDashboardStats()
   const patientPage = patientsQuery.data ?? EMPTY_PAGE
 
   const writeParams = useCallback(
@@ -89,7 +98,6 @@ export function PatientsPage() {
   const afterWrite = (title: string) => {
     closePanel()
     queryClient.invalidateQueries({ queryKey: patientKeys.all })
-    queryClient.invalidateQueries({ queryKey: ['stats'] })
     showToast({ tone: 'success', title })
   }
 
@@ -139,11 +147,11 @@ export function PatientsPage() {
         </Button>
       </div>
 
-      <StatCards
-        stats={statsQuery.data ?? null}
-        isLoading={statsQuery.isPending}
-        onPeakHoursClick={() => setPeakHoursOpen(true)}
-      />
+      <StatGrid>
+        <TotalPatientsTile />
+        <PeakHourTile onOpenBreakdown={() => setPeakHoursOpen(true)} />
+        <ScheduledTodayTile />
+      </StatGrid>
 
       <PatientFilters filters={activeFilters} onChange={(next) => writeParams(next, 1, pageSize)} />
 

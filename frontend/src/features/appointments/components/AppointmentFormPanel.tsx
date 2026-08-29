@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { SPECIES_EMOJI } from '@/features/patients'
+import { SPECIES_EMOJI } from '@/shared/domain/species'
 import type { MockPatient } from '../api/mockPatients'
 import { Button, DatePicker, Select, SlidePanel, TextField, Textarea } from '@/shared/ui'
 import { todayIso } from '@/shared/lib/dateOnly'

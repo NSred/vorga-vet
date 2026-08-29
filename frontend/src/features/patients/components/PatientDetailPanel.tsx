@@ -2,7 +2,7 @@ import { Badge, Button, SlidePanel } from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { calculateAge } from '../lib/patientAge'
 import type { PatientDetail } from '../types'
-import { SPECIES_EMOJI } from '../lib/speciesEmoji'
+import { SPECIES_EMOJI } from '@/shared/domain/species'
 import styles from './PatientDetailPanel.module.css'
 
 export interface PatientDetailPanelProps {

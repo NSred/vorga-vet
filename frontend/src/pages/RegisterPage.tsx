@@ -1,15 +1,15 @@
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form'
 import { useNavigate } from 'react-router'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { ApiError } from '@/shared/lib/apiClient'
-import { PasswordField } from '@/features/auth/components/PasswordField'
-import { useAuthOutlet } from '@/features/auth/context/AuthLayoutContext'
 import {
+  authFormStyles as styles,
+  PasswordField,
+  useAuth,
+  useAuthOutlet,
   validateEmail,
   validatePassword,
   validateRequired,
-} from '@/features/auth/validation/authValidation'
-import styles from '@/features/auth/components/AuthForm.module.css'
+} from '@/features/auth'
 
 interface RegisterFormValues {
   firstName: string

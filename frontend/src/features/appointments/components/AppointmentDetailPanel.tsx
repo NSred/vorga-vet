@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react'
 import { Link } from 'react-router'
-import { SPECIES_EMOJI } from '@/features/patients'
+import { SPECIES_EMOJI } from '@/shared/domain/species'
 import type { MockPatient } from '../api/mockPatients'
 import { Button, IconButton, SlidePanel } from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
