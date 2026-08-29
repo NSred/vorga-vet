@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { ApiError } from '@/shared/lib/apiClient'
 import { Button, useToast } from '@/shared/ui'
@@ -8,12 +9,11 @@ import { PatientFormPanel } from '../components/PatientFormPanel'
 import { PatientTable } from '../components/PatientTable'
 import { PeakHoursPanel } from '../components/PeakHoursPanel'
 import { StatCards } from '../components/StatCards'
-import { searchAllergens } from '../api/allergensApi'
-import { deletePatient, getPatient, getPatients } from '../api/patientsApi'
-import { getDashboardStats, type DashboardStats } from '../api/statsApi'
+import { patientKeys } from '../api/patientKeys'
+import { deletePatient, getPatient } from '../api/patientsApi'
+import { useAllergenByName, useDashboardStats, usePatientsQuery } from '../hooks/usePatientsQuery'
 import { parseFilterParams, toFilterParams } from '../lib/patientFilterParams'
 import type {
-  AllergenOption,
   PatientDetail,
   PatientFilters as PatientFiltersType,
   PatientListItem,
@@ -34,25 +34,20 @@ export function PatientsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { filters, allergenName, page, pageSize } = parseFilterParams(searchParams)
 
-  const [allergenResolution, setAllergenResolution] = useState<{
-    name: string
-    option: AllergenOption | null
-  } | null>(null)
-  const [patientPage, setPatientPage] = useState<PatientPage>(EMPTY_PAGE)
-  const [isLoadingPatients, setIsLoadingPatients] = useState(true)
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [isLoadingStats, setIsLoadingStats] = useState(true)
   const [panel, setPanel] = useState<PanelState>({ mode: 'closed' })
   const [displayPanel, setDisplayPanel] = useState<PanelState>({ mode: 'closed' })
   if (panel.mode !== 'closed' && panel !== displayPanel) {
     setDisplayPanel(panel)
   }
   const [peakHoursOpen, setPeakHoursOpen] = useState(false)
-  const latestRequest = useRef(0)
 
-  const isAllergenPending = Boolean(allergenName) && allergenResolution?.name !== allergenName
-  const allergen = isAllergenPending ? null : (allergenResolution?.option ?? null)
+  const queryClient = useQueryClient()
+  const { allergen, isPending: isAllergenPending } = useAllergenByName(allergenName)
   const activeFilters: PatientFiltersType = { ...filters, allergen }
+
+  const patientsQuery = usePatientsQuery(activeFilters, page, pageSize, !isAllergenPending)
+  const statsQuery = useDashboardStats()
+  const patientPage = patientsQuery.data ?? EMPTY_PAGE
 
   const writeParams = useCallback(
     (nextFilters: PatientFiltersType, nextPage: number, nextPageSize: number) => {
@@ -62,66 +57,10 @@ export function PatientsPage() {
   )
 
   useEffect(() => {
-    if (!allergenName) {
-      setAllergenResolution(null)
-      return
+    if (patientsQuery.isError) {
+      showToast({ tone: 'error', title: 'Could not load patients' })
     }
-    if (allergenResolution?.name === allergenName) return
-
-    let cancelled = false
-    searchAllergens(allergenName)
-      .then((results) => {
-        if (cancelled) return
-        const match = results.find(
-          (candidate) => candidate.name.toLowerCase() === allergenName.toLowerCase(),
-        )
-        setAllergenResolution({ name: allergenName, option: match ?? null })
-      })
-      .catch(() => {
-        if (!cancelled) setAllergenResolution({ name: allergenName, option: null })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [allergenName, allergenResolution])
-
-  const refreshStats = useCallback(() => {
-    setIsLoadingStats(true)
-    getDashboardStats()
-      .then(setStats)
-      .finally(() => setIsLoadingStats(false))
-  }, [])
-
-  const searchKey = JSON.stringify([filters, allergen?.id, page, pageSize])
-
-  const loadPatients = useCallback(() => {
-    if (isAllergenPending) return
-
-    const requestId = ++latestRequest.current
-    setIsLoadingPatients(true)
-
-    getPatients(activeFilters, page, pageSize)
-      .then((result) => {
-        if (requestId !== latestRequest.current) return
-        setPatientPage(result)
-      })
-      .catch(() => {
-        if (requestId !== latestRequest.current) return
-        setPatientPage(EMPTY_PAGE)
-        showToast({ tone: 'error', title: 'Could not load patients' })
-      })
-      .finally(() => {
-        if (requestId === latestRequest.current) setIsLoadingPatients(false)
-      })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchKey, isAllergenPending, showToast])
-
-  useEffect(loadPatients, [loadPatients])
-
-  useEffect(() => {
-    refreshStats()
-  }, [refreshStats])
+  }, [patientsQuery.isError, showToast])
 
   useEffect(() => {
     const patientId = searchParams.get('patient')
@@ -136,26 +75,34 @@ export function PatientsPage() {
       { replace: true },
     )
 
-    getPatient(patientId)
+    queryClient
+      .query({
+        queryKey: patientKeys.detail(patientId),
+        queryFn: () => getPatient(patientId),
+      })
       .then((patient) => setPanel({ mode: 'view', patient }))
       .catch(() => undefined)
-  }, [searchParams, setSearchParams])
+  }, [searchParams, setSearchParams, queryClient])
 
   const closePanel = () => setPanel({ mode: 'closed' })
 
   const afterWrite = (title: string) => {
     closePanel()
-    loadPatients()
-    refreshStats()
+    queryClient.invalidateQueries({ queryKey: patientKeys.all })
+    queryClient.invalidateQueries({ queryKey: ['stats'] })
     showToast({ tone: 'success', title })
   }
 
   const openPatient = (patient: PatientListItem) => {
-    getPatient(patient.id)
+    queryClient
+      .query({
+        queryKey: patientKeys.detail(patient.id),
+        queryFn: () => getPatient(patient.id),
+      })
       .then((detail) => setPanel({ mode: 'view', patient: detail }))
       .catch(() => {
         showToast({ tone: 'error', title: 'Could not open that patient' })
-        loadPatients()
+        queryClient.invalidateQueries({ queryKey: patientKeys.all })
       })
   }
 
@@ -192,13 +139,17 @@ export function PatientsPage() {
         </Button>
       </div>
 
-      <StatCards stats={stats} isLoading={isLoadingStats} onPeakHoursClick={() => setPeakHoursOpen(true)} />
+      <StatCards
+        stats={statsQuery.data ?? null}
+        isLoading={statsQuery.isPending}
+        onPeakHoursClick={() => setPeakHoursOpen(true)}
+      />
 
       <PatientFilters filters={activeFilters} onChange={(next) => writeParams(next, 1, pageSize)} />
 
       <PatientTable
         patients={patientPage.items}
-        isLoading={isLoadingPatients || isAllergenPending}
+        isLoading={patientsQuery.isLoading || isAllergenPending}
         page={page}
         pageSize={pageSize}
         totalCount={patientPage.totalCount}

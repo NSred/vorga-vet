@@ -11,7 +11,10 @@ export interface AllergenFilterProps {
 
 export function AllergenFilter({ value, onChange }: AllergenFilterProps) {
   const fetcher = useCallback((term: string) => searchAllergens(term), [])
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(fetcher)
+  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(
+    ['allergens'],
+    fetcher,
+  )
 
   return (
     <Combobox

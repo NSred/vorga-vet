@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router'
+import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PatientsPage } from './PatientsPage'
 import { ToastProvider } from '@/shared/ui'
@@ -103,6 +104,14 @@ describe('PatientsPage URL state', () => {
         10,
       )
     })
+  })
+
+  it('still renders rows when the URL allergen matches nothing', async () => {
+    vi.spyOn(allergensApi, 'searchAllergens').mockResolvedValue([])
+
+    renderAt('/patients?allergen=Nonsense')
+
+    expect(await screen.findByText(/Rex/)).toBeInTheDocument()
   })
 
   it('returns to page one when a filter changes', async () => {

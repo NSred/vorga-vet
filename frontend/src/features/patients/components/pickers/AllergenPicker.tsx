@@ -15,7 +15,10 @@ export function AllergenPicker({ value, onChange }: AllergenPickerProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [pendingName, setPendingName] = useState('')
   const fetcher = useCallback((term: string) => searchAllergens(term), [])
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(fetcher)
+  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(
+    ['allergens'],
+    fetcher,
+  )
 
   function add(allergen: AllergenOption) {
     if (value.some((selected) => selected.id === allergen.id)) return

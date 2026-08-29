@@ -15,7 +15,7 @@ export interface OwnerPickerProps {
 export function OwnerPicker({ value, onChange, error }: OwnerPickerProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const fetcher = useCallback((term: string) => searchOwners(term), [])
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(fetcher)
+  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(['owners'], fetcher)
 
   return (
     <div className={styles.wrapper}>

@@ -18,7 +18,10 @@ export function BreedPicker({ species, value, onChange, error }: BreedPickerProp
   const previousSpecies = useRef(species)
 
   const fetcher = useCallback((term: string) => searchBreeds(species, term), [species])
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(fetcher)
+  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(
+    ['breeds', species],
+    fetcher,
+  )
 
   useEffect(() => {
     if (previousSpecies.current !== species) {

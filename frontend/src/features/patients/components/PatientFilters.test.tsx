@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { PatientFilters } from './PatientFilters'
 import * as allergensApi from '../api/allergensApi'
 
