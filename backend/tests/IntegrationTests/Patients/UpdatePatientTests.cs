@@ -67,7 +67,7 @@ public sealed class UpdatePatientTests(IntegrationTestWebAppFactory factory) : B
     public async Task UpdatePatient_Should_ReturnNotFound_WhenPatientDoesNotExist()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         Guid ownerId = await CreateOwnerAsync();
         Guid breedId = await CreateBreedAsync($"Labrador {Guid.NewGuid()}");
@@ -85,7 +85,7 @@ public sealed class UpdatePatientTests(IntegrationTestWebAppFactory factory) : B
     public async Task UpdatePatient_Should_UpdatePatient_WhenValid()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         Guid ownerId = await CreateOwnerAsync();
         Guid breedId = await CreateBreedAsync($"Labrador {Guid.NewGuid()}");
@@ -111,7 +111,7 @@ public sealed class UpdatePatientTests(IntegrationTestWebAppFactory factory) : B
     public async Task UpdatePatient_Should_ReturnConflict_WhenCardNumberTakenByAnotherPatient()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         Guid ownerId = await CreateOwnerAsync();
         Guid breedId = await CreateBreedAsync($"Labrador {Guid.NewGuid()}");

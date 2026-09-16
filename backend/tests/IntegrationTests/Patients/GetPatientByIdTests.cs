@@ -52,7 +52,7 @@ public sealed class GetPatientByIdTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetPatientById_Should_ReturnNotFound_WhenPatientDoesNotExist()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         // Act
@@ -66,7 +66,7 @@ public sealed class GetPatientByIdTests(IntegrationTestWebAppFactory factory) : 
     public async Task GetPatientById_Should_ReturnPatientDetails_WhenPatientExists()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         (Guid patientId, Guid ownerId, Guid breedId) = await SeedPatientAsync();
 

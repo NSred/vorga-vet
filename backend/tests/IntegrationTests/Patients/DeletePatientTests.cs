@@ -49,7 +49,7 @@ public sealed class DeletePatientTests(IntegrationTestWebAppFactory factory) : B
     public async Task DeletePatient_Should_ReturnNotFound_WhenPatientDoesNotExist()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         // Act
@@ -63,7 +63,7 @@ public sealed class DeletePatientTests(IntegrationTestWebAppFactory factory) : B
     public async Task DeletePatient_Should_MarkPatientAsDeleted_WhenValid()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         Guid patientId = await CreatePatientAsync();
 
@@ -84,7 +84,7 @@ public sealed class DeletePatientTests(IntegrationTestWebAppFactory factory) : B
     public async Task DeletePatient_Should_ReturnProblem_WhenAlreadyDeleted()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         Guid patientId = await CreatePatientAsync();
         HttpResponseMessage firstDelete = await HttpClient.DeleteAsync($"patients/{patientId}");

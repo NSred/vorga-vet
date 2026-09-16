@@ -49,7 +49,7 @@ public sealed class GetPatientsTests(IntegrationTestWebAppFactory factory) : Bas
     public async Task GetPatients_Should_FindPatient_ByOwnerLastNameSubstring()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         string uniqueLastName = $"Petrovic{Guid.NewGuid():N}";
@@ -69,7 +69,7 @@ public sealed class GetPatientsTests(IntegrationTestWebAppFactory factory) : Bas
     public async Task GetPatients_Should_FindPatient_ByBreedNameSubstring()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         string uniqueBreedName = $"Jazavicar{Guid.NewGuid():N}";
@@ -89,7 +89,7 @@ public sealed class GetPatientsTests(IntegrationTestWebAppFactory factory) : Bas
     public async Task GetPatients_Should_ReturnEmptyItems_WhenSearchTermMatchesNoPatient()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         // Act
