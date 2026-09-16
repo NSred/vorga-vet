@@ -21,7 +21,7 @@ public sealed class AllergensTests(IntegrationTestWebAppFactory factory) : BaseI
     public async Task CreateAllergen_Should_CreateAllergen_WhenNoneExists()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         // Act
@@ -37,7 +37,7 @@ public sealed class AllergensTests(IntegrationTestWebAppFactory factory) : BaseI
     public async Task CreateAllergen_Should_ReturnExistingAllergenId_WhenSameNameAlreadyExists()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         string name = $"Chicken protein {Guid.NewGuid()}";
@@ -69,7 +69,7 @@ public sealed class AllergensTests(IntegrationTestWebAppFactory factory) : BaseI
     public async Task SearchAllergens_Should_FindAllergen_ByNameSubstring_CaseInsensitive()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         string name = $"Ragweed pollen {Guid.NewGuid()}";
@@ -91,7 +91,7 @@ public sealed class AllergensTests(IntegrationTestWebAppFactory factory) : BaseI
     public async Task SearchAllergens_Should_ReturnEmptyList_WhenSearchTermMatchesNoAllergen()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         // Act

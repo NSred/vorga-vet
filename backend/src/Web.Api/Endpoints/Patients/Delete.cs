@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Messaging;
 using Application.Patients.Delete;
 using SharedKernel;
@@ -22,6 +23,6 @@ internal sealed class Delete : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Patients)
-        .RequireAuthorization();
+        .RequireAuthorization(Policies.Veterinarian);
     }
 }

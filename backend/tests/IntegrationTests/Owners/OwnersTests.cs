@@ -28,7 +28,7 @@ public sealed class OwnersTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task CreateOwner_Should_CreateOwner_WhenValid()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         // Act
@@ -54,7 +54,7 @@ public sealed class OwnersTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task SearchOwners_Should_FindOwner_ByLastNameSubstring()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("owners", ValidRequest());
@@ -75,7 +75,7 @@ public sealed class OwnersTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task SearchOwners_Should_FindOwner_ByFirstNameSubstring_CaseInsensitive()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("owners", ValidRequest());
@@ -96,7 +96,7 @@ public sealed class OwnersTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task SearchOwners_Should_ReturnEmptyList_WhenSearchTermMatchesNoOwner()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("owners", ValidRequest());

@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Messaging;
 using Application.Owners.Search;
 using SharedKernel;
@@ -22,6 +23,6 @@ internal sealed class Search : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Owners)
-        .RequireAuthorization();
+        .RequireAuthorization(Policies.Veterinarian);
     }
 }

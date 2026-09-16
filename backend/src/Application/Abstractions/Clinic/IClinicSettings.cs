@@ -7,4 +7,11 @@ namespace Application.Abstractions.Clinic;
 public interface IClinicSettings
 {
     TimeZoneInfo TimeZone { get; }
+
+    /// <summary>
+    /// Whether an email belongs to the clinic's veterinarian account(s). Configuration is the
+    /// only way an account gets the vet role — there is no endpoint for it — so promotion is
+    /// an operator decision, applied at registration and healed at login.
+    /// </summary>
+    bool IsVeterinarianEmail(string email);
 }

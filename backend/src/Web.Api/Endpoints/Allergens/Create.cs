@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Messaging;
 using Application.Allergens.Create;
 using SharedKernel;
@@ -27,6 +28,6 @@ internal sealed class Create : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Allergens)
-        .RequireAuthorization();
+        .RequireAuthorization(Policies.Veterinarian);
     }
 }

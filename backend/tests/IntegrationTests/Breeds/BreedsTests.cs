@@ -21,7 +21,7 @@ public sealed class BreedsTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task CreateBreed_Should_CreateBreed_WhenNoneExists()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         // Act
@@ -37,7 +37,7 @@ public sealed class BreedsTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task CreateBreed_Should_ReturnExistingBreedId_WhenSameNameAndSpeciesAlreadyExist()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         string name = $"Mops {Guid.NewGuid()}";
@@ -59,7 +59,7 @@ public sealed class BreedsTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task CreateBreed_Should_CreateSeparateBreed_WhenSameNameButDifferentSpecies()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         string name = $"Ostalo {Guid.NewGuid()}";
@@ -91,7 +91,7 @@ public sealed class BreedsTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task SearchBreeds_Should_FindBreed_ByNameSubstring_CaseInsensitive()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         string name = $"Jazavičar {Guid.NewGuid()}";
@@ -113,7 +113,7 @@ public sealed class BreedsTests(IntegrationTestWebAppFactory factory) : BaseInte
     public async Task SearchBreeds_Should_NotReturnBreed_WhenQueriedUnderADifferentSpecies()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
 
         string name = $"Persijska {Guid.NewGuid()}";

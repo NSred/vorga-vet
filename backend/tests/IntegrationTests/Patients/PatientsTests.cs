@@ -53,7 +53,7 @@ public sealed class PatientsTests(IntegrationTestWebAppFactory factory) : BaseIn
     public async Task CreatePatient_Should_CreatePatient_WhenValid()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         (Guid ownerId, Guid breedId) = await SeedOwnerAndBreedAsync();
 
@@ -70,7 +70,7 @@ public sealed class PatientsTests(IntegrationTestWebAppFactory factory) : BaseIn
     public async Task CreatePatient_Should_CreatePatient_WhenAllergensProvided()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         (Guid ownerId, Guid breedId) = await SeedOwnerAndBreedAsync();
 
@@ -93,7 +93,7 @@ public sealed class PatientsTests(IntegrationTestWebAppFactory factory) : BaseIn
     public async Task CreatePatient_Should_ReturnConflict_WhenCardNumberAlreadyExists()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         (Guid ownerId, Guid breedId) = await SeedOwnerAndBreedAsync();
 
@@ -112,7 +112,7 @@ public sealed class PatientsTests(IntegrationTestWebAppFactory factory) : BaseIn
     public async Task CreatePatient_Should_ReturnNotFound_WhenOwnerDoesNotExist()
     {
         // Arrange
-        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
         Authenticate(tokens.AccessToken);
         (_, Guid breedId) = await SeedOwnerAndBreedAsync();
 

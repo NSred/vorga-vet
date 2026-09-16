@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Messaging;
 using Application.Owners.Create;
 using SharedKernel;
@@ -38,6 +39,6 @@ internal sealed class Create : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Owners)
-        .RequireAuthorization();
+        .RequireAuthorization(Policies.Veterinarian);
     }
 }

@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Messaging;
 using Application.Patients.Update;
 using Domain.Patients;
@@ -55,6 +56,6 @@ internal sealed class Update : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Patients)
-        .RequireAuthorization();
+        .RequireAuthorization(Policies.Veterinarian);
     }
 }

@@ -10,6 +10,9 @@ namespace IntegrationTests;
 
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    /// <summary>The one address the test configuration allowlists as a veterinarian.</summary>
+    public const string AllowlistedVeterinarianEmail = "vet@vorga-vet.test";
+
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:17")
         .WithDatabase("vorga-vet")
         .WithUsername("postgres")
@@ -29,6 +32,9 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // Relax rate limiting so the test suite is not throttled.
         builder.UseSetting("RateLimiting:Global:PermitLimit", "100000");
         builder.UseSetting("RateLimiting:Authentication:PermitLimit", "100000");
+
+        // The vet role comes only from this allowlist — there is no endpoint that grants it.
+        builder.UseSetting("Clinic:VeterinarianEmails:0", AllowlistedVeterinarianEmail);
 
         // Attachment bytes go to a per-run temp directory, never the repo.
         builder.UseSetting(
