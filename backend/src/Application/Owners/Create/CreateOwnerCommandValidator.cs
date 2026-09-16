@@ -11,5 +11,6 @@ public class CreateOwnerCommandValidator : AbstractValidator<CreateOwnerCommand>
         RuleFor(c => c.PhoneNumber).NotEmpty().MaximumLength(30);
         RuleFor(c => c.Address).NotEmpty().MaximumLength(200);
         RuleFor(c => c.City).NotEmpty().MaximumLength(100);
+        RuleFor(c => c.Email).EmailAddress().MaximumLength(256).When(c => !string.IsNullOrWhiteSpace(c.Email));
     }
 }

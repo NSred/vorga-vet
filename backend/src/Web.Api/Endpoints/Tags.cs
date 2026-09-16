@@ -8,4 +8,5 @@ public static class Tags
     public const string Breeds = "breeds";
     public const string Allergens = "allergens";
     public const string Patients = "patients";
+    public const string Appointments = "appointments";
 }

@@ -1,6 +1,8 @@
 ﻿using Application.Abstractions.Data;
 using Domain.Allergens;
+using Domain.Appointments;
 using Domain.Breeds;
+using Domain.Clinic;
 using Domain.Owners;
 using Domain.Patients;
 using Domain.Todos;
@@ -31,6 +33,10 @@ public sealed class ApplicationDbContext(
     public DbSet<Allergen> Allergens { get; set; }
 
     public DbSet<PatientAllergen> PatientAllergens { get; set; }
+
+    public DbSet<ClinicSchedule> ClinicSchedules { get; set; }
+
+    public DbSet<Appointment> Appointments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
