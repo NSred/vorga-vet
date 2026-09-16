@@ -3,6 +3,7 @@ using Domain.Allergens;
 using Domain.Appointments;
 using Domain.Breeds;
 using Domain.Clinic;
+using Domain.Examinations;
 using Domain.Owners;
 using Domain.Patients;
 using Domain.Todos;
@@ -37,6 +38,10 @@ public sealed class ApplicationDbContext(
     public DbSet<ClinicSchedule> ClinicSchedules { get; set; }
 
     public DbSet<Appointment> Appointments { get; set; }
+
+    public DbSet<Examination> Examinations { get; set; }
+
+    public DbSet<Attachment> Attachments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -24,4 +24,12 @@ internal static class ClaimsPrincipalExtensions
             parsedRole :
             throw new ApplicationException("User role is unavailable");
     }
+
+    // Non-throwing variant for authorization policies, where a missing claim just means "no".
+    public static bool HasRole(this ClaimsPrincipal? principal, Role role)
+    {
+        string? value = principal?.FindFirstValue("role") ?? principal?.FindFirstValue(ClaimTypes.Role);
+
+        return Enum.TryParse(value, out Role parsedRole) && parsedRole == role;
+    }
 }

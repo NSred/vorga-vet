@@ -1,22 +1,33 @@
+using Application.Abstractions.Authentication;
 using Application.Patients.GetById;
 using Application.UnitTests.Abstractions;
 using Domain.Allergens;
 using Domain.Breeds;
 using Domain.Owners;
 using Domain.Patients;
+using Domain.Users;
 using SharedKernel;
 
 namespace Application.UnitTests.Patients;
 
 public sealed class GetPatientByIdQueryHandlerTests : BaseHandlerTest
 {
+    private static IUserContext VetContext()
+    {
+        IUserContext userContext = Substitute.For<IUserContext>();
+        userContext.Role.Returns(Role.Veterinarian);
+        userContext.UserId.Returns(Guid.NewGuid());
+
+        return userContext;
+    }
+
     [Fact]
     public async Task Handle_Should_ReturnNotFound_WhenPatientDoesNotExist()
     {
         // Arrange
         await using TestDbContext context = CreateDbContext();
         var missingPatientId = Guid.NewGuid();
-        var handler = new GetPatientByIdQueryHandler(context);
+        var handler = new GetPatientByIdQueryHandler(context, VetContext());
 
         // Act
         Result<PatientDetailResponse> result = await handler.Handle(
@@ -44,7 +55,7 @@ public sealed class GetPatientByIdQueryHandlerTests : BaseHandlerTest
         context.Patients.Add(patient);
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientByIdQueryHandler(context);
+        var handler = new GetPatientByIdQueryHandler(context, VetContext());
 
         // Act
         Result<PatientDetailResponse> result = await handler.Handle(
@@ -87,7 +98,7 @@ public sealed class GetPatientByIdQueryHandlerTests : BaseHandlerTest
         context.PatientAllergens.Add(PatientAllergen.Create(patient.Id, chicken.Id));
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientByIdQueryHandler(context);
+        var handler = new GetPatientByIdQueryHandler(context, VetContext());
 
         // Act
         Result<PatientDetailResponse> result = await handler.Handle(

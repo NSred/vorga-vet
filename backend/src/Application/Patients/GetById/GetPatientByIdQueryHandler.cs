@@ -1,12 +1,14 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Patients;
+using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
 namespace Application.Patients.GetById;
 
-internal sealed class GetPatientByIdQueryHandler(IApplicationDbContext context)
+internal sealed class GetPatientByIdQueryHandler(IApplicationDbContext context, IUserContext userContext)
     : IQueryHandler<GetPatientByIdQuery, PatientDetailResponse>
 {
     public async Task<Result<PatientDetailResponse>> Handle(
@@ -15,7 +17,9 @@ internal sealed class GetPatientByIdQueryHandler(IApplicationDbContext context)
     {
         PatientDetailResponse? patient = await GetPatientDetailAsync(query.PatientId, cancellationToken);
 
-        if (patient is null)
+        // A client asking about an animal that isn't theirs gets NotFound, not Forbidden,
+        // so patient ids stay unprobeable.
+        if (patient is null || !await IsVisibleToCallerAsync(patient.OwnerId, cancellationToken))
         {
             return Result.Failure<PatientDetailResponse>(PatientErrors.NotFound(query.PatientId));
         }
@@ -23,6 +27,18 @@ internal sealed class GetPatientByIdQueryHandler(IApplicationDbContext context)
         patient.Allergies = await GetAllergiesAsync(query.PatientId, cancellationToken);
 
         return patient;
+    }
+
+    private async Task<bool> IsVisibleToCallerAsync(Guid patientOwnerId, CancellationToken cancellationToken)
+    {
+        if (userContext.Role != Role.Client)
+        {
+            return true;
+        }
+
+        Guid userId = userContext.UserId;
+
+        return await context.Owners.AnyAsync(o => o.Id == patientOwnerId && o.UserId == userId, cancellationToken);
     }
 
     private Task<PatientDetailResponse?> GetPatientDetailAsync(Guid patientId, CancellationToken cancellationToken) =>

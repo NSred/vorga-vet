@@ -28,11 +28,17 @@ public sealed class Appointment : Entity
     public AppointmentStatus Status { get; private set; }
     public string? Reason { get; private set; }
 
-    public DateTime CreatedAt { get; private set; }
+    public DateTime? CheckedInAt { get; private set; }
 
-    // Lifecycle fields — CheckedInAt, ClosedAt, ClosedByUserId, ResolutionNote — arrive
-    // in the lifecycle step alongside the CheckIn / Complete / Cancel / MarkNoShow methods
-    // that set them, so no field exists without a use case that writes it.
+    // Set when the appointment reaches a terminal status. Who closed it (and, via their
+    // role, whether the clinic or the client did) matters the day a no-show is disputed.
+    public DateTime? ClosedAt { get; private set; }
+    public Guid? ClosedByUserId { get; private set; }
+
+    // The cancellation reason or the no-show note — one field, whichever applies.
+    public string? ResolutionNote { get; private set; }
+
+    public DateTime CreatedAt { get; private set; }
 
     private Appointment() { } // EF Core
 
@@ -64,5 +70,57 @@ public sealed class Appointment : Entity
         appointment.Raise(new AppointmentScheduledDomainEvent(appointment.Id));
 
         return appointment;
+    }
+
+    // Resolution at the visit: a thin self-booking gets its owner and patient card here.
+    public void AttachOwner(Guid ownerId) => OwnerId = ownerId;
+
+    public void AttachPatient(Guid patientId) => PatientId = patientId;
+
+    // Transition guards live in the handlers (AppointmentStatusTransitions); these just mutate.
+    public void CheckIn(DateTime atUtc)
+    {
+        Status = AppointmentStatus.CheckedIn;
+        CheckedInAt = atUtc;
+
+        Raise(new AppointmentCheckedInDomainEvent(Id));
+    }
+
+    public void Complete(DateTime atUtc, Guid byUserId)
+    {
+        Status = AppointmentStatus.Completed;
+        ClosedAt = atUtc;
+        ClosedByUserId = byUserId;
+
+        Raise(new AppointmentCompletedDomainEvent(Id));
+    }
+
+    public void MarkNoShow(DateTime atUtc, Guid byUserId, string? note)
+    {
+        Status = AppointmentStatus.NoShow;
+        ClosedAt = atUtc;
+        ClosedByUserId = byUserId;
+        ResolutionNote = note;
+
+        Raise(new AppointmentNoShowedDomainEvent(Id));
+    }
+
+    public void Cancel(DateTime atUtc, Guid byUserId, string? reason)
+    {
+        Status = AppointmentStatus.Cancelled;
+        ClosedAt = atUtc;
+        ClosedByUserId = byUserId;
+        ResolutionNote = reason;
+
+        Raise(new AppointmentCancelledDomainEvent(Id));
+    }
+
+    public void Reschedule(DateTime newStartsAtUtc, int durationMinutes)
+    {
+        StartsAt = newStartsAtUtc;
+        DurationMinutes = durationMinutes;
+        EndsAt = newStartsAtUtc.AddMinutes(durationMinutes);
+
+        Raise(new AppointmentRescheduledDomainEvent(Id));
     }
 }

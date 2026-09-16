@@ -35,4 +35,20 @@ public static class AppointmentErrors
     public static readonly Error RangeTooWide = Error.Problem(
         "Appointments.RangeTooWide",
         "The requested date range is too large; request a narrower window");
+
+    public static readonly Error OwnerResolutionRequired = Error.Problem(
+        "Appointments.OwnerResolutionRequired",
+        "This booking has no owner yet; pick an existing owner or enter a new one to check in");
+
+    public static readonly Error PatientResolutionRequired = Error.Problem(
+        "Appointments.PatientResolutionRequired",
+        "This booking has no patient yet; pick an existing patient or enter a new one to check in");
+
+    public static readonly Error AmbiguousResolution = Error.Problem(
+        "Appointments.AmbiguousResolution",
+        "Provide either an existing record or details for a new one, not both");
+
+    public static readonly Error OnlyScheduledCanBeRescheduled = Error.Problem(
+        "Appointments.OnlyScheduledCanBeRescheduled",
+        "Only an appointment that is still scheduled can be moved");
 }

@@ -1,13 +1,15 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Breeds;
 using Domain.Patients;
+using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
 namespace Application.Patients.Get;
 
-internal sealed class GetPatientsQueryHandler(IApplicationDbContext context)
+internal sealed class GetPatientsQueryHandler(IApplicationDbContext context, IUserContext userContext)
     : IQueryHandler<GetPatientsQuery, GetPatientsResponse>
 {
     private const int MaxPageSize = 100;
@@ -18,6 +20,7 @@ internal sealed class GetPatientsQueryHandler(IApplicationDbContext context)
         int pageSize = NormalizePageSize(query.PageSize);
 
         IQueryable<Patient> filtered = context.Patients.AsNoTracking();
+        filtered = await ApplyRoleScopeAsync(filtered, cancellationToken);
         filtered = ApplyStatusFilter(filtered, query.Status);
         filtered = ApplySpeciesFilter(filtered, query.Species);
         filtered = ApplySexFilter(filtered, query.Sex);
@@ -43,6 +46,25 @@ internal sealed class GetPatientsQueryHandler(IApplicationDbContext context)
             Page = page,
             PageSize = pageSize
         };
+    }
+
+    // A client only ever sees the animals recorded under their own owner record; with no
+    // linked owner that is an empty list, never the whole roster.
+    private async Task<IQueryable<Patient>> ApplyRoleScopeAsync(IQueryable<Patient> query, CancellationToken cancellationToken)
+    {
+        if (userContext.Role != Role.Client)
+        {
+            return query;
+        }
+
+        Guid userId = userContext.UserId;
+
+        Guid? myOwnerId = await context.Owners
+            .Where(o => o.UserId == userId)
+            .Select(o => (Guid?)o.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return query.Where(p => myOwnerId != null && p.OwnerId == myOwnerId);
     }
 
     private static IQueryable<Patient> ApplyStatusFilter(IQueryable<Patient> query, PatientStatusFilter status) =>

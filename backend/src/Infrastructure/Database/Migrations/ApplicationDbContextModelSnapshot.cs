@@ -56,6 +56,18 @@ namespace Infrastructure.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTime?>("CheckedInAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checked_in_at");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<Guid?>("ClosedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("closed_by_user_id");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -84,6 +96,10 @@ namespace Infrastructure.Database.Migrations
                         .HasColumnType("text")
                         .HasColumnName("reason");
 
+                    b.Property<string>("ResolutionNote")
+                        .HasColumnType("text")
+                        .HasColumnName("resolution_note");
+
                     b.Property<DateTime>("StartsAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("starts_at");
@@ -99,6 +115,9 @@ namespace Infrastructure.Database.Migrations
                     b.HasKey("Id")
                         .HasName("pk_appointments");
 
+                    b.HasIndex("ClosedByUserId")
+                        .HasDatabaseName("ix_appointments_closed_by_user_id");
+
                     b.HasIndex("CreatedByUserId")
                         .HasDatabaseName("ix_appointments_created_by_user_id");
 
@@ -110,6 +129,9 @@ namespace Infrastructure.Database.Migrations
 
                     b.HasIndex("StartsAt")
                         .HasDatabaseName("ix_appointments_starts_at");
+
+                    b.HasIndex("Status", "StartsAt")
+                        .HasDatabaseName("ix_appointments_status_starts_at");
 
                     b.ToTable("appointments", "public");
                 });
@@ -231,6 +253,139 @@ namespace Infrastructure.Database.Migrations
                             IsClosed = false,
                             OpenTime = new TimeOnly(7, 0, 0)
                         });
+                });
+
+            modelBuilder.Entity("Domain.Examinations.Attachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("content_type");
+
+                    b.Property<Guid>("ExaminationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("examination_id");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)")
+                        .HasColumnName("file_name");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attachments");
+
+                    b.HasIndex("ExaminationId")
+                        .HasDatabaseName("ix_attachments_examination_id");
+
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_attachments_patient_id");
+
+                    b.ToTable("attachments", "public");
+                });
+
+            modelBuilder.Entity("Domain.Examinations.Examination", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Anamnesis")
+                        .HasColumnType("text")
+                        .HasColumnName("anamnesis");
+
+                    b.Property<Guid?>("AppointmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<decimal?>("Cost")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("cost");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Diagnosis")
+                        .HasColumnType("text")
+                        .HasColumnName("diagnosis");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_paid");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_at");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<string>("PerformedByFirstName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("performed_by_first_name");
+
+                    b.Property<string>("PerformedByLastName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("performed_by_last_name");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Therapy")
+                        .HasColumnType("text")
+                        .HasColumnName("therapy");
+
+                    b.HasKey("Id")
+                        .HasName("pk_examinations");
+
+                    b.HasIndex("AppointmentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_examinations_appointment_id")
+                        .HasFilter("\"appointment_id\" IS NOT NULL");
+
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_examinations_patient_id");
+
+                    b.ToTable("examinations", "public");
                 });
 
             modelBuilder.Entity("Domain.Owners.Owner", b =>
@@ -569,6 +724,12 @@ namespace Infrastructure.Database.Migrations
                 {
                     b.HasOne("Domain.Users.User", null)
                         .WithMany()
+                        .HasForeignKey("ClosedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_appointments_users_closed_by_user_id");
+
+                    b.HasOne("Domain.Users.User", null)
+                        .WithMany()
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
@@ -585,6 +746,39 @@ namespace Infrastructure.Database.Migrations
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_appointments_patients_patient_id");
+                });
+
+            modelBuilder.Entity("Domain.Examinations.Attachment", b =>
+                {
+                    b.HasOne("Domain.Examinations.Examination", null)
+                        .WithMany()
+                        .HasForeignKey("ExaminationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_attachments_examinations_examination_id");
+
+                    b.HasOne("Domain.Patients.Patient", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attachments_patients_patient_id");
+                });
+
+            modelBuilder.Entity("Domain.Examinations.Examination", b =>
+                {
+                    b.HasOne("Domain.Appointments.Appointment", null)
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_examinations_appointments_appointment_id");
+
+                    b.HasOne("Domain.Patients.Patient", null)
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_examinations_patients_patient_id");
                 });
 
             modelBuilder.Entity("Domain.Owners.Owner", b =>

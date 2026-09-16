@@ -20,8 +20,10 @@ internal sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appoin
         builder.HasOne<Owner>().WithMany().HasForeignKey(a => a.OwnerId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Patient>().WithMany().HasForeignKey(a => a.PatientId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<User>().WithMany().HasForeignKey(a => a.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<User>().WithMany().HasForeignKey(a => a.ClosedByUserId).OnDelete(DeleteBehavior.Restrict);
 
-        // The ClosedByUserId FK is added in the lifecycle step, with that field.
+        // Unresolved-appointment queries filter on status + time.
+        builder.HasIndex(a => new { a.Status, a.StartsAt });
 
         // The one-appointment-per-slot invariant is a partial range-exclusion constraint,
         // which EF Core cannot express fluently — it is added as raw SQL in the migration

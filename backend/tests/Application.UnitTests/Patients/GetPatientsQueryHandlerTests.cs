@@ -1,15 +1,26 @@
+using Application.Abstractions.Authentication;
 using Application.Patients.Get;
 using Application.UnitTests.Abstractions;
 using Domain.Allergens;
 using Domain.Breeds;
 using Domain.Owners;
 using Domain.Patients;
+using Domain.Users;
 using SharedKernel;
 
 namespace Application.UnitTests.Patients;
 
 public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
 {
+    private static IUserContext VetContext()
+    {
+        IUserContext userContext = Substitute.For<IUserContext>();
+        userContext.Role.Returns(Role.Veterinarian);
+        userContext.UserId.Returns(Guid.NewGuid());
+
+        return userContext;
+    }
+
     private static void SeedPatient(
         TestDbContext context,
         string name,
@@ -73,7 +84,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Deleted One", isDeleted: true);
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(DefaultQuery(), CancellationToken.None);
@@ -91,7 +102,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Deleted One", isDeleted: true);
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(
@@ -111,7 +122,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Deleted One", isDeleted: true);
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(
@@ -131,7 +142,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Luna", Species.Cat);
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(
@@ -151,7 +162,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Bella", sex: Sex.Female);
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(
@@ -171,7 +182,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Bella", city: "Beograd");
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(
@@ -193,7 +204,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Bella");
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(
@@ -217,7 +228,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Bella");
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(DefaultQuery(), CancellationToken.None);
@@ -238,7 +249,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Ana");
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(DefaultQuery(), CancellationToken.None);
@@ -258,7 +269,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         }
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(
@@ -280,7 +291,7 @@ public sealed class GetPatientsQueryHandlerTests : BaseHandlerTest
         SeedPatient(context, "Rex");
         await context.SaveChangesAsync();
 
-        var handler = new GetPatientsQueryHandler(context);
+        var handler = new GetPatientsQueryHandler(context, VetContext());
 
         // Act
         Result<GetPatientsResponse> result = await handler.Handle(

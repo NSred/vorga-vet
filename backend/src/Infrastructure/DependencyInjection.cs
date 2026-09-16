@@ -1,10 +1,15 @@
 ﻿using System.Text;
 using Application.Abstractions.Authentication;
+using Application.Abstractions.Clinic;
 using Application.Abstractions.Data;
+using Application.Abstractions.Storage;
+using Domain.Users;
 using Infrastructure.Authentication;
 using Infrastructure.Authorization;
+using Infrastructure.Clinic;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
+using Infrastructure.Storage;
 using Infrastructure.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -33,6 +38,8 @@ public static class DependencyInjection
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton<IClinicSettings, ClinicSettings>();
+        services.AddSingleton<IImageStorage, FileSystemImageStorage>();
 
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
@@ -94,7 +101,12 @@ public static class DependencyInjection
 
     private static IServiceCollection AddAuthorizationInternal(this IServiceCollection services)
     {
-        services.AddAuthorization();
+        // Two coarse roles, so endpoint access is a role policy; finer-grained permissions
+        // still flow through PermissionAuthorizationPolicyProvider for any other policy name.
+        services.AddAuthorization(options =>
+            options.AddPolicy(Policies.Veterinarian, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireAssertion(context => context.User.HasRole(Role.Veterinarian))));
 
         services.AddScoped<PermissionProvider>();
 

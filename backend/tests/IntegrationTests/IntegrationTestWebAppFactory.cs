@@ -29,6 +29,11 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // Relax rate limiting so the test suite is not throttled.
         builder.UseSetting("RateLimiting:Global:PermitLimit", "100000");
         builder.UseSetting("RateLimiting:Authentication:PermitLimit", "100000");
+
+        // Attachment bytes go to a per-run temp directory, never the repo.
+        builder.UseSetting(
+            "Storage:ImagesRootPath",
+            Path.Combine(Path.GetTempPath(), "vorga-vet-tests", Guid.NewGuid().ToString("N"), "images"));
     }
 
     public async Task InitializeAsync()
