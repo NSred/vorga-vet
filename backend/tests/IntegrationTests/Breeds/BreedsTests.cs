@@ -131,5 +131,27 @@ public sealed class BreedsTests(IntegrationTestWebAppFactory factory) : BaseInte
         breeds.ShouldNotContain(b => b.Id == breedId);
     }
 
+    [Fact]
+    public async Task SearchBreeds_Should_ReturnBadRequest_WhenRequiredSpeciesIsMissing()
+    {
+        // Arrange — the test host runs in Development, where a binding failure throws instead of
+        // returning 400 directly; the global handler must still surface it as a client error.
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync("breeds?search=a");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        ProblemDto? problem = await response.Content.ReadFromJsonAsync<ProblemDto>();
+        problem.ShouldNotBeNull();
+        problem.Title.ShouldBe("Bad request");
+        problem.Detail.ShouldNotBeNull();
+        problem.Detail.ShouldContain("species");
+    }
+
     private sealed record BreedDto(Guid Id, string Name);
+
+    private sealed record ProblemDto(string? Title, int? Status, string? Detail);
 }
