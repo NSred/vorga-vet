@@ -1,7 +1,7 @@
 # Patients on real CRUD endpoints — implementation record
 
 Status: implemented 2026-08-27. Design and rationale live in
-`docs/superpowers/specs/2026-08-27-patients-real-crud-design.md`.
+`docs/specs/2026-08-27-patients-real-crud-design.md`.
 
 This was originally a step-by-step execution plan with full code inline. Now that the code is in
 the repository that detail has been removed: the source is the truth, and a copy of it here would

@@ -13,7 +13,7 @@ it renders, so a data source can be swapped without touching a tile.
 **Tech Stack:** React 19, TypeScript, Vite 8, `@tanstack/react-query` 5.102.8, Vitest 4 +
 Testing Library, oxlint.
 
-**Spec:** `docs/superpowers/specs/2026-08-29-frontend-layered-structure-design.md`
+**Spec:** `docs/specs/2026-08-29-frontend-layered-structure-design.md`
 
 ## Global Constraints
 

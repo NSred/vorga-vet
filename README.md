@@ -8,6 +8,7 @@ configuration can evolve together.
 - `backend/` — .NET backend, tests, and backend-only Docker Compose services
 - `frontend/` — React and TypeScript web application
 - `compose.yml` — complete local application stack
+- `docs/` — design specs and implementation plans, indexed in [`docs/README.md`](docs/README.md)
 - `devops/` — deployment and infrastructure configuration
 - `.github/workflows/` — GitHub Actions pipelines
 

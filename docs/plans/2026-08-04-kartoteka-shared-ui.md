@@ -1,7 +1,7 @@
 # Shared UI library and patient records tab — implementation record
 
 Status: implemented 2026-08-04. Design in
-`docs/superpowers/specs/2026-08-04-kartoteka-shared-ui-design.md`.
+`docs/specs/2026-08-04-kartoteka-shared-ui-design.md`.
 
 Originally a sixteen-task plan with full code inline. The code is in the repository now, so
 that detail has been removed and only the decisions remain.

@@ -1,7 +1,7 @@
 # Peak hours panel — implementation record
 
 Status: implemented 2026-08-05. Design in
-`docs/superpowers/specs/2026-08-05-peak-hours-panel-design.md`.
+`docs/specs/2026-08-05-peak-hours-panel-design.md`.
 
 Originally a three-task plan with full code inline. The code is in the repository now, so that
 detail has been removed and only the decisions remain.

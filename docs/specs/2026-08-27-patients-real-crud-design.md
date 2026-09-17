@@ -2,7 +2,7 @@
 
 Date: 2026-08-27
 Status: implemented. Build order and execution findings live in
-`docs/superpowers/plans/2026-08-27-patients-real-crud.md`.
+`docs/plans/2026-08-27-patients-real-crud.md`.
 
 ## Goal
 

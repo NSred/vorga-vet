@@ -1,8 +1,12 @@
 # VorgaVet Frontend — Zakazano Tab (Phase 2)
 
+> **Superseded (2026-09-17).** The appointments page described here ran on mock data.
+> It is replaced by `docs/specs/2026-09-17-appointments-vet-calendar-design.md`, which puts the
+> calendar on the real backend. Kept for history.
+
 ## Context
 
-Phase 1 (`docs/superpowers/specs/2026-08-04-kartoteka-shared-ui-design.md`) built
+Phase 1 (`docs/specs/2026-08-04-kartoteka-shared-ui-design.md`) built
 the `shared/ui` component library and the Kartoteka (patient records) tab against
 a mock data layer, explicitly deferring Zakazano (appointment scheduling) to its
 own spec. This is that spec.

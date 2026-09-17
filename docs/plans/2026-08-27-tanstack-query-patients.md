@@ -13,7 +13,7 @@ existing panel animation and remount behaviour are undisturbed.
 
 **Tech Stack:** React 19, TypeScript, Vite 8, Vitest 4 + Testing Library, `@tanstack/react-query` v5.
 
-**Spec:** `docs/superpowers/specs/2026-08-27-tanstack-query-patients-design.md`
+**Spec:** `docs/specs/2026-08-27-tanstack-query-patients-design.md`
 
 ## Global Constraints
 

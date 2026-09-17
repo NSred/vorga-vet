@@ -1,7 +1,7 @@
 # Frontend scaffold and auth — implementation record
 
 Status: implemented 2026-08-02. Design in
-`docs/superpowers/specs/2026-08-02-frontend-scaffold-design.md`.
+`docs/specs/2026-08-02-frontend-scaffold-design.md`.
 
 Originally a step-by-step plan with full code inline. The code is in the repository now, so
 that detail has been removed and only the decisions remain.
