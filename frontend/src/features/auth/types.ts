@@ -14,3 +14,5 @@ export interface AccessTokens {
   accessToken: string
   refreshToken: string
 }
+
+export type UserRole = 'client' | 'veterinarian'

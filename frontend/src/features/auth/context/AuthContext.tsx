@@ -1,14 +1,16 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { login as loginRequest, register as registerRequest } from '@/features/auth/api/authApi'
-import { decodeJwt } from '@/features/auth/lib/decodeJwt'
+import { decodeJwt, roleFromClaim } from '@/features/auth/lib/decodeJwt'
 import { accessTokenStore } from '@/shared/lib/accessTokenStore'
 import { tokenStorage } from '@/shared/lib/tokenStorage'
 import { refreshAccessToken, setUnauthorizedHandler } from '@/shared/lib/apiClient'
-import type { LoginRequest, RegisterRequest } from '@/features/auth/types'
+import type { LoginRequest, RegisterRequest, UserRole } from '@/features/auth/types'
 
 interface AuthUser {
   userId: string
   email: string
+  role: UserRole
 }
 
 interface AuthContextValue {
@@ -24,12 +26,13 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 function userFromAccessToken(accessToken: string): AuthUser {
   const claims = decodeJwt(accessToken)
-  return { userId: claims.sub, email: claims.email }
+  return { userId: claims.sub, email: claims.email, role: roleFromClaim(claims.role) }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     setUnauthorizedHandler(() => setUser(null))
@@ -59,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const tokens = await loginRequest(request)
     accessTokenStore.set(tokens.accessToken)
     tokenStorage.set(tokens.refreshToken)
+    queryClient.clear()
     setUser(userFromAccessToken(tokens.accessToken))
   }
 
@@ -69,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     accessTokenStore.set(null)
     tokenStorage.clear()
+    queryClient.clear()
     setUser(null)
   }
 

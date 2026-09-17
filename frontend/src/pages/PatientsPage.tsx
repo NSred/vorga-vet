@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { ApiError } from '@/shared/lib/apiClient'
 import { Button, useToast } from '@/shared/ui'
+import { useAuth } from '@/features/auth'
 import {
   PeakHoursPanel,
   PeakHourTile,
@@ -41,6 +42,8 @@ const EMPTY_PAGE: PatientPage = { items: [], totalCount: 0, page: 1, pageSize: 1
 
 export function PatientsPage() {
   const { showToast } = useToast()
+  const { user } = useAuth()
+  const isVeterinarian = user?.role === 'veterinarian'
   const [searchParams, setSearchParams] = useSearchParams()
   const { filters, allergenName, page, pageSize } = parseFilterParams(searchParams)
 
@@ -142,9 +145,11 @@ export function PatientsPage() {
           <h1 className={styles.title}>Patient Records</h1>
           <p className={styles.subtitle}>Overview and entry of animals, owners, and basic medical information.</p>
         </div>
-        <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
-          ＋ New patient
-        </Button>
+        {isVeterinarian && (
+          <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
+            ＋ New patient
+          </Button>
+        )}
       </div>
 
       <StatGrid>
@@ -167,6 +172,11 @@ export function PatientsPage() {
         onPageChange={(next) => writeParams(activeFilters, next, pageSize)}
         onPageSizeChange={(next) => writeParams(activeFilters, 1, next)}
         onRowClick={openPatient}
+        emptyMessage={
+          isVeterinarian
+            ? undefined
+            : 'Your animals will appear here after their first visit to the clinic.'
+        }
       />
 
       {displayPanel.mode === 'view' && (
@@ -174,12 +184,16 @@ export function PatientsPage() {
           patient={displayPanel.patient}
           open={panel.mode === 'view'}
           onOpenChange={(open) => !open && closePanel()}
-          onEdit={() => setPanel({ mode: 'edit', patient: displayPanel.patient })}
-          onDelete={() => handleDelete(displayPanel.patient.id)}
+          onEdit={
+            isVeterinarian
+              ? () => setPanel({ mode: 'edit', patient: displayPanel.patient })
+              : undefined
+          }
+          onDelete={isVeterinarian ? () => handleDelete(displayPanel.patient.id) : undefined}
         />
       )}
 
-      {displayPanel.mode === 'create' && (
+      {isVeterinarian && displayPanel.mode === 'create' && (
         <PatientFormPanel
           mode="create"
           open={panel.mode === 'create'}
@@ -189,7 +203,7 @@ export function PatientsPage() {
         />
       )}
 
-      {displayPanel.mode === 'edit' && (
+      {isVeterinarian && displayPanel.mode === 'edit' && (
         <PatientFormPanel
           key={displayPanel.patient.id}
           mode="edit"

@@ -9,8 +9,8 @@ export interface PatientDetailPanelProps {
   patient: PatientDetail
   open: boolean
   onOpenChange: (open: boolean) => void
-  onEdit: () => void
-  onDelete: () => void
+  onEdit?: () => void
+  onDelete?: () => void
 }
 
 function formatValue(value: string | number | undefined): string {
@@ -51,12 +51,16 @@ export function PatientDetailPanel({ patient, open, onOpenChange, onEdit, onDele
       }
       footer={
         <>
-          <Button variant="danger" type="button" onClick={onDelete}>
-            Delete
-          </Button>
-          <Button variant="outline" type="button" onClick={onEdit}>
-            ✎ Edit
-          </Button>
+          {onDelete && (
+            <Button variant="danger" type="button" onClick={onDelete}>
+              Delete
+            </Button>
+          )}
+          {onEdit && (
+            <Button variant="outline" type="button" onClick={onEdit}>
+              ✎ Edit
+            </Button>
+          )}
           <Button variant="outline" type="button" disabled>
             🖨 Print
           </Button>

@@ -64,6 +64,12 @@ async function performRefresh(): Promise<boolean> {
   return true
 }
 
+const FORBIDDEN_MESSAGE = "You don't have permission to do that."
+
+function fallbackMessage(response: Response): string {
+  return response.status === 403 ? FORBIDDEN_MESSAGE : response.statusText
+}
+
 async function parseProblem(response: Response): Promise<ApiError> {
   try {
     const problem = (await response.json()) as ProblemDetails
@@ -73,12 +79,12 @@ async function parseProblem(response: Response): Promise<ApiError> {
 
     return new ApiError(
       response.status,
-      problem.detail ?? problem.title ?? response.statusText,
+      problem.detail ?? problem.title ?? fallbackMessage(response),
       problem.title,
       messages && messages.length > 0 ? messages : undefined,
     )
   } catch {
-    return new ApiError(response.status, response.statusText)
+    return new ApiError(response.status, fallbackMessage(response))
   }
 }
 

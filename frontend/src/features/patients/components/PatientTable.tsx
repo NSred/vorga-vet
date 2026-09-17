@@ -14,6 +14,7 @@ export interface PatientTableProps {
   onPageChange: (page: number) => void
   onPageSizeChange: (pageSize: number) => void
   onRowClick: (patient: PatientListItem) => void
+  emptyMessage?: string
 }
 
 function formatValue(value: string | number | undefined): string {
@@ -75,10 +76,11 @@ export function PatientTable({
   onPageChange,
   onPageSizeChange,
   onRowClick,
+  emptyMessage = 'No patients yet.',
 }: PatientTableProps) {
   if (!isLoading && patients.length === 0) {
     return (
-      <EmptyState message={hasFilters ? 'No patients match your filters.' : 'No patients yet.'} />
+      <EmptyState message={hasFilters ? 'No patients match your filters.' : emptyMessage} />
     )
   }
 

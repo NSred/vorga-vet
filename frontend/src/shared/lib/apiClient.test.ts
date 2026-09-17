@@ -62,4 +62,13 @@ describe('apiFetch error parsing', () => {
     expect(error.code).toBeUndefined()
     expect(error.validationMessages).toBeUndefined()
   })
+
+  it('explains a forbidden response that has no body', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 403 }))
+
+    const error = (await apiFetch('/owners').catch((e: unknown) => e)) as ApiError
+
+    expect(error.status).toBe(403)
+    expect(error.message).toBe("You don't have permission to do that.")
+  })
 })

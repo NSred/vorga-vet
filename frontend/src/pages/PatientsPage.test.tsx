@@ -11,6 +11,12 @@ import * as appointmentsApi from '@/features/appointments/api/appointmentsApi'
 import type { PatientListItem } from '@/features/patients'
 import { ApiError } from '@/shared/lib/apiClient'
 
+const auth = vi.hoisted(() => ({ role: 'veterinarian' as 'veterinarian' | 'client' }))
+
+vi.mock('@/features/auth', () => ({
+  useAuth: () => ({ user: { userId: 'u1', email: 'user@example.com', role: auth.role } }),
+}))
+
 const patient: PatientListItem = {
   id: 'p1',
   cardNumber: 'D26-04821',
@@ -49,6 +55,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  auth.role = 'veterinarian'
 })
 
 describe('PatientsPage URL state', () => {
@@ -207,5 +214,46 @@ describe('PatientsPage delete', () => {
     await openAndConfirmDelete()
 
     expect(await screen.findByText('Patient deleted')).toBeInTheDocument()
+  })
+})
+
+describe('PatientsPage for a client', () => {
+  beforeEach(() => {
+    auth.role = 'client'
+  })
+
+  it('hides the new patient action', async () => {
+    renderAt('/patients')
+
+    expect(await screen.findByText(/Rex/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /New patient/ })).not.toBeInTheDocument()
+  })
+
+  it('shows the record without edit or delete', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...patient,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+
+    expect(await screen.findByText('Owner contact')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Edit/ })).not.toBeInTheDocument()
+  })
+
+  it('explains an empty list', async () => {
+    getPatientsSpy.mockResolvedValue({ items: [], totalCount: 0, page: 1, pageSize: 10 })
+
+    renderAt('/patients')
+
+    expect(
+      await screen.findByText('Your animals will appear here after their first visit to the clinic.'),
+    ).toBeInTheDocument()
   })
 })
