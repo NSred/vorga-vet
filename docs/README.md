@@ -14,6 +14,9 @@ not implemented yet. **Superseded** — kept for history; the linked document re
 
 | Date | Area | Topic | Document | Status |
 |---|---|---|---|---|
+| 2026-09-21 | FE | Client appointments: own visits, booking, reschedule, cancel (sub-project 5) | [document](specs/2026-09-21-client-appointments.md) | Planned |
+| 2026-09-21 | FE | Examinations and attachments: visit history, edit, images (sub-project 4) | [document](specs/2026-09-21-examinations-and-attachments.md) | Implemented |
+| 2026-09-21 | FE | Appointments: visit flow (check-in, complete with examination, walk-in, pay) | [document](specs/2026-09-21-appointments-visit-flow.md) | Implemented |
 | 2026-09-21 | FE | Appointments: scheduling actions (book, reschedule, cancel, no-show, unresolved list) | [document](specs/2026-09-21-appointments-scheduling-actions.md) | Implemented |
 | 2026-09-21 | FE | Hardening before scheduling actions (mutations, error catalogs, transitions, confirm dialog, CI) | [document](specs/2026-09-21-frontend-hardening-before-scheduling.md) | Implemented |
 | 2026-09-17 | FE | Appointments: vet calendar on the real backend | [spec](specs/2026-09-17-appointments-vet-calendar-design.md), [plan](plans/2026-09-17-appointments-vet-calendar.md) | Implemented |

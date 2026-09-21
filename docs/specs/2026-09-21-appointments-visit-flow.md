@@ -1,0 +1,169 @@
+# Appointments: visit flow (sub-project 3)
+
+Status: Implemented. Builds on [scheduling actions](2026-09-21-appointments-scheduling-actions.md).
+
+## What this adds
+
+The vet can run the visit itself, not only the calendar around it:
+
+- **Check in** an appointment when the animal arrives. A booking made without an owner or a
+  patient card gets them here: pick an existing owner or create one, pick an existing patient or
+  enter a new card.
+- **Complete** an appointment by recording the examination: who performed it, anamnesis,
+  diagnosis, therapy, cost. If check-in was skipped, the same resolution happens first.
+- **Walk-in**: record an examination for an existing patient with no appointment behind it.
+- **Mark paid** right after recording, when a cost was entered.
+
+Out of scope: attachments (X-ray, ultrasound images), editing an examination afterwards, the
+visit history in the patient panel (all sub-project 4), the client pages (sub-project 5), any
+backend change.
+
+## Backend contract
+
+All vet-only. Instants are UTC ISO strings. `sex` is the patient int enum.
+
+| Call | Body | Result | Rules the UI respects |
+|---|---|---|---|
+| `POST appointments/{id}/check-in` | `{ owner?, patient? }` | `{ ownerId, patientId }` | From `scheduled`. `owner` and `patient` are required only when the booking lacks them; each is `{ existingOwnerId }` or `{ create: {...} }`, never both. A picked patient must belong to the resolved owner. |
+| `POST appointments/{id}/complete` | `{ owner?, patient?, examination }` | examination id | From `scheduled` or `checked_in`. Same resolution rule. One examination per appointment. |
+| `POST examinations` | `{ patientId, examination }` | examination id | Walk-in. Patient must exist and not be deleted. |
+| `POST examinations/{id}/pay` | | `204` | Fails with `AlreadyPaid` the second time. |
+| `GET examinations/{id}` | | `ExaminationResponse` | Used to show what was just recorded. |
+
+`examination` is `ExaminationDetails`: `performedByFirstName`, `performedByLastName` (both
+required, max 100), `anamnesis`, `diagnosis`, `therapy` (each max 4000), `cost` (decimal, at least
+0). `create` for an owner is `{ firstName, lastName, phoneNumber, address, city, email? }`; for a
+patient `{ breedId, cardNumber, name, sex, birthDate?, color?, chipNumber?, note? }`.
+
+`ExaminationResponse`: `id`, `patientId`, `patientName?`, `appointmentId?`, performer names,
+`startedAt`, `endedAt?`, the four clinical fields, `cost?`, `isPaid`, `paidAt?`, `createdAt`,
+`attachments[]` (`{ id, kind (0 Xray, 1 Ultrasound), fileName, contentType, sizeBytes, uploadedAt }`).
+
+Error codes the UI reacts to: `Appointments.InvalidTransition`, `Appointments.NotFound`,
+`Appointments.PatientDoesNotBelongToOwner`, `Appointments.OwnerResolutionRequired`,
+`Appointments.PatientResolutionRequired`, `Patients.CardNumberNotUnique`, `Breeds.NotFound`,
+`Owners.NotFound`, `Patients.NotFound`, `Examinations.AppointmentAlreadyHasExamination`,
+`Examinations.AlreadyPaid`, `Examinations.NotFound`. Everything else falls back to a generic
+message.
+
+## Design
+
+**A new layer for the visit.** Check-in and complete need the owner, patient and breed pickers
+from the patients feature together with the appointment hooks. Rather than threading three more
+render slots through the appointments feature, the visit panels live in `widgets/visit/`, which
+may import both features. The appointments feature keeps the data layer and the detail panel
+buttons; the widget owns the forms; the page only opens and closes them.
+
+```
+features/examinations/      new: types, api, keys, examinationErrors, mutation and query hooks
+features/appointments/      + checkInAppointment, completeAppointment, resolution types, detail panel buttons
+shared/domain/              ExaminationDetails request type, shared by both features
+widgets/visit/
+  useCheckInAppointment, useCompleteAppointment (invalidate appointments, patients, examinations)
+  PartyResolutionFields     owner + patient resolution for a thin booking
+  ExaminationFields         the six clinical fields
+  CheckInPanel              resolution only, or a one-click confirm when nothing is missing
+  CompleteVisitPanel        resolution (if needed) + examination, then the paid step
+  WalkInPanel               patient picker + examination, then the paid step
+pages/AppointmentsPage      opens the three panels; toolbar gets a "Walk-in" button
+```
+
+**Resolution.** The owner is always resolved to an id: `OwnerPicker` already offers "Create
+owner" through its own dialog, which posts to `owners` and returns the new record, so the
+check-in body only ever carries `existingOwnerId`. The patient is either picked with
+`PatientPicker` or entered as a new card, so the body carries `existingPatientId` or `create`.
+New-card fields are the minimum the backend accepts plus the optional ones the patient form
+already knows: species and breed (`BreedPicker`), name, sex, card number (generated by
+`generatePatientCardNumber`, editable), birth date, color, chip number, note. `sexToApi` and
+`speciesToApi` come from the patients feature. The section for a party is shown only when the
+appointment lacks it; when nothing is missing, check-in is a `ConfirmDialog`.
+
+**Examination fields.** One component used by complete and walk-in: performer first and last
+name, anamnesis, diagnosis, therapy, cost. The performer names are prefilled from the logged-in
+user's profile (`GET users/{id}` returns the caller's first and last name) and stay editable, so
+a covering vet can correct them. The profile comes through a new `useCurrentUser` hook in the
+auth feature; it lives in the query cache, which `logout` already clears, so nothing stale
+survives a login switch. If the profile fails to load the fields start empty.
+`toExaminationDetails(values)` trims text, drops empty optionals and parses cost as a number.
+
+One caveat for the backend side: `users/{id}` is gated by `HasPermission(UsersAccess)`, and the
+permission handler currently succeeds for every authenticated user because the provider is still
+the template stub. If that gets tightened, the durable fix is two extra claims in the token
+(`given_name`, `family_name`) that `decodeJwt` would read instead; the frontend change is then a
+one-liner in `userFromAccessToken`.
+
+**Complete flow.** Step one is the form (resolution above the clinical fields when needed).
+Step two, after the id comes back, is a small summary with "Mark as paid" when a cost was entered
+and "Done". Paying calls `POST examinations/{id}/pay` and shows `AlreadyPaid` as a soft notice,
+not an error. Closing the panel at any point keeps what was saved; the calendar already shows
+the appointment as completed because the mutation invalidated `appointmentKeys.all`.
+
+**Walk-in.** Toolbar button next to "New appointment". The patient must already have a card;
+the panel says so and links to Patient Records when the picker finds nothing. Same two steps.
+
+**Detail panel.** Two more optional handlers, `onCheckIn` (shown from `scheduled`) and
+`onComplete` (from `scheduled` or `checked_in`), gated by `canTransition` like the others. The
+panel's patient section already explains that a thin booking is resolved at check-in.
+
+**Invalidation.** Check-in and complete may create an owner and a patient, so their hooks
+invalidate `appointmentKeys.all`, `patientKeys.all` and `examinationKeys.all`. Walk-in and pay
+invalidate `examinationKeys.all`; pay also invalidates the examination's detail key.
+
+**Errors.** `CardNumberNotUnique` regenerates the card number once and retries, as the patient
+form does, then reports. `PatientDoesNotBelongToOwner` marks the patient field. `Breeds.NotFound`
+clears the breed. `AppointmentAlreadyHasExamination` and `InvalidTransition` close the form with a
+toast and let the refreshed panel show the real status. Validation messages from the backend
+join into the form's alert line; anything else goes through `appointmentErrorMessage` or a new
+`examinationErrorMessage`.
+
+## Tasks
+
+Verification for every task, from `frontend/`: `npx vitest run`, `npx tsc -b`, `npm run lint`.
+No commits; the user commits. Tests first for each task.
+
+- [x] **1. Data layer.** `features/examinations` with `ExaminationDto`, `Examination`,
+  `AttachmentKind` mapping, `createExamination`, `payExamination`, `getExamination`,
+  `examinationKeys`, `examinationErrors` with `examinationErrorMessage`, `useCreateExamination`,
+  `usePayExamination`, `useExaminationQuery`. In appointments: resolution and check-in types,
+  `checkInAppointment`, `completeAppointment`, `useCheckInAppointment`, `useCompleteAppointment`,
+  three more codes in `appointmentErrors`. Tests: paths and bodies, invalidation on success,
+  mapping, catalog values.
+
+- [x] **2. Examination fields.** `getCurrentUser` and `useCurrentUser` in the auth feature;
+  `ExaminationFields` and `toExaminationDetails`. Tests: required performer names, cost parsing,
+  optional fields dropped, names prefilled from the profile and still editable, empty when the
+  profile fails.
+
+- [x] **3. Party resolution.** `PartyResolutionFields` with the owner section, the pick-or-create
+  patient section and `toResolution(values)`. Tests: sections appear only for the missing party;
+  picking yields `existingPatientId`; the new-card form yields `create` with `sexToApi` applied
+  and a generated card number.
+
+- [x] **4. Check-in.** `CheckInPanel`, detail panel `onCheckIn`, page wiring, toast "Checked in".
+  Tests: full booking confirms in one click and posts an empty body; thin booking shows the
+  resolution form and posts it; `PatientDoesNotBelongToOwner` marks the field; the panel shows
+  the patient summary after the refetch.
+
+- [x] **5. Complete.** `CompleteVisitPanel` with the paid step, detail panel `onComplete`, page
+  wiring, toasts "Visit recorded" and "Marked as paid". Tests: posts the examination and the
+  resolution when the booking is thin; paid step appears only with a cost; pay posts to the right
+  route and `AlreadyPaid` is shown softly; `AppointmentAlreadyHasExamination` closes with a toast.
+
+- [x] **6. Walk-in.** `WalkInPanel`, toolbar button, page wiring. Tests: requires a patient; posts
+  `patientId` and the examination; paid step works the same way.
+
+- [x] **7. Docs.** Flip this document to Implemented in `docs/README.md`, add the changelog entry.
+
+## Notes from implementation
+
+- The check-in and complete hooks live in `widgets/visit/`, not in the appointments feature: they
+  invalidate the appointment, patient and examination caches, and a feature may not import the
+  other two features' key factories.
+- `ExaminationDetails` (the request type) lives in `shared/domain/` so both the appointments and
+  examinations features can use it without importing each other.
+- `appointmentErrors` gained `breedNotFound` and `cardNumberNotUnique`; the resolution path
+  returns those catalogs' codes through the appointment endpoints.
+- Resolution is plain component state validated on submit, while the examination fields use
+  react-hook-form. Mixing the two kept the pickers, which are controlled components, simple.
+- The card number is regenerated and the request retried once on `CardNumberNotUnique`, the same
+  way the patient form does it.
