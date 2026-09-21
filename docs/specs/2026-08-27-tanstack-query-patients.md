@@ -216,3 +216,34 @@ until appointments follows.
   ascending with no sort parameter; `Table`'s existing `sortable` / `onSortChange` props are dead
   code for that reason. Revisit if sort parameters land, or if column visibility, reordering or bulk
   row selection is wanted.
+
+## How it was built
+
+Five passes, tests before the code in each:
+
+- [x] Install TanStack Query and provide the client from `App`, with the retry policy that stops
+  on any client error.
+- [x] Convert the entity search hook, whose signature gained a key prefix so each lookup caches
+  separately.
+- [x] Add the patients key factory and the read hooks the page consumes.
+- [x] Convert the page, which lost its own fetching machinery.
+- [x] Full verification.
+
+## Where it lives
+
+```
+src/shared/lib/queryClient.ts             the client and its retry policy
+src/test/renderWithQuery.tsx              a fresh client per test
+src/features/patients/
+  api/patientKeys.ts                      the key factory for this feature
+  hooks/usePatientsQuery.ts               the read hooks the page consumes
+  hooks/useEntitySearch.ts                rewritten; signature gained a key prefix
+  pages/PatientsPage.tsx                  consumes the hooks instead of fetching
+src/app/App.tsx                           provides the client and the devtools
+```
+
+Both the query client and the page moved again two days later, when the layered structure
+introduced `src/pages` and `src/app`.
+
+A note kept from execution: when two components share a query key, a dropped call count is the
+deduplication working. Adjust the expectation rather than giving the components different keys.

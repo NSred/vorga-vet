@@ -1,6 +1,6 @@
 # Appointments: scheduling actions (sub-project 2)
 
-Status: Implemented. Builds on the [vet calendar](2026-09-17-appointments-vet-calendar-design.md)
+Status: Implemented. Builds on the [vet calendar](2026-09-17-appointments-vet-calendar.md)
 and the [hardening pass](2026-09-21-frontend-hardening-before-scheduling.md).
 
 ## What this adds
@@ -95,3 +95,28 @@ when the count is non-zero; `UnresolvedPanel` lists date, time, party and type p
 - [x] Reschedule
 - [x] Cancel and no-show
 - [x] Unresolved list and out-of-range selection
+
+## Where it lives
+
+```
+src/features/appointments/
+  api/appointmentsApi.ts            + create, reschedule, cancel, markNoShow,
+                                      getUnresolved, getAppointment
+  api/appointmentKeys.ts            + detail(id), unresolved()
+  types.ts                          + write values, request DTOs, PartyRef
+  lib/appointmentRequest.ts         form values to a create or reschedule request
+  lib/slotOptions.ts                availability to start-time options
+  hooks/useAppointmentMutations.ts  the four write hooks, each invalidating the feature root
+  hooks/useAppointmentQuery.ts      one appointment, for a selection outside the visible range
+  hooks/useUnresolvedAppointmentsQuery.ts
+  components/AppointmentFormPanel.tsx    booking and rescheduling, pickers as render slots
+  components/UnresolvedBanner.tsx        count and a Review button
+  components/UnresolvedPanel.tsx         the list of visits needing closing
+  components/AppointmentDetailPanel.tsx  + reschedule, cancel and no-show buttons
+  components/CalendarToolbar.tsx         + New appointment
+  components/DayView.tsx                 a free slot became a button
+src/features/patients/
+  components/pickers/PatientPicker.tsx   search active patients, labelled Name and owner
+src/shared/ui/Select/                    + placeholder and error
+src/pages/AppointmentsPage.tsx           owns the panels, the dialogs and the picker slots
+```

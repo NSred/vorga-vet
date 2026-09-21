@@ -1,6 +1,6 @@
-# VorgaVet Backend Agent Skills for Claude Code
+# VorgaVet Agent Skills for Claude Code
 
-A skill pack that teaches Claude Code the conventions of the VorgaVet backend — so every feature it builds follows its Clean Architecture design: vertical-slice use cases, custom command/query handlers (no MediatR), Result-based error handling, minimal API endpoints, and full test coverage.
+A skill pack that teaches Claude Code the conventions of this repository. Four skills cover the backend — so every feature it builds follows the Clean Architecture design: vertical-slice use cases, custom command/query handlers (no MediatR), Result-based error handling, minimal API endpoints, and full test coverage. One skill, `feature-doc`, is repo-wide and owns the documentation a feature gets.
 
 ## What's inside
 
@@ -10,6 +10,7 @@ A skill pack that teaches Claude Code the conventions of the VorgaVet backend �
 | **add-entity** | `/add-entity Project with a name and owner` | Adds a domain entity end to end: entity, error catalog, domain events, EF configuration, DbContext wiring, migration. |
 | **add-tests** | `/add-tests CopyTodoCommand` | Backfills handler, validator, and integration tests for existing use cases. |
 | **ca-review** | `/ca-review` | Reviews pending changes against the template's conventions: layer boundaries, error handling, security, caching, and test coverage. |
+| **feature-doc** | `/feature-doc client can upload a vaccination card`, then `/feature-doc close` | Writes the single `docs/specs/` document a feature gets: detailed while planning, pruned to why, how and where once the code is green. |
 
 You don't have to invoke them explicitly — once installed, Claude Code picks the right skill automatically when you say things like "add an endpoint to snooze a todo."
 
@@ -26,7 +27,8 @@ your-project/
         ├── add-feature/
         ├── add-entity/
         ├── add-tests/
-        └── ca-review/
+        ├── ca-review/
+        └── feature-doc/
 ```
 
 Works with both the standard and the Aspire variants of the template.

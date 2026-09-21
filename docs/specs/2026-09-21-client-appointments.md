@@ -1,6 +1,6 @@
 # Client appointments (sub-project 5)
 
-Status: Planned. The last of the five appointment sub-projects. Everything so far is vet-only;
+Status: Implemented. The last of the five appointment sub-projects. Everything so far is vet-only;
 this gives a client (a pet owner with an account) their own appointments page.
 
 ## What this adds
@@ -84,21 +84,56 @@ underneath and simply refreshes the list.
 Verification for every task, from `frontend/`: `npx vitest run`, `npx tsc -b`, `npm run lint`.
 No commits; the user commits. Tests first for each task.
 
-- [ ] **1. Routing.** `AppointmentsRoute` choosing the page by role; nav link for both roles.
+- [x] **1. Routing.** `AppointmentsRoute` choosing the page by role; nav link for both roles.
   Tests: vet sees the calendar, client sees the client page, unauthenticated still redirects.
 
-- [ ] **2. Form variant.** `AppointmentFormPanel` `variant: 'client'`; `slotOptions` `isMine`
+- [x] **2. Form variant.** `AppointmentFormPanel` `variant: 'client'`; `slotOptions` `isMine`
   output. Tests: no surgery option, no duration select, owner slot absent, patient slot optional,
   `durationMinutes: 30` and no availability duration sent; own slot shown disabled with "yours".
 
-- [ ] **3. Lists.** `ClientAppointmentsPage` with upcoming and past lists over two ranges.
+- [x] **3. Lists.** `ClientAppointmentsPage` with upcoming and past lists over two ranges.
   Tests: ranges requested, split by status, sort order, empty states, actions gated by status.
 
-- [ ] **4. Booking.** Booking button and panel; patient slot only when the client has patients,
+- [x] **4. Booking.** Booking button and panel; patient slot only when the client has patients,
   the note otherwise. Tests: thin booking posts without owner or patient; with patients the
   picker appears and the id is sent; toast and refresh on success.
 
-- [ ] **5. Reschedule and cancel.** Reuse of the reschedule mode and the cancel dialog. Tests:
+- [x] **5. Reschedule and cancel.** Reuse of the reschedule mode and the cancel dialog. Tests:
   reschedule posts the new time only; cancel posts the reason; `NotFound` refreshes quietly.
 
-- [ ] **6. Docs.** Flip this document to Implemented in `docs/README.md`, add the changelog entry.
+- [x] **6. Docs.** Flip this document to Implemented in `docs/README.md`, add the changelog entry.
+
+## Notes from implementation
+
+- The two windows are adjacent, not overlapping: the past one ends at clinic midnight today and
+  the upcoming one starts there. Nothing can appear in both, so the page needs no de-duplication.
+  The page test mocks the two windows separately for the same reason.
+- Upcoming and Past split by **status**, not by date. A scheduled visit whose time has already
+  passed stays under Upcoming rather than vanishing, because it is still unresolved. `isOpen` in
+  the appointments feature is that rule.
+- The patient slot always renders something: the picker when the client has animals, otherwise
+  the explanatory note. `ownerField` and `patientField` on the form became optional, which is what
+  lets the client variant omit the owner entirely.
+- The shared `Select` gained a per-option `disabled` flag so Radix renders a client's own slot as
+  unselectable, and `slotOptions` gained `isMine` to drive it.
+- `clinicUpcomingDaysRange` was added as the mirror of `clinicRecentDaysRange`.
+- The "Appointments" nav link now shows for both roles, and `AppLayout`'s test flipped to assert
+  that. `RoleRoute` is no longer used by any route but stays exported and tested for future
+  vet-only routes, as planned.
+
+## Where it lives
+
+```
+src/app/
+  AppointmentsRoute.tsx                 picks the calendar or the client page by role
+  routes.tsx                            /appointments points at that element
+  layout/AppLayout.tsx                  the Appointments link shows for both roles
+src/pages/ClientAppointmentsPage.tsx    upcoming and past lists, booking, cancel dialog
+src/features/appointments/
+  components/AppointmentFormPanel.tsx   + a client variant; owner and patient slots optional
+  lib/slotOptions.ts                    + isMine, so an own slot can be shown as taken
+  lib/appointmentVisibility.ts          + isOpen, the upcoming-versus-past rule
+src/shared/
+  lib/clinicTime.ts                     + clinicUpcomingDaysRange
+  ui/Select/                            + per-option disabled
+```

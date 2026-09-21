@@ -129,3 +129,30 @@ No commits; the user commits. Tests first for each task.
   following the `typeToApi` and `buildDefaults` patterns.
 - The attachment blob query deliberately carries no `meta.errorTitle`: a missing image shows a
   placeholder in its thumbnail rather than raising a page-level toast.
+
+## Where it lives
+
+```
+src/shared/lib/apiClient.ts             requestWithAuth shared by apiFetch and apiFetchBlob;
+                                        a FormData body keeps the browser content type
+src/features/examinations/
+  api/examinationsApi.ts                + getPatientExaminations, updateExamination,
+                                          uploadAttachment, deleteAttachment, getAttachmentBlob
+  api/examinationKeys.ts                + attachment(id)
+  api/examinationErrors.ts              + the five attachment codes
+  lib/examinationMapping.ts             + attachmentKindToApi
+  lib/examinationDetails.ts             + examinationValuesOf, for the edit form
+  lib/attachmentRules.ts                accepted types, 20 MB limit, kind labels, size format
+  hooks/usePatientExaminationsQuery.ts  the visit history
+  hooks/useAttachmentUrl.ts             blob through the cache, object URL revoked on unmount
+  hooks/useExaminationMutations.ts      + update, upload, delete
+  components/VisitHistory.tsx           the list, with loading, error and empty states
+  components/ExaminationCard.tsx        one visit: notes, cost, paid badge, actions, images
+  components/ExaminationEditPanel.tsx   edit a recorded visit
+  components/AttachmentStrip.tsx        thumbnails, add and delete
+  components/AttachmentUploader.tsx     file input, kind, client-side checks
+  components/AttachmentViewer.tsx       full-size image
+src/features/patients/
+  components/PatientDetailPanel.tsx     + visitsSection slot
+src/pages/PatientsPage.tsx              fills the slot for a vet, owns the edit panel
+```

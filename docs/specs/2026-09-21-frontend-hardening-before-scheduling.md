@@ -62,3 +62,64 @@ reading the clinic timezone from the backend, a richer lint set.
 - [x] Lint rule
 - [x] Architecture test
 - [x] Frontend CI job
+
+## Where it lives
+
+```
+frontend/
+  .oxlintrc.json                      + react-hooks/exhaustive-deps
+  vite.config.ts                      testTimeout raised for the parallel run
+  src/app/
+    queryClient.ts                    createQueryClient, shouldRetry, queryMeta typing
+    QueryProvider.tsx                 builds the client and wires the error toast
+    App.tsx                           provider order: Toast > Query > Auth > Router
+    routes.tsx                        errorElement on both groups, catch-all route
+  src/pages/
+    RouteErrorPage.tsx                thrown-route page
+    NotFoundPage.tsx                  unknown-path page
+    PatientsPage.tsx                  delete via mutation + ConfirmDialog, no error effect
+    AppointmentsPage.tsx              selection by id, availability failure degrades
+  src/shared/
+    lib/apiClient.ts                  + isApiErrorCode
+    ui/ConfirmDialog/                 confirmation dialog on top of Modal
+    ui/SegmentedControl/              dead lint suppression removed
+  src/features/appointments/
+    api/appointmentErrors.ts          backend error-code catalog + message mapping
+    api/appointmentKeys.ts            availability key carries the duration
+    api/appointmentsApi.ts            getAvailability takes durationMinutes
+    lib/appointmentTransitions.ts     mirror of AppointmentStatusTransitions.cs
+    lib/appointmentMapping.ts         + typeToApi
+    hooks/useAppointmentsQuery.ts     + meta.errorTitle
+    hooks/useAvailabilityQuery.ts     + meta.errorTitle, options object
+    components/DayView.tsx            "Opening hours unavailable" heading
+  src/features/patients/
+    api/patientErrors.ts              backend error-code catalog
+    hooks/usePatientMutations.ts      create, update, delete; own the invalidation
+    hooks/usePatientQuery.ts          + meta.errorTitle
+    hooks/usePatientsQuery.ts         + meta.errorTitle
+    components/PatientFormPanel.tsx   mutations, catalog codes, discard dialog
+  src/features/auth/context/AuthContext.tsx   callbacks memoized for the deps rule
+  src/test/
+    architecture.test.ts              fails on upward or cross-feature imports
+    renderWithQuery.tsx               test client built the same way as the app's
+    setup.ts                          asyncUtilTimeout raised
+.github/workflows/build.yml           frontend job: install, typecheck, lint, test, build
+```
+
+## Shared code touched by the sub-projects that followed
+
+This pass was the dedicated clean-up, but four later sub-projects each changed shared code too.
+Together with the list above, this is the whole set of app-wide changes in the appointments arc.
+
+| Change | Why | Where it is explained |
+|---|---|---|
+| `Select` gained `placeholder` and `error`, and renders the selected label itself | Radix left the trigger blank when a value was set before its options mounted | [scheduling actions](2026-09-21-appointments-scheduling-actions.md) |
+| `PatientPicker` added to the patients feature | booking needs to search patients, and the appointments feature may not import patients | [scheduling actions](2026-09-21-appointments-scheduling-actions.md) |
+| `shared/domain/examinationDetails.ts` added | the appointments and examinations features both send this payload and may not import each other | [visit flow](2026-09-21-appointments-visit-flow.md) |
+| `widgets/visit/` layer added | the visit panels need both the patients and appointments features, which a feature may not do | [visit flow](2026-09-21-appointments-visit-flow.md) |
+| `useCurrentUser` added to the auth feature | the examination form prefills who performed the visit from the logged-in user | [visit flow](2026-09-21-appointments-visit-flow.md) |
+| `apiClient` split into `requestWithAuth`, with `apiFetchBlob` beside `apiFetch` | multipart uploads must not carry a JSON content type, and authenticated images need the same refresh handling | [examinations and attachments](2026-09-21-examinations-and-attachments.md) |
+| `PatientDetailPanel` gained `visitsSection` | the patients feature may not import examinations, so the page fills the slot | [examinations and attachments](2026-09-21-examinations-and-attachments.md) |
+| `Select` gained per-option `disabled` | a client's own slot is shown as unselectable rather than as a gap | [client appointments](2026-09-21-client-appointments.md) |
+| `clinicTime` gained `clinicUpcomingDaysRange` | the client page needs a forward window, the mirror of the existing backward one | [client appointments](2026-09-21-client-appointments.md) |
+| `AppLayout` shows the Appointments link to both roles | clients now have their own page at the same route | [client appointments](2026-09-21-client-appointments.md) |

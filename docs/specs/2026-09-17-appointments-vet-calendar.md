@@ -5,7 +5,7 @@
 The backend now ships a full appointments domain (commits `3803924`, `6564fd5`, `fbacc1f`):
 roles, clinic schedule, the appointment aggregate with a status lifecycle, availability,
 examinations and attachments. The frontend Appointments page
-(`docs/specs/2026-08-04-zakazano-design.md`) still runs on an in-memory mock whose
+(`docs/specs/2026-08-04-zakazano.md`) still runs on an in-memory mock whose
 model disagrees with the backend on almost every field: `date`/`time` strings instead of UTC
 instants, a mandatory `patientId`, invented types, no status, free-form update/delete, and
 attachments on the appointment instead of the examination.
@@ -72,50 +72,10 @@ Backend enums:
 
 ## Architecture
 
-Layering stays as defined in `2026-08-29-frontend-layered-structure-design.md`:
+Layering stays as defined in `2026-08-29-frontend-layered-structure.md`:
 `app -> pages -> widgets -> features -> shared`, and features never import each other. The page
 composes the appointments and patients features.
 
-```
-frontend/src/
-├── shared/lib/
-│   ├── clinicTime.ts                     NEW  the only timezone-aware module
-│   └── simulateLatency.ts                DELETED (only the mock used it)
-├── features/appointments/
-│   ├── api/
-│   │   ├── appointmentsApi.ts            REWRITTEN  getAppointments, getAvailability
-│   │   ├── appointmentKeys.ts            REWRITTEN  list(from, to), availability(from, to)
-│   │   ├── mockData.ts                   DELETED
-│   │   └── mockPatients.ts               DELETED
-│   ├── hooks/
-│   │   ├── useAppointmentsQuery.ts       REWRITTEN  (range, enabled)
-│   │   └── useAvailabilityQuery.ts       NEW
-│   ├── lib/
-│   │   ├── appointmentMapping.ts         NEW  DTO -> Appointment, enum mapping
-│   │   ├── appointmentVisibility.ts      NEW  countsTowardLoad, isVisible(showCancelled)
-│   │   └── dateHelpers.ts                TRIMMED  keeps WEEKDAYS; old status/reminder helpers removed
-│   ├── components/
-│   │   ├── AppointmentChip.tsx           REWRITTEN
-│   │   ├── AppointmentDetailPanel.tsx    REWRITTEN  read-only, patientSection slot
-│   │   ├── AppointmentFormPanel.tsx      DELETED
-│   │   ├── CalendarToolbar.tsx           + "Show cancelled" checkbox
-│   │   ├── DayView.tsx                   REWRITTEN  slot rows
-│   │   ├── WeekView.tsx                  REWRITTEN  real data, closed days
-│   │   └── MonthView.tsx                 REWRITTEN  real data, closed days
-│   ├── types.ts                          REWRITTEN
-│   └── index.ts                          exports updated
-├── features/patients/
-│   ├── hooks/usePatientQuery.ts          NEW  patientKeys.detail(id) + getPatient
-│   └── components/PatientSummary.tsx     NEW  read-only summary
-├── features/auth/routes/RoleRoute.tsx    NEW
-├── widgets/dashboard/                    hooks and appointmentStats moved to real data
-├── pages/
-│   ├── AppointmentsPage.tsx              REWRITTEN
-│   └── PatientsPage.tsx                  appointment tiles and PeakHoursPanel vet-only
-└── app/
-    ├── routes.tsx                        /appointments wrapped in RoleRoute
-    └── layout/AppLayout.tsx              Appointments nav link vet-only
-```
 
 ## Clinic time — `shared/lib/clinicTime.ts`
 
@@ -145,39 +105,6 @@ boundaries from clinic midnights, never by adding 24 hours.
 
 ### Types — `features/appointments/types.ts`
 
-```ts
-export type AppointmentType = 'first_visit' | 'checkup' | 'blood_draw' | 'surgery'
-export type AppointmentStatus = 'scheduled' | 'checked_in' | 'completed' | 'no_show' | 'cancelled'
-export type CalendarView = 'day' | 'week' | 'month'
-
-export interface Appointment {
-  id: string
-  createdByUserId: string
-  ownerId?: string
-  patientId?: string
-  startsAt: string
-  endsAt: string
-  durationMinutes: number
-  type: AppointmentType
-  status: AppointmentStatus
-  reason?: string
-  ownerName?: string
-  patientName?: string
-  createdAt: string
-}
-
-export interface AvailabilitySlot {
-  startsAt: string
-  endsAt: string
-  isAvailable: boolean
-  isMine: boolean
-}
-
-export interface DateRange {
-  from: string
-  to: string
-}
-```
 
 ### Mapping — `lib/appointmentMapping.ts`
 
@@ -349,3 +276,49 @@ Vitest and Testing Library, following the existing patients page tests.
   for ranged real data and the 28-day window.
 
 `tsc -b`, `npm run build`, `npm run lint` and the full test suite stay clean.
+
+## Where it lives
+
+```
+src/shared/lib/clinicTime.ts            the only module that knows the clinic timezone
+src/features/appointments/
+  types.ts, api/, hooks/                appointments and availability on the real endpoints
+  lib/appointmentMapping.ts             numeric enums to domain values
+  lib/appointmentVisibility.ts          cancelled and no-show rules
+  lib/appointmentLabels.ts              type, status and party labels
+  lib/daySlots.ts                       availability plus appointments to day rows
+  lib/calendarDays.ts                   grouping by clinic date, open days
+  lib/appointmentViewParams.ts          the view, date and cancelled toggle in the URL
+  components/AppointmentChip.tsx        one appointment as a button
+  components/DayView.tsx                slot rows
+  components/WeekView.tsx               a cell per day with a chip limit
+  components/MonthView.tsx              the six-week grid
+  components/CalendarToolbar.tsx        view switch, navigation, date picker, toggle
+  components/AppointmentDetailPanel.tsx read-only panel, patient section as a slot
+src/features/patients/
+  hooks/usePatientQuery.ts              one patient by id
+  components/PatientSummary.tsx         the summary the detail panel shows
+src/features/auth/routes/RoleRoute.tsx  keeps clients off the page
+src/widgets/dashboard/                  tiles moved onto real appointment data
+src/pages/AppointmentsPage.tsx          composes the calendar with the patient summary
+```
+
+Removed in this step: the mock appointment and patient data, the latency simulator, the old
+appointment form panel and every pre-existing calendar component.
+
+## Build order
+
+Tests came before the code they cover, and each step ended with the suite, the typecheck and the
+linter green.
+
+- [x] **Clinic time.** `clinicTime.ts` and its ranges, with tests over both daylight-saving days.
+- [x] **Data layer, and the mock removed.** Types, mapping, visibility, API, keys and hooks on the
+  real endpoints; the dashboard tiles moved onto the same data; the mock layer, the latency
+  simulator and every old calendar component deleted, the page reduced to a shell.
+- [x] **Chip and labels.** The label module and `AppointmentChip`.
+- [x] **Day view.** `daySlots.ts` and `DayView`.
+- [x] **Week and month views.** `calendarDays.ts`, `WeekView`, `MonthView`.
+- [x] **Toolbar and page.** View, date and toggle in the URL, driven by `CalendarToolbar`.
+- [x] **Patient summary.** `usePatientQuery` and `PatientSummary` in the patients feature.
+- [x] **Detail panel.** Read-only panel taking the patient section as a slot.
+- [x] **Role guard.** `RoleRoute`, the nav link and the vet-only dashboard tiles.

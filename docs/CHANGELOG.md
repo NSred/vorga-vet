@@ -3,6 +3,22 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-09-21 — Client appointments
+
+Frontend only. 83 test files, 469 tests, typecheck, lint and build clean.
+([document](specs/2026-09-21-client-appointments.md))
+
+This completes the five appointment sub-projects planned on 2026-09-17.
+
+- `/appointments` now serves both roles: the calendar for a veterinarian, a client's own visits
+  page for a client, chosen by a small role-aware route element.
+- A client sees their upcoming and past visits, split by status so an unresolved visit never
+  disappears, and can book, reschedule or cancel their own.
+- The booking form gained a client variant: no surgery, no duration, no owner field, and the
+  client's own booked slots shown as "yours" rather than as free time.
+- Clients without a linked owner record book a thin visit and are told the clinic will match it
+  to their animal on arrival, which is the flow the backend expects.
+
 ## 2026-09-21 — Examinations and attachments
 
 Frontend only. 81 test files, 444 tests, typecheck, lint and build clean.

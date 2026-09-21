@@ -267,3 +267,36 @@ logic is untested today.
 - Add `dependency-cruiser` if the layer direction should be machine-enforced.
 - Normalise `features/auth`'s thirteen absolute self-imports to relative paths, matching the other
   features.
+
+## How it was built
+
+Seven passes. Tasks three through five deliberately left the typecheck failing, because the
+barrel stopped exporting the page before the pages layer existed to hold it; the test suite
+stayed green throughout.
+
+- [x] Move the species vocabulary into `shared/domain`.
+- [x] Give appointments a query hook and its own key factory.
+- [x] Give patients an active-count hook that hides where the number comes from.
+- [x] Extract the appointment statistics as pure functions over `Appointment[]`.
+- [x] Build the dashboard widget from those functions and delete `statsApi`.
+- [x] Introduce the pages layer and move the route components into it.
+- [x] Move the query client into `app` and switch on the import-cycle rule.
+
+## Where it lives
+
+```
+src/shared/domain/species.ts                    the Species union and its emoji map
+src/features/appointments/
+  api/appointmentKeys.ts                        appointment query keys
+  hooks/useAppointmentsQuery.ts                 the appointment list hook
+src/features/patients/hooks/useActivePatientCount.ts   the count, source hidden
+src/widgets/dashboard/
+  lib/appointmentStats.ts                       pure derivation over appointments
+  hooks/                                        one hook per rendered figure
+  components/                                   layout-only grid, card shell and tiles
+src/pages/                                      the four route components
+src/app/                                        the query client and the composition root
+```
+
+Deleted here: `features/patients/api/statsApi.ts` and `features/patients/lib/speciesEmoji.ts`,
+both replaced by the shared vocabulary and the widget's pure functions.

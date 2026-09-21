@@ -54,19 +54,7 @@ render slots through the appointments feature, the visit panels live in `widgets
 may import both features. The appointments feature keeps the data layer and the detail panel
 buttons; the widget owns the forms; the page only opens and closes them.
 
-```
-features/examinations/      new: types, api, keys, examinationErrors, mutation and query hooks
-features/appointments/      + checkInAppointment, completeAppointment, resolution types, detail panel buttons
-shared/domain/              ExaminationDetails request type, shared by both features
-widgets/visit/
-  useCheckInAppointment, useCompleteAppointment (invalidate appointments, patients, examinations)
-  PartyResolutionFields     owner + patient resolution for a thin booking
-  ExaminationFields         the six clinical fields
-  CheckInPanel              resolution only, or a one-click confirm when nothing is missing
-  CompleteVisitPanel        resolution (if needed) + examination, then the paid step
-  WalkInPanel               patient picker + examination, then the paid step
-pages/AppointmentsPage      opens the three panels; toolbar gets a "Walk-in" button
-```
+The file-by-file layout is in [Where it lives](#where-it-lives) at the end.
 
 **Resolution.** The owner is always resolved to an id: `OwnerPicker` already offers "Create
 owner" through its own dialog, which posts to `owners` and returns the new record, so the
@@ -167,3 +155,37 @@ No commits; the user commits. Tests first for each task.
   react-hook-form. Mixing the two kept the pickers, which are controlled components, simple.
 - The card number is regenerated and the request retried once on `CardNumberNotUnique`, the same
   way the patient form does it.
+
+## Where it lives
+
+```
+src/shared/domain/examinationDetails.ts   the clinical payload both features send
+src/features/examinations/                new feature
+  types.ts                                DTOs, domain types, form values
+  api/examinationsApi.ts                  getExamination, createExamination, payExamination
+  api/examinationKeys.ts                  all, detail(id), forPatient(id)
+  api/examinationErrors.ts                backend error catalog and message mapping
+  lib/examinationMapping.ts               DTO to domain, attachment kinds
+  lib/examinationDetails.ts               form values to a request, empty values
+  hooks/useExaminationMutations.ts        create, pay
+  hooks/useExaminationQuery.ts
+  components/ExaminationFields.tsx        the six clinical fields, shared by both flows
+src/features/appointments/
+  api/appointmentsApi.ts                  + checkInAppointment, completeAppointment
+  api/appointmentErrors.ts                + owner and patient not-found codes
+  types.ts                                + resolution and check-in request types
+  components/AppointmentDetailPanel.tsx   + check-in and complete buttons
+  components/CalendarToolbar.tsx          + Walk-in
+src/features/auth/
+  api/authApi.ts, types.ts                + getCurrentUser, UserProfile
+  hooks/useCurrentUser.ts                 prefills who performed the examination
+src/widgets/visit/                        new layer, may use both features
+  lib/resolution.ts                       needs, validation, values to a resolution request
+  hooks/useVisitMutations.ts              check-in and complete; invalidate all three roots
+  components/PartyResolutionFields.tsx    owner and patient for a thin booking
+  components/CheckInPanel.tsx             one-click confirm, or the resolution form
+  components/CompleteVisitPanel.tsx       resolution plus examination, then the paid step
+  components/WalkInPanel.tsx              patient picker plus examination
+  components/PaidStep.tsx                 the mark-as-paid step both panels end on
+src/pages/AppointmentsPage.tsx            opens the three panels
+```

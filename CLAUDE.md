@@ -61,4 +61,4 @@ login. Staff endpoints require the `Veterinarian` policy; clients see only their
 - Feature work happens on a branch in this working tree, not in a separate worktree.
 - Execute plans inline (the `executing-plans` skill), not through subagents.
 - Delete temporary preview files and stop any local server as soon as a visual check is done.
-- Every feature starts as one document in `docs/specs/`: what is being built, the backend contract, the design decisions, and a task checklist at the end. Keep it short enough that a colleague can follow what was done and how; no code that can be written from the description. Then the code.
+- Every feature is one document in `docs/specs/`, written before the code and pruned when the code lands. The `feature-doc` skill owns that lifecycle: invoke it when planning and again to close. No separate design or plan file.
