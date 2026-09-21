@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, apiFetch, isApiErrorCode } from './apiClient'
+import { ApiError, apiFetch, apiFetchBlob, isApiErrorCode } from './apiClient'
+import { accessTokenStore } from './accessTokenStore'
+import { tokenStorage } from './tokenStorage'
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -87,5 +89,73 @@ describe('isApiErrorCode', () => {
     ).toBe(false)
     expect(isApiErrorCode(new ApiError(500, 'x'), 'Appointments.SlotTaken')).toBe(false)
     expect(isApiErrorCode(new Error('x'), 'Appointments.SlotTaken')).toBe(false)
+  })
+})
+
+describe('apiFetch with FormData', () => {
+  it('lets the browser set the multipart content type', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse(200, 'attachment-id'))
+    const body = new FormData()
+    body.append('kind', '0')
+
+    await apiFetch('/examinations/e1/attachments', { method: 'POST', body })
+
+    const headers = (fetchSpy.mock.calls[0][1] as RequestInit).headers as Headers
+    expect(headers.has('Content-Type')).toBe(false)
+  })
+
+  it('still sends the bearer token', async () => {
+    accessTokenStore.set('token-1')
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(200, 'id'))
+
+    await apiFetch('/examinations/e1/attachments', { method: 'POST', body: new FormData() })
+
+    const headers = (fetchSpy.mock.calls[0][1] as RequestInit).headers as Headers
+    expect(headers.get('Authorization')).toBe('Bearer token-1')
+    accessTokenStore.set(null)
+  })
+})
+
+describe('apiFetchBlob', () => {
+  it('returns the response body as a blob', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('image-bytes', { status: 200, headers: { 'Content-Type': 'image/png' } }),
+    )
+
+    const blob = await apiFetchBlob('/attachments/att1')
+
+    expect(blob.type).toBe('image/png')
+    expect(blob.size).toBe('image-bytes'.length)
+  })
+
+  it('refreshes once on 401 and retries', async () => {
+    tokenStorage.set('refresh-1')
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(
+        jsonResponse(200, { accessToken: 'new-access', refreshToken: 'new-refresh' }),
+      )
+      .mockResolvedValueOnce(new Response('bytes', { status: 200 }))
+
+    const blob = await apiFetchBlob('/attachments/att1')
+
+    expect(blob.size).toBe('bytes'.length)
+    expect(fetchSpy).toHaveBeenCalledTimes(3)
+    tokenStorage.clear()
+    accessTokenStore.set(null)
+  })
+
+  it('throws an ApiError when the image is gone', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse(404, { title: 'Attachments.ContentMissing', detail: 'file is missing' }),
+    )
+
+    const error = (await apiFetchBlob('/attachments/att1').catch((e: unknown) => e)) as ApiError
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error.code).toBe('Attachments.ContentMissing')
   })
 })

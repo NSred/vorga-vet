@@ -8,6 +8,7 @@ import { ToastProvider } from '@/shared/ui'
 import * as allergensApi from '@/features/patients/api/allergensApi'
 import * as patientsApi from '@/features/patients/api/patientsApi'
 import * as appointmentsApi from '@/features/appointments/api/appointmentsApi'
+import * as examinationsApi from '@/features/examinations/api/examinationsApi'
 import type { PatientListItem } from '@/features/patients'
 import { ApiError } from '@/shared/lib/apiClient'
 
@@ -50,6 +51,7 @@ beforeEach(() => {
     .spyOn(patientsApi, 'getPatients')
     .mockResolvedValue({ items: [patient], totalCount: 25, page: 1, pageSize: 10 })
   vi.spyOn(appointmentsApi, 'getAppointments').mockResolvedValue([])
+  vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([])
   vi.spyOn(allergensApi, 'searchAllergens').mockResolvedValue([{ id: 'a1', name: 'Pollen' }])
 })
 
@@ -266,5 +268,107 @@ describe('PatientsPage for a client', () => {
         'Your animals will appear here after their first visit to the clinic.',
       ),
     ).toBeInTheDocument()
+  })
+})
+
+describe('PatientsPage visit history', () => {
+  function stubDetail() {
+    vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...patient,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
+  }
+
+  it('shows the visits section to a veterinarian', async () => {
+    stubDetail()
+    const historySpy = vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([])
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+
+    expect(await screen.findByRole('heading', { name: 'Visits' })).toBeInTheDocument()
+    await waitFor(() => expect(historySpy).toHaveBeenCalledWith('p1'))
+  })
+
+  it('hides the visits section from a client', async () => {
+    auth.role = 'client'
+    stubDetail()
+    const historySpy = vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([])
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+
+    expect(await screen.findByText('Owner contact')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Visits' })).not.toBeInTheDocument()
+    expect(historySpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('PatientsPage visit editing', () => {
+  const examination = {
+    id: 'e1',
+    patientId: 'p1',
+    appointmentId: 'a1',
+    performedByFirstName: 'Mira',
+    performedByLastName: 'Vet',
+    startedAt: '2026-09-17T07:00:00Z',
+    diagnosis: 'otitis',
+    cost: 45.5,
+    isPaid: false,
+    createdAt: '2026-09-17T07:30:00Z',
+    attachments: [],
+  }
+
+  function stubDetailAndHistory() {
+    vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...patient,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
+    vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([examination])
+  }
+
+  it('edits a visit from the history and refreshes it', async () => {
+    stubDetailAndHistory()
+    const updateSpy = vi.spyOn(examinationsApi, 'updateExamination').mockResolvedValue(undefined)
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+    const card = await screen.findByRole('article')
+    await user.click(within(card).getByRole('button', { name: /Edit/ }))
+
+    const panel = await screen.findByRole('dialog', { name: /Edit visit of 17.09.2026/ })
+    await user.type(within(panel).getByLabelText('Therapy'), 'drops')
+    await user.click(within(panel).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(updateSpy).toHaveBeenCalledWith('e1', expect.objectContaining({ therapy: 'drops' })),
+    )
+    expect(await screen.findByText('Visit saved')).toBeInTheDocument()
+  })
+
+  it('reports a visit that vanished before the save', async () => {
+    stubDetailAndHistory()
+    vi.spyOn(examinationsApi, 'updateExamination').mockRejectedValue(
+      new ApiError(404, 'gone', 'Examinations.NotFound'),
+    )
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+    const card = await screen.findByRole('article')
+    await user.click(within(card).getByRole('button', { name: /Edit/ }))
+    const panel = await screen.findByRole('dialog', { name: /Edit visit of/ })
+    await user.click(within(panel).getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('That examination no longer exists.')).toBeInTheDocument()
   })
 })

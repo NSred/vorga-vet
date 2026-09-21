@@ -9,6 +9,11 @@ describe('examinationErrors', () => {
       'Examinations.AlreadyPaid',
       'Examinations.AppointmentAlreadyHasExamination',
       'Patients.NotFound',
+      'Attachments.NotFound',
+      'Attachments.UnsupportedContentType',
+      'Attachments.EmptyFile',
+      'Attachments.FileTooLarge',
+      'Attachments.ContentMissing',
     ])
   })
 })

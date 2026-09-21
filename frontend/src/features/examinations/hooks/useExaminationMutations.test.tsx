@@ -4,7 +4,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createTestQueryClient, QueryWrapper } from '@/test/renderWithQuery'
 import { examinationKeys } from '../api/examinationKeys'
 import * as examinationsApi from '../api/examinationsApi'
-import { useCreateExamination, usePayExamination } from './useExaminationMutations'
+import {
+  useCreateExamination,
+  useDeleteAttachment,
+  usePayExamination,
+  useUpdateExamination,
+  useUploadAttachment,
+} from './useExaminationMutations'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -53,5 +59,56 @@ describe('examination mutations', () => {
 
     await waitFor(() => expect(passing.result.current.isSuccess).toBe(true))
     expect(passing.invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+  })
+})
+
+describe('examination and attachment writes', () => {
+  it('useUpdateExamination sends the id and details, then invalidates', async () => {
+    const spy = vi.spyOn(examinationsApi, 'updateExamination').mockResolvedValue(undefined)
+    const { result, invalidate } = setup(() => useUpdateExamination())
+    const examination = { performedByFirstName: 'Mira', performedByLastName: 'Vet' }
+
+    result.current.mutate({ id: 'e1', examination })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(spy).toHaveBeenCalledWith('e1', examination)
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+  })
+
+  it('useUploadAttachment sends the file and kind, then invalidates', async () => {
+    const spy = vi.spyOn(examinationsApi, 'uploadAttachment').mockResolvedValue('att1')
+    const { result, invalidate } = setup(() => useUploadAttachment())
+    const file = new File(['b'], 'scan.png', { type: 'image/png' })
+
+    result.current.mutate({ examinationId: 'e1', file, kind: 'xray' })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(spy).toHaveBeenCalledWith('e1', file, 'xray')
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+  })
+
+  it('useDeleteAttachment sends both ids, then invalidates', async () => {
+    const spy = vi.spyOn(examinationsApi, 'deleteAttachment').mockResolvedValue(undefined)
+    const { result, invalidate } = setup(() => useDeleteAttachment())
+
+    result.current.mutate({ examinationId: 'e1', attachmentId: 'att1' })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(spy).toHaveBeenCalledWith('e1', 'att1')
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+  })
+
+  it('leaves the cache alone when an upload fails', async () => {
+    vi.spyOn(examinationsApi, 'uploadAttachment').mockRejectedValue(new Error('too big'))
+    const { result, invalidate } = setup(() => useUploadAttachment())
+
+    result.current.mutate({
+      examinationId: 'e1',
+      file: new File(['b'], 'x.png', { type: 'image/png' }),
+      kind: 'xray',
+    })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(invalidate).not.toHaveBeenCalled()
   })
 })

@@ -92,14 +92,16 @@ async function parseProblem(response: Response): Promise<ApiError> {
   }
 }
 
-export async function apiFetch<T>(
+async function requestWithAuth(
   path: string,
   options: RequestInit = {},
   isRetry = false,
-): Promise<T> {
+): Promise<Response> {
   const accessToken = accessTokenStore.get()
   const headers = new Headers(options.headers)
-  headers.set('Content-Type', 'application/json')
+  if (!(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json')
+  }
   if (accessToken) {
     headers.set('Authorization', `Bearer ${accessToken}`)
   }
@@ -109,7 +111,7 @@ export async function apiFetch<T>(
   if (response.status === 401 && !isRetry) {
     const refreshed = await refreshAccessToken()
     if (refreshed) {
-      return apiFetch<T>(path, options, true)
+      return requestWithAuth(path, options, true)
     }
     accessTokenStore.set(null)
     tokenStorage.clear()
@@ -121,9 +123,21 @@ export async function apiFetch<T>(
     throw await parseProblem(response)
   }
 
+  return response
+}
+
+export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await requestWithAuth(path, options)
+
   if (response.status === 204) {
     return undefined as T
   }
 
   return (await response.json()) as T
+}
+
+export async function apiFetchBlob(path: string): Promise<Blob> {
+  const response = await requestWithAuth(path)
+
+  return await response.blob()
 }

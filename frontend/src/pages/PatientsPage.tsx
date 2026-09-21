@@ -4,6 +4,8 @@ import { useSearchParams } from 'react-router'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
 import { Button, ConfirmDialog, useToast } from '@/shared/ui'
 import { useAuth } from '@/features/auth'
+import { ExaminationEditPanel, VisitHistory } from '@/features/examinations'
+import type { Examination } from '@/features/examinations'
 import {
   PeakHoursPanel,
   PeakHourTile,
@@ -55,6 +57,7 @@ export function PatientsPage() {
   }
   const [peakHoursOpen, setPeakHoursOpen] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [editingVisit, setEditingVisit] = useState<Examination | null>(null)
 
   const queryClient = useQueryClient()
   const remove = useDeletePatient()
@@ -184,6 +187,11 @@ export function PatientsPage() {
               : undefined
           }
           onDelete={isVeterinarian ? () => setConfirmDeleteId(displayPanel.patient.id) : undefined}
+          visitsSection={
+            isVeterinarian ? (
+              <VisitHistory patientId={displayPanel.patient.id} onEdit={setEditingVisit} />
+            ) : undefined
+          }
         />
       )}
 
@@ -219,6 +227,22 @@ export function PatientsPage() {
         isPending={remove.isPending}
         onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
       />
+
+      {editingVisit && (
+        <ExaminationEditPanel
+          examination={editingVisit}
+          open
+          onOpenChange={(open) => !open && setEditingVisit(null)}
+          onSaved={() => {
+            setEditingVisit(null)
+            showToast({ tone: 'success', title: 'Visit saved' })
+          }}
+          onMissing={(message) => {
+            setEditingVisit(null)
+            showToast({ tone: 'error', title: message })
+          }}
+        />
+      )}
 
       {isVeterinarian && <PeakHoursPanel open={peakHoursOpen} onOpenChange={setPeakHoursOpen} />}
     </div>

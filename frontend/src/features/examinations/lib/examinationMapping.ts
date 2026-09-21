@@ -52,3 +52,11 @@ export function toExamination(dto: ExaminationDto): Examination {
     attachments: dto.attachments.map(toAttachment),
   }
 }
+
+const KINDS_TO_API = Object.fromEntries(
+  Object.entries(KINDS).map(([value, kind]) => [kind, Number(value)]),
+) as Record<AttachmentKind, number>
+
+export function attachmentKindToApi(kind: AttachmentKind): number {
+  return KINDS_TO_API[kind]
+}

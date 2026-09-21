@@ -1,4 +1,4 @@
-import type { ExaminationDetails, ExaminationFormValues } from '../types'
+import type { Examination, ExaminationDetails, ExaminationFormValues } from '../types'
 
 function trimmed(value: string): string | undefined {
   const text = value.trim()
@@ -35,5 +35,16 @@ export function emptyExaminationValues(
     diagnosis: '',
     therapy: '',
     cost: '',
+  }
+}
+
+export function examinationValuesOf(examination: Examination): ExaminationFormValues {
+  return {
+    performedByFirstName: examination.performedByFirstName,
+    performedByLastName: examination.performedByLastName,
+    anamnesis: examination.anamnesis ?? '',
+    diagnosis: examination.diagnosis ?? '',
+    therapy: examination.therapy ?? '',
+    cost: examination.cost === undefined ? '' : String(examination.cost),
   }
 }

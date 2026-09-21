@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Badge, Button, SlidePanel } from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { calculateAge } from '../lib/patientAge'
@@ -11,6 +12,7 @@ export interface PatientDetailPanelProps {
   onOpenChange: (open: boolean) => void
   onEdit?: () => void
   onDelete?: () => void
+  visitsSection?: ReactNode
 }
 
 function formatValue(value: string | number | undefined): string {
@@ -29,7 +31,14 @@ function Field({ label, value }: { label: string; value: string | number | undef
   )
 }
 
-export function PatientDetailPanel({ patient, open, onOpenChange, onEdit, onDelete }: PatientDetailPanelProps) {
+export function PatientDetailPanel({
+  patient,
+  open,
+  onOpenChange,
+  onEdit,
+  onDelete,
+  visitsSection,
+}: PatientDetailPanelProps) {
   const age = calculateAge(patient.birthDate)
 
   return (
@@ -110,6 +119,13 @@ export function PatientDetailPanel({ patient, open, onOpenChange, onEdit, onDele
           <Field label="Created" value={formatDisplayDate(patient.createdAt)} />
         </div>
       </section>
+
+      {visitsSection && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Visits</h3>
+          {visitsSection}
+        </section>
+      )}
     </SlidePanel>
   )
 }

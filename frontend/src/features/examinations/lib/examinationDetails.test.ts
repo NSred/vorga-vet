@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { emptyExaminationValues, parseCost, toExaminationDetails } from './examinationDetails'
+import {
+  emptyExaminationValues,
+  examinationValuesOf,
+  parseCost,
+  toExaminationDetails,
+} from './examinationDetails'
 
 describe('toExaminationDetails', () => {
   it('trims text and drops empty optionals', () => {
@@ -36,5 +41,47 @@ describe('toExaminationDetails', () => {
       performedByLastName: 'Vet',
       cost: '',
     })
+  })
+})
+
+describe('examinationValuesOf', () => {
+  it('fills the form from a recorded examination', () => {
+    expect(
+      examinationValuesOf({
+        id: 'e1',
+        patientId: 'p1',
+        performedByFirstName: 'Mira',
+        performedByLastName: 'Vet',
+        startedAt: '2026-09-17T07:00:00Z',
+        diagnosis: 'otitis',
+        cost: 45.5,
+        isPaid: false,
+        createdAt: '2026-09-17T07:30:00Z',
+        attachments: [],
+      }),
+    ).toEqual({
+      performedByFirstName: 'Mira',
+      performedByLastName: 'Vet',
+      anamnesis: '',
+      diagnosis: 'otitis',
+      therapy: '',
+      cost: '45.5',
+    })
+  })
+
+  it('leaves the cost empty when none was recorded', () => {
+    const values = examinationValuesOf({
+      id: 'e1',
+      patientId: 'p1',
+      performedByFirstName: 'Mira',
+      performedByLastName: 'Vet',
+      startedAt: '2026-09-17T07:00:00Z',
+      isPaid: false,
+      createdAt: '2026-09-17T07:30:00Z',
+      attachments: [],
+    })
+
+    expect(values.cost).toBe('')
+    expect(values.diagnosis).toBe('')
   })
 })
