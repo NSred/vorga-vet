@@ -1,5 +1,4 @@
 import { Button, DatePicker, SegmentedControl } from '@/shared/ui'
-import { formatDateOnly, parseDateOnly } from '@/shared/lib/dateOnly'
 import type { CalendarView } from '../types'
 import styles from './CalendarToolbar.module.css'
 
@@ -12,11 +11,13 @@ const VIEW_OPTIONS = [
 export interface CalendarToolbarProps {
   view: CalendarView
   onViewChange: (view: CalendarView) => void
-  currentDate: Date
-  onDateChange: (date: Date) => void
+  currentDate: string
+  onDateChange: (dateIso: string) => void
   onPrev: () => void
   onNext: () => void
   onToday: () => void
+  showCancelled: boolean
+  onShowCancelledChange: (value: boolean) => void
 }
 
 export function CalendarToolbar({
@@ -27,6 +28,8 @@ export function CalendarToolbar({
   onPrev,
   onNext,
   onToday,
+  showCancelled,
+  onShowCancelledChange,
 }: CalendarToolbarProps) {
   return (
     <div className={styles.toolbar}>
@@ -48,10 +51,19 @@ export function CalendarToolbar({
         id="calendar-date"
         label="Select date"
         hideLabel
-        value={formatDateOnly(currentDate)}
-        onChange={(next) => next && onDateChange(parseDateOnly(next))}
+        value={currentDate}
+        onChange={(next) => next && onDateChange(next)}
         className={styles.datePicker}
       />
+
+      <label className={styles.toggle}>
+        <input
+          type="checkbox"
+          checked={showCancelled}
+          onChange={(event) => onShowCancelledChange(event.target.checked)}
+        />
+        Show cancelled
+      </label>
 
       <Button variant="outline" type="button" disabled>
         🖨 Print

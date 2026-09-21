@@ -34,12 +34,14 @@ export function AppLayout() {
             >
               Patient Records
             </NavLink>
-            <NavLink
-              to="/appointments"
-              className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
-            >
-              Appointments
-            </NavLink>
+            {user?.role === 'veterinarian' && (
+              <NavLink
+                to="/appointments"
+                className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+              >
+                Appointments
+              </NavLink>
+            )}
           </nav>
         </div>
         <div className={styles.userArea}>

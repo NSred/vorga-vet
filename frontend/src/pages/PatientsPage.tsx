@@ -154,8 +154,8 @@ export function PatientsPage() {
 
       <StatGrid>
         <TotalPatientsTile />
-        <PeakHourTile onOpenBreakdown={() => setPeakHoursOpen(true)} />
-        <ScheduledTodayTile />
+        {isVeterinarian && <PeakHourTile onOpenBreakdown={() => setPeakHoursOpen(true)} />}
+        {isVeterinarian && <ScheduledTodayTile />}
       </StatGrid>
 
       <PatientFilters filters={activeFilters} onChange={(next) => writeParams(next, 1, pageSize)} />
@@ -215,7 +215,7 @@ export function PatientsPage() {
         />
       )}
 
-      <PeakHoursPanel open={peakHoursOpen} onOpenChange={setPeakHoursOpen} />
+      {isVeterinarian && <PeakHoursPanel open={peakHoursOpen} onOpenChange={setPeakHoursOpen} />}
     </div>
   )
 }

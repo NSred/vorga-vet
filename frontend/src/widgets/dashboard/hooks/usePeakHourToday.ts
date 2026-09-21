@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import { useAppointmentsQuery } from '@/features/appointments'
-import { todayIso } from '@/shared/lib/dateOnly'
-import { appointmentsOn, countByHour, peakOf, type HourCount } from '../lib/appointmentStats'
+import { clinicDayRange, clinicToday } from '@/shared/lib/clinicTime'
+import { countByHour, countedAppointments, peakOf, type HourCount } from '../lib/appointmentStats'
 
 export function usePeakHourToday(): { peakHour: HourCount | null; isPending: boolean } {
-  const { data, isPending } = useAppointmentsQuery()
+  const range = clinicDayRange(clinicToday())
+  const { data, isPending } = useAppointmentsQuery(range)
 
   const peakHour = useMemo(
-    () => (data ? peakOf(countByHour(appointmentsOn(data, todayIso()))) : null),
+    () => (data ? peakOf(countByHour(countedAppointments(data))) : null),
     [data],
   )
 

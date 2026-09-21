@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { todayIso } from '@/shared/lib/dateOnly'
+import { clinicToday } from '@/shared/lib/clinicTime'
 import { useTodayAppointmentCount } from '../hooks/useTodayAppointmentCount'
 import { StatCardBody } from './StatCard'
 import styles from './StatCards.module.css'
@@ -9,7 +9,7 @@ export function ScheduledTodayTile() {
 
   return (
     <Link
-      to={`/appointments?view=day&date=${todayIso()}`}
+      to={`/appointments?view=day&date=${clinicToday()}`}
       className={`${styles.card} ${styles.cardClickable}`}
     >
       <StatCardBody icon="📅" label="SCHEDULED TODAY" isLoading={isPending}>

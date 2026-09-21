@@ -1,120 +1,92 @@
-import { addDays, addMonths, addWeeks } from 'date-fns'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
-import { Button } from '@/shared/ui'
-import { parseDateOnly } from '@/shared/lib/dateOnly'
+import { useNavigate, useSearchParams } from 'react-router'
+import { EmptyState, useToast } from '@/shared/ui'
+import {
+  addClinicDays,
+  addClinicMonths,
+  addClinicWeeks,
+  clinicDayRange,
+  clinicMonthGridRange,
+  clinicToday,
+  clinicWeekRange,
+} from '@/shared/lib/clinicTime'
 import {
   AppointmentDetailPanel,
-  AppointmentFormPanel,
   CalendarToolbar,
-  createAppointment,
   DayView,
-  deleteAppointment,
-  getAppointments,
+  isVisible,
   MonthView,
-  mockPatients,
-  updateAppointment,
+  parseViewParams,
+  toViewParams,
+  useAppointmentsQuery,
+  useAvailabilityQuery,
   WeekView,
-  type MockPatient,
 } from '@/features/appointments'
-import type { Appointment, AppointmentInput, CalendarView } from '@/features/appointments'
+import type { Appointment, AppointmentViewState, CalendarView } from '@/features/appointments'
+import { PatientSummary } from '@/features/patients'
 import styles from './AppointmentsPage.module.css'
 
-type PanelState =
-  | { mode: 'closed' }
-  | { mode: 'create' }
-  | { mode: 'view'; appointment: Appointment }
-  | { mode: 'edit'; appointment: Appointment }
-
-function isCalendarView(value: string | null): value is CalendarView {
-  return value === 'day' || value === 'week' || value === 'month'
-}
-
 export function AppointmentsPage() {
-  const [searchParams] = useSearchParams()
-  const [view, setView] = useState<CalendarView>(() => {
-    const param = searchParams.get('view')
-    return isCalendarView(param) ? param : 'week'
-  })
-  const [currentDate, setCurrentDate] = useState<Date>(() => {
-    const param = searchParams.get('date')
-    return param ? parseDateOnly(param) : new Date()
-  })
+  const { showToast } = useToast()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [selected, setSelected] = useState<Appointment | null>(null)
 
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [isLoadingAppointments, setIsLoadingAppointments] = useState(true)
-  const [patients] = useState<MockPatient[]>(mockPatients)
-  const [panel, setPanel] = useState<PanelState>({ mode: 'closed' })
-  const [displayPanel, setDisplayPanel] = useState<PanelState>({ mode: 'closed' })
-  if (panel.mode !== 'closed' && panel !== displayPanel) {
-    setDisplayPanel(panel)
-  }
+  const { view, date: currentDate, showCancelled } = parseViewParams(searchParams, clinicToday())
 
-  const patientsById = useMemo(() => new Map(patients.map((patient) => [patient.id, patient])), [patients])
+  const writeParams = useCallback(
+    (next: Partial<AppointmentViewState>) => {
+      const current = parseViewParams(searchParams, clinicToday())
+      setSearchParams(toViewParams({ ...current, ...next }), { replace: true })
+    },
+    [searchParams, setSearchParams],
+  )
 
-  const refreshAppointments = useCallback(() => {
-    setIsLoadingAppointments(true)
-    getAppointments()
-      .then(setAppointments)
-      .finally(() => setIsLoadingAppointments(false))
-  }, [])
+  const setView = (next: CalendarView) => writeParams({ view: next })
+  const setCurrentDate = (next: string) => writeParams({ date: next })
+  const setShowCancelled = (next: boolean) => writeParams({ showCancelled: next })
 
-  // Re-runs on view/date changes, not just mount, so switching views or navigating dates re-fetches and shows the loading skeleton.
+  const range = useMemo(() => {
+    if (view === 'day') return clinicDayRange(currentDate)
+    if (view === 'week') return clinicWeekRange(currentDate)
+    return clinicMonthGridRange(currentDate)
+  }, [view, currentDate])
+
+  const appointmentsQuery = useAppointmentsQuery(range)
+  const availabilityQuery = useAvailabilityQuery(range)
+
+  const visible = useMemo(
+    () => (appointmentsQuery.data ?? []).filter((item) => isVisible(item, showCancelled)),
+    [appointmentsQuery.data, showCancelled],
+  )
+
+  const hasError = appointmentsQuery.isError || availabilityQuery.isError
+  const isLoading = appointmentsQuery.isLoading || availabilityQuery.isLoading
+  const slots = availabilityQuery.data ?? []
+  const hasSlotData = availabilityQuery.isSuccess
+
   useEffect(() => {
-    refreshAppointments()
-  }, [view, currentDate, refreshAppointments])
-
-  const closePanel = () => setPanel({ mode: 'closed' })
+    if (hasError) {
+      showToast({ tone: 'error', title: 'Could not load appointments' })
+    }
+  }, [hasError, showToast])
 
   const handlePrev = () => {
-    setCurrentDate((prev) => {
-      if (view === 'day') return addDays(prev, -1)
-      if (view === 'week') return addWeeks(prev, -1)
-      return addMonths(prev, -1)
-    })
+    if (view === 'day') setCurrentDate(addClinicDays(currentDate, -1))
+    else if (view === 'week') setCurrentDate(addClinicWeeks(currentDate, -1))
+    else setCurrentDate(addClinicMonths(currentDate, -1))
   }
 
   const handleNext = () => {
-    setCurrentDate((prev) => {
-      if (view === 'day') return addDays(prev, 1)
-      if (view === 'week') return addWeeks(prev, 1)
-      return addMonths(prev, 1)
-    })
+    if (view === 'day') setCurrentDate(addClinicDays(currentDate, 1))
+    else if (view === 'week') setCurrentDate(addClinicWeeks(currentDate, 1))
+    else setCurrentDate(addClinicMonths(currentDate, 1))
   }
 
-  const handleDateSelect = (date: Date) => {
-    setCurrentDate(date)
+  const openDay = (dateIso: string) => {
+    setCurrentDate(dateIso)
     setView('day')
   }
-
-  const handleCreateSubmit = async (input: AppointmentInput) => {
-    await createAppointment(input)
-    closePanel()
-    refreshAppointments()
-  }
-
-  const handleEditSubmit = async (input: AppointmentInput) => {
-    if (panel.mode !== 'edit') return
-    await updateAppointment(panel.appointment.id, input)
-    closePanel()
-    refreshAppointments()
-  }
-
-  const handleDelete = async (appointmentId: string) => {
-    if (!window.confirm('Are you sure you want to delete this appointment?')) {
-      return
-    }
-    await deleteAppointment(appointmentId)
-    closePanel()
-    refreshAppointments()
-  }
-
-  const handleAppointmentChange = (updated: Appointment) => {
-    setAppointments((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
-    setPanel((prev) => (prev.mode === 'view' && prev.appointment.id === updated.id ? { mode: 'view', appointment: updated } : prev))
-  }
-
-  const viewPatient = displayPanel.mode === 'view' ? patientsById.get(displayPanel.appointment.patientId) : undefined
 
   return (
     <div className={styles.page}>
@@ -123,9 +95,6 @@ export function AppointmentsPage() {
           <h1 className={styles.title}>Appointments</h1>
           <p className={styles.subtitle}>Appointment calendar — day, week, and month view.</p>
         </div>
-        <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
-          ＋ New appointment
-        </Button>
       </div>
 
       <CalendarToolbar
@@ -135,70 +104,70 @@ export function AppointmentsPage() {
         onDateChange={setCurrentDate}
         onPrev={handlePrev}
         onNext={handleNext}
-        onToday={() => setCurrentDate(new Date())}
+        onToday={() => setCurrentDate(clinicToday())}
+        showCancelled={showCancelled}
+        onShowCancelledChange={setShowCancelled}
       />
 
-      {view === 'day' && (
-        <DayView
-          date={currentDate}
-          appointments={appointments}
-          patients={patientsById}
-          onAppointmentClick={(appointment) => setPanel({ mode: 'view', appointment })}
-          isLoading={isLoadingAppointments}
-        />
-      )}
-      {view === 'week' && (
-        <WeekView
-          date={currentDate}
-          appointments={appointments}
-          patients={patientsById}
-          onAppointmentClick={(appointment) => setPanel({ mode: 'view', appointment })}
-          onDateSelect={handleDateSelect}
-          isLoading={isLoadingAppointments}
-        />
-      )}
-      {view === 'month' && (
-        <MonthView
-          date={currentDate}
-          appointments={appointments}
-          patients={patientsById}
-          onAppointmentClick={(appointment) => setPanel({ mode: 'view', appointment })}
-          onDateSelect={handleDateSelect}
-          isLoading={isLoadingAppointments}
-        />
+      {hasError ? (
+        <EmptyState message="Appointments could not be loaded." />
+      ) : (
+        <>
+          {view === 'day' && (
+            <DayView
+              date={currentDate}
+              slots={slots}
+              appointments={visible}
+              onAppointmentClick={setSelected}
+              isLoading={isLoading}
+              hasSlotData={hasSlotData}
+            />
+          )}
+          {view === 'week' && (
+            <WeekView
+              date={currentDate}
+              appointments={visible}
+              slots={slots}
+              onAppointmentClick={setSelected}
+              onDateSelect={openDay}
+              isLoading={isLoading}
+              hasSlotData={hasSlotData}
+            />
+          )}
+          {view === 'month' && (
+            <MonthView
+              date={currentDate}
+              appointments={visible}
+              slots={slots}
+              onAppointmentClick={setSelected}
+              onDateSelect={openDay}
+              isLoading={isLoading}
+              hasSlotData={hasSlotData}
+            />
+          )}
+        </>
       )}
 
-      {displayPanel.mode === 'view' && viewPatient && (
+      {selected !== null && (
         <AppointmentDetailPanel
-          appointment={displayPanel.appointment}
-          patient={viewPatient}
-          open={panel.mode === 'view'}
-          onOpenChange={(open) => !open && closePanel()}
-          onEdit={() => setPanel({ mode: 'edit', appointment: displayPanel.appointment })}
-          onDelete={() => handleDelete(displayPanel.appointment.id)}
-          onAppointmentChange={handleAppointmentChange}
-        />
-      )}
-
-      {displayPanel.mode === 'create' && (
-        <AppointmentFormPanel
-          open={panel.mode === 'create'}
-          onOpenChange={(open) => !open && closePanel()}
-          mode="create"
-          patients={patients}
-          onSubmit={handleCreateSubmit}
-        />
-      )}
-
-      {displayPanel.mode === 'edit' && (
-        <AppointmentFormPanel
-          open={panel.mode === 'edit'}
-          onOpenChange={(open) => !open && closePanel()}
-          mode="edit"
-          initialAppointment={displayPanel.appointment}
-          patients={patients}
-          onSubmit={handleEditSubmit}
-          onDelete={() => handleDelete(displayPanel.appointment.id)}
+          appointment={selected}
+          open
+          onOpenChange={(open) => !open && setSelected(null)}
+          patientSection={
+            selected.patientId ? (
+              <PatientSummary patientId={selected.patientId} />
+            ) : (
+              <div className={styles.unresolved}>
+                <p>Patient not yet assigned — resolved at check-in.</p>
+                <p>{selected.ownerName ?? 'Owner not yet assigned'}</p>
+              </div>
+            )
+          }
+          onOpenPatientRecord={
+            selected.patientId
+              ? () => navigate(`/patients?patient=${selected.patientId}`)
+              : undefined
+          }
         />
       )}
     </div>

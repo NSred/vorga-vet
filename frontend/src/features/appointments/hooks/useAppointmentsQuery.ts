@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
+import type { DateRange } from '@/shared/lib/clinicTime'
 import { appointmentKeys } from '../api/appointmentKeys'
 import { getAppointments } from '../api/appointmentsApi'
 
-export function useAppointmentsQuery(enabled = true) {
+export function useAppointmentsQuery(range: DateRange, enabled = true) {
   return useQuery({
-    queryKey: appointmentKeys.list(),
-    queryFn: getAppointments,
+    queryKey: appointmentKeys.list(range),
+    queryFn: () => getAppointments(range),
     enabled,
   })
 }

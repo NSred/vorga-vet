@@ -30,6 +30,12 @@ describe('generatePatientCardNumber', () => {
     expect(generatePatientCardNumber('cat', new Date('2026-01-01T00:00:00Z'))).toBe('C26-00007')
   })
 
+  it('takes the year from the clinic calendar, not the browser', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+
+    expect(generatePatientCardNumber('dog', new Date('2025-12-31T23:30:00Z'))).toBe('D26-00000')
+  })
+
   it('stays within the backend 20 character limit', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.99999)
 

@@ -247,6 +247,14 @@ describe('PatientsPage for a client', () => {
     expect(screen.queryByRole('button', { name: /Edit/ })).not.toBeInTheDocument()
   })
 
+  it('hides the clinic-wide appointment tiles', async () => {
+    renderAt('/patients')
+
+    expect(await screen.findByText(/Rex/)).toBeInTheDocument()
+    expect(screen.queryByText('SCHEDULED TODAY')).not.toBeInTheDocument()
+    expect(screen.queryByText('PEAK HOUR')).not.toBeInTheDocument()
+  })
+
   it('explains an empty list', async () => {
     getPatientsSpy.mockResolvedValue({ items: [], totalCount: 0, page: 1, pageSize: 10 })
 

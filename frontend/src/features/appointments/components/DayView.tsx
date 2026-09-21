@@ -1,52 +1,69 @@
-import type { MockPatient } from '../api/mockPatients'
-import { Skeleton } from '@/shared/ui'
-import { formatDateOnly } from '@/shared/lib/dateOnly'
+import { EmptyState, Skeleton } from '@/shared/ui'
 import { AppointmentChip } from './AppointmentChip'
-import type { Appointment } from '../types'
+import { appointmentsOutsideSlots, buildDayRows } from '../lib/daySlots'
+import type { Appointment, AvailabilitySlot } from '../types'
 import styles from './DayView.module.css'
 
 export interface DayViewProps {
-  date: Date
+  date: string
+  slots: AvailabilitySlot[]
   appointments: Appointment[]
-  patients: Map<string, MockPatient>
   onAppointmentClick: (appointment: Appointment) => void
   isLoading?: boolean
+  hasSlotData: boolean
 }
 
-const HOURS = Array.from({ length: 14 }, (_, index) => `${String(index + 7).padStart(2, '0')}:00`)
+export function DayView({
+  slots,
+  appointments,
+  onAppointmentClick,
+  isLoading,
+  hasSlotData,
+}: DayViewProps) {
+  if (isLoading) {
+    return <Skeleton height="20rem" />
+  }
 
-function hourBucket(time: string): string {
-  return `${time.split(':')[0].padStart(2, '0')}:00`
-}
+  const rows = buildDayRows(appointments, slots)
+  const outside = appointmentsOutsideSlots(appointments, slots)
 
-export function DayView({ date, appointments, patients, onAppointmentClick, isLoading }: DayViewProps) {
-  const dateIso = formatDateOnly(date)
-  const dayAppointments = appointments.filter((appointment) => appointment.date === dateIso)
+  if (hasSlotData && slots.length === 0 && outside.length === 0) {
+    return <EmptyState message="The clinic is closed on this day." />
+  }
 
   return (
     <div className={styles.day}>
-      {HOURS.map((hour) => {
-        const hourAppointments = dayAppointments.filter((appointment) => hourBucket(appointment.time) === hour)
-        return (
-          <div key={hour} className={styles.hourRow}>
-            <span className={styles.hourLabel}>{hour}</span>
-            <div className={styles.hourSlots}>
-              {isLoading ? (
-                <Skeleton height="1.25rem" />
-              ) : (
-                hourAppointments.map((appointment) => (
-                  <AppointmentChip
-                    key={appointment.id}
-                    appointment={appointment}
-                    patient={patients.get(appointment.patientId)}
-                    onClick={() => onAppointmentClick(appointment)}
-                  />
-                ))
-              )}
-            </div>
+      {outside.length > 0 && (
+        <div className={styles.outside}>
+          <span className={styles.outsideLabel}>Outside opening hours</span>
+          <div className={styles.slotChips}>
+            {outside.map((appointment) => (
+              <AppointmentChip
+                key={appointment.id}
+                appointment={appointment}
+                onClick={() => onAppointmentClick(appointment)}
+              />
+            ))}
           </div>
-        )
-      })}
+        </div>
+      )}
+
+      {rows.map((row) => (
+        <div key={row.startsAt} className={styles.slotRow}>
+          <span className={styles.slotLabel}>{row.label}</span>
+          <div className={styles.slotChips}>
+            {row.starting.map((appointment) => (
+              <AppointmentChip
+                key={appointment.id}
+                appointment={appointment}
+                onClick={() => onAppointmentClick(appointment)}
+              />
+            ))}
+            {row.continuing.length > 0 && <span className={styles.continues}>↳ continues</span>}
+            {row.isFree && <span className={styles.free}>Free</span>}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

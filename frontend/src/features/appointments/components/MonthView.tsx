@@ -1,69 +1,87 @@
-import { eachDayOfInterval, endOfMonth, getDay, startOfMonth } from 'date-fns'
-import type { MockPatient } from '../api/mockPatients'
 import { Skeleton } from '@/shared/ui'
-import { formatDateOnly, todayIso } from '@/shared/lib/dateOnly'
+import {
+  addClinicDays,
+  clinicDateOf,
+  clinicMonthGridRange,
+  clinicToday,
+} from '@/shared/lib/clinicTime'
 import { AppointmentChip } from './AppointmentChip'
-import type { Appointment } from '../types'
+import { groupByClinicDate, openDates } from '../lib/calendarDays'
+import type { Appointment, AvailabilitySlot } from '../types'
 import styles from './MonthView.module.css'
 
 export interface MonthViewProps {
-  date: Date
+  date: string
   appointments: Appointment[]
-  patients: Map<string, MockPatient>
+  slots: AvailabilitySlot[]
   onAppointmentClick: (appointment: Appointment) => void
-  onDateSelect: (date: Date) => void
+  onDateSelect: (dateIso: string) => void
   isLoading?: boolean
+  hasSlotData: boolean
 }
 
 const WEEKDAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const VISIBLE_CHIP_LIMIT = 3
 
-export function MonthView({ date, appointments, patients, onAppointmentClick, onDateSelect, isLoading }: MonthViewProps) {
-  const monthStart = startOfMonth(date)
-  const monthEnd = endOfMonth(date)
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
-  // getDay(): Sun=0..Sat=6. Convert to a Mon=0..Sun=6 leading-blank count.
-  const leadingBlanks = (getDay(monthStart) + 6) % 7
-  const today = todayIso()
+export function MonthView({
+  date,
+  appointments,
+  slots,
+  onAppointmentClick,
+  onDateSelect,
+  isLoading,
+  hasSlotData,
+}: MonthViewProps) {
+  const gridStart = clinicDateOf(clinicMonthGridRange(date).from)
+  const days = Array.from({ length: 42 }, (_, index) => addClinicDays(gridStart, index))
+  const byDate = groupByClinicDate(appointments)
+  const open = openDates(slots)
+  const today = clinicToday()
+  const visibleMonth = date.slice(0, 7)
 
   return (
     <div className={styles.month}>
-      {WEEKDAY_HEADERS.map((label) => (
-        <div key={label} className={styles.weekdayHeader}>
-          {label}
+      {WEEKDAY_HEADERS.map((header) => (
+        <div key={header} className={styles.weekdayHeader}>
+          {header}
         </div>
       ))}
 
-      {Array.from({ length: leadingBlanks }, (_, index) => (
-        <div key={`blank-${index}`} className={styles.blankCell} />
-      ))}
-
-      {days.map((day) => {
-        const dayIso = formatDateOnly(day)
-        const dayAppointments = appointments
-          .filter((appointment) => appointment.date === dayIso)
-          .sort((a, b) => a.time.localeCompare(b.time))
+      {days.map((dayIso) => {
+        const dayAppointments = byDate.get(dayIso) ?? []
         const visible = dayAppointments.slice(0, VISIBLE_CHIP_LIMIT)
         const overflowCount = dayAppointments.length - visible.length
+        const isClosed = hasSlotData && !open.has(dayIso)
+        const isOtherMonth = dayIso.slice(0, 7) !== visibleMonth
 
         return (
-          <div key={dayIso} className={`${styles.dayCell} ${dayIso === today ? styles.today : ''}`}>
-            <span className={styles.dayNumber}>{day.getDate()}</span>
+          <div
+            key={dayIso}
+            data-testid={`month-day-${dayIso}`}
+            className={`${styles.dayCell} ${dayIso === today ? styles.today : ''} ${
+              isOtherMonth ? styles.otherMonth : ''
+            }`}
+          >
+            <span className={styles.dayNumber}>{Number(dayIso.slice(8))}</span>
+            {isClosed && <span className={styles.closed}>Closed</span>}
             <div className={styles.chips}>
               {isLoading ? (
-                <Skeleton height="1.1rem" />
+                <Skeleton height="1rem" />
               ) : (
                 <>
                   {visible.map((appointment) => (
                     <AppointmentChip
                       key={appointment.id}
                       appointment={appointment}
-                      patient={patients.get(appointment.patientId)}
                       onClick={() => onAppointmentClick(appointment)}
                     />
                   ))}
                   {overflowCount > 0 && (
-                    <button type="button" className={styles.overflow} onClick={() => onDateSelect(day)}>
+                    <button
+                      type="button"
+                      className={styles.overflow}
+                      onClick={() => onDateSelect(dayIso)}
+                    >
                       +{overflowCount} more
                     </button>
                   )}

@@ -1,37 +1,18 @@
-import type { ChangeEvent } from 'react'
-import { Link } from 'react-router'
-import { SPECIES_EMOJI } from '@/shared/domain/species'
-import type { MockPatient } from '../api/mockPatients'
-import { Button, IconButton, SlidePanel } from '@/shared/ui'
+import type { ReactNode } from 'react'
+import { Badge, Button, SlidePanel } from '@/shared/ui'
+import { clinicDateOf, clinicTimeOf } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { addAttachment, removeAttachment } from '../api/appointmentsApi'
-import { formatReminderDate, formatWeekday, getAppointmentStatus } from '../lib/dateHelpers'
+import { partyLabel, statusLabel, statusTone, typeLabel } from '../lib/appointmentLabels'
+import { WEEKDAYS } from '../lib/dateHelpers'
 import type { Appointment } from '../types'
 import styles from './AppointmentDetailPanel.module.css'
 
 export interface AppointmentDetailPanelProps {
   appointment: Appointment
-  patient: MockPatient
   open: boolean
   onOpenChange: (open: boolean) => void
-  onEdit: () => void
-  onDelete: () => void
-  onAppointmentChange: (appointment: Appointment) => void
-}
-
-const TYPE_LABELS: Record<Appointment['type'], string> = {
-  first_visit: 'First visit',
-  checkup: 'Checkup',
-  vaccination: 'Vaccination',
-  other: 'Other',
-}
-
-const STATUS_LABELS = { completed: 'Completed', today: 'Today', upcoming: 'Upcoming' } as const
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  patientSection: ReactNode
+  onOpenPatientRecord?: () => void
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -43,126 +24,68 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
+function weekdayOf(dateIso: string): string {
+  const [year, month, day] = dateIso.split('-').map(Number)
+
+  return WEEKDAYS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()]
+}
+
 export function AppointmentDetailPanel({
   appointment,
-  patient,
   open,
   onOpenChange,
-  onEdit,
-  onDelete,
-  onAppointmentChange,
+  patientSection,
+  onOpenPatientRecord,
 }: AppointmentDetailPanelProps) {
-  const status = getAppointmentStatus(appointment.date)
-
-  const handleFileInputChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    const updated = await addAttachment(appointment.id, file)
-    onAppointmentChange(updated)
-    event.target.value = ''
-  }
-
-  const handleRemoveAttachment = async (attachmentId: string) => {
-    const updated = await removeAttachment(appointment.id, attachmentId)
-    onAppointmentChange(updated)
-  }
+  const dateIso = clinicDateOf(appointment.startsAt)
+  const timeRange = `${clinicTimeOf(appointment.startsAt)}–${clinicTimeOf(appointment.endsAt)}`
 
   return (
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel={`Appointment — ${patient.name} · ${patient.ownerName}`}
-      headerTone="warn"
+      ariaLabel={`Appointment for ${partyLabel(appointment)}`}
+      headerTone="accent"
       header={
         <div className={styles.header}>
           <span className={styles.icon}>📅</span>
           <div>
-            <div className={styles.title}>
-              {patient.name} · {patient.ownerName}
-            </div>
+            <div className={styles.title}>{partyLabel(appointment)}</div>
             <div className={styles.subtitle}>
-              {formatWeekday(appointment.date)}, {formatDisplayDate(appointment.date)} · {appointment.time}
+              {weekdayOf(dateIso)}, {formatDisplayDate(dateIso)} · {timeRange}
             </div>
           </div>
         </div>
       }
       footer={
-        <>
-          <Button variant="danger" type="button" onClick={onDelete}>
-            Delete
+        onOpenPatientRecord ? (
+          <Button variant="outline" type="button" onClick={onOpenPatientRecord}>
+            Patient record
           </Button>
-          <Button variant="outline" type="button" onClick={onEdit}>
-            ✎ Edit
-          </Button>
-        </>
+        ) : null
       }
     >
       <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Appointment details</h3>
+        <h3 className={styles.sectionTitle}>Appointment</h3>
         <div className={styles.grid}>
-          <Field label="Date" value={formatDisplayDate(appointment.date)} />
-          <Field label="Time" value={appointment.time} />
-          <Field label="Appointment type" value={TYPE_LABELS[appointment.type]} />
-          <Field label="Status" value={STATUS_LABELS[status]} />
-          <Field label="Day" value={formatWeekday(appointment.date)} />
-          <Field
-            label="Owner reminder"
-            value={appointment.reminderEnabled ? `🔔 day before · ${formatReminderDate(appointment.date)}` : 'off'}
-          />
+          <Field label="Date" value={formatDisplayDate(dateIso)} />
+          <Field label="Time" value={timeRange} />
+          <Field label="Duration" value={`${appointment.durationMinutes} min`} />
+          <Field label="Type" value={typeLabel(appointment.type)} />
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>Status</span>
+            <span className={styles.fieldValue}>
+              <Badge tone={statusTone(appointment.status)}>{statusLabel(appointment.status)}</Badge>
+            </span>
+          </div>
+          <Field label="Created" value={formatDisplayDate(clinicDateOf(appointment.createdAt))} />
+          <Field label="Reason" value={appointment.reason ?? '—'} />
         </div>
-        {appointment.note && <Field label="Procedure / note" value={appointment.note} />}
       </section>
 
       <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Findings & X-rays ({appointment.attachments.length})</h3>
-        {appointment.attachments.length === 0 ? (
-          <p className={styles.emptyAttachments}>No files attached to this appointment.</p>
-        ) : (
-          <ul className={styles.attachmentList}>
-            {appointment.attachments.map((attachment) => (
-              <li key={attachment.id} className={styles.attachmentItem}>
-                {attachment.previewUrl ? (
-                  <img src={attachment.previewUrl} alt={attachment.fileName} className={styles.attachmentThumb} />
-                ) : (
-                  <span className={styles.attachmentIcon}>📄</span>
-                )}
-                <div className={styles.attachmentInfo}>
-                  <span className={styles.attachmentName}>{attachment.fileName}</span>
-                  <span className={styles.attachmentSize}>{formatFileSize(attachment.fileSizeBytes)}</span>
-                </div>
-                <IconButton label="Remove attachment" onClick={() => handleRemoveAttachment(attachment.id)}>
-                  ✕
-                </IconButton>
-              </li>
-            ))}
-          </ul>
-        )}
-        <label className={styles.uploadButton}>
-          Add X-ray / finding — PDF or image
-          <input
-            type="file"
-            accept="application/pdf,image/*"
-            onChange={handleFileInputChange}
-            className={styles.hiddenFileInput}
-          />
-        </label>
-      </section>
-
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>Patient record</h3>
-          <Link to={`/patients?patient=${patient.id}`} className={styles.cardLink}>
-            Open record →
-          </Link>
-        </div>
-        <div className={styles.grid}>
-          <Field label="Record no." value={patient.cardNumber} />
-          <Field label="Name" value={`${SPECIES_EMOJI[patient.species]} ${patient.name}`} />
-          <Field label="Breed" value={patient.breed} />
-          <Field label="Allergies" value={patient.allergies} />
-          <Field label="Phone" value={patient.phone ?? '—'} />
-          <Field label="Owner" value={patient.ownerName} />
-        </div>
+        <h3 className={styles.sectionTitle}>Patient</h3>
+        {patientSection}
       </section>
     </SlidePanel>
   )

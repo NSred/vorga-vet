@@ -1,5 +1,6 @@
 export { AuthProvider, useAuth } from './context/AuthContext'
 export { ProtectedRoute } from './routes/ProtectedRoute'
+export { RoleRoute } from './routes/RoleRoute'
 export { AuthLayout } from './components/AuthLayout'
 export { PasswordField } from './components/PasswordField'
 export { useAuthOutlet } from './context/AuthLayoutContext'

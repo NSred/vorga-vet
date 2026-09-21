@@ -23,3 +23,9 @@
   font-size: 0.85rem;
   color: var(--text-muted);
 }
+
+.unresolved p {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
