@@ -8,5 +8,6 @@ export function useAppointmentsQuery(range: DateRange, enabled = true) {
     queryKey: appointmentKeys.list(range),
     queryFn: () => getAppointments(range),
     enabled,
+    meta: { errorTitle: 'Could not load appointments' },
   })
 }

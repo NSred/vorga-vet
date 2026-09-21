@@ -15,6 +15,10 @@ export class ApiError extends Error {
   }
 }
 
+export function isApiErrorCode(error: unknown, ...codes: string[]): error is ApiError {
+  return error instanceof ApiError && error.code !== undefined && codes.includes(error.code)
+}
+
 interface ProblemEntry {
   code?: string
   description?: string

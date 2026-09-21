@@ -68,3 +68,55 @@ describe('AppointmentDetailPanel', () => {
     expect(screen.queryByRole('button', { name: 'Patient record' })).not.toBeInTheDocument()
   })
 })
+
+describe('AppointmentDetailPanel actions', () => {
+  const handlers = { onReschedule: vi.fn(), onCancel: vi.fn(), onNoShow: vi.fn() }
+
+  function renderWith(overrides: Partial<Appointment>) {
+    render(
+      <AppointmentDetailPanel
+        appointment={{ ...appointment, ...overrides }}
+        open
+        onOpenChange={vi.fn()}
+        patientSection={null}
+        {...handlers}
+      />,
+    )
+  }
+
+  it('offers every action for a scheduled appointment whose time has passed', () => {
+    renderWith({ status: 'scheduled' })
+
+    expect(screen.getByRole('button', { name: 'Reschedule' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel appointment' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'No-show' })).toBeInTheDocument()
+  })
+
+  it('holds back no-show until the start time has passed', () => {
+    renderWith({
+      status: 'scheduled',
+      startsAt: '2099-01-01T08:00:00Z',
+      endsAt: '2099-01-01T08:30:00Z',
+    })
+
+    expect(screen.getByRole('button', { name: 'Reschedule' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel appointment' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'No-show' })).not.toBeInTheDocument()
+  })
+
+  it('allows only cancel once checked in', () => {
+    renderWith({ status: 'checked_in' })
+
+    expect(screen.queryByRole('button', { name: 'Reschedule' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel appointment' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'No-show' })).not.toBeInTheDocument()
+  })
+
+  it('offers nothing for a closed appointment', () => {
+    renderWith({ status: 'completed' })
+
+    expect(screen.queryByRole('button', { name: 'Reschedule' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cancel appointment' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'No-show' })).not.toBeInTheDocument()
+  })
+})

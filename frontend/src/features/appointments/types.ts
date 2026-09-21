@@ -40,3 +40,32 @@ export interface AvailabilitySlot {
   isAvailable: boolean
   isMine: boolean
 }
+
+export interface PartyRef {
+  id: string
+  label: string
+}
+
+export interface AppointmentWriteValues {
+  date: string
+  startsAt: string
+  type: AppointmentType
+  durationMinutes: number
+  owner: PartyRef | null
+  patient: PartyRef | null
+  reason: string
+}
+
+export interface CreateAppointmentRequest {
+  ownerId?: string
+  patientId?: string
+  startsAt: string
+  durationMinutes: number
+  type: number
+  reason?: string
+}
+
+export interface RescheduleAppointmentRequest {
+  startsAt: string
+  durationMinutes?: number
+}

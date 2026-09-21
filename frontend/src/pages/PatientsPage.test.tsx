@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
@@ -185,11 +185,12 @@ describe('PatientsPage delete', () => {
 
   async function openAndConfirmDelete() {
     const user = userEvent.setup()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
 
     renderAt('/patients')
     await user.click(await screen.findByText(/Rex/))
     await user.click(await screen.findByRole('button', { name: 'Delete' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Delete this record?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
   }
 
   it('reports a failed delete instead of claiming success', async () => {
@@ -261,7 +262,9 @@ describe('PatientsPage for a client', () => {
     renderAt('/patients')
 
     expect(
-      await screen.findByText('Your animals will appear here after their first visit to the clinic.'),
+      await screen.findByText(
+        'Your animals will appear here after their first visit to the clinic.',
+      ),
     ).toBeInTheDocument()
   })
 })

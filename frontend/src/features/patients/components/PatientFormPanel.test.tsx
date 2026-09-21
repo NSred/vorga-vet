@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
@@ -377,24 +377,24 @@ describe('PatientFormPanel in edit mode', () => {
 })
 
 describe('PatientFormPanel discard guard', () => {
+  const discardDialog = () => screen.queryByRole('dialog', { name: 'Discard changes?' })
+
   it('closes without prompting when nothing changed', async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
-    const confirmSpy = vi.spyOn(window, 'confirm')
     stubLookups()
 
     renderEdit({ onOpenChange })
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    expect(confirmSpy).not.toHaveBeenCalled()
+    expect(discardDialog()).not.toBeInTheDocument()
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
   it('prompts and stays open when the user keeps editing', async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
     stubLookups()
 
     renderEdit({ onOpenChange })
@@ -402,7 +402,10 @@ describe('PatientFormPanel discard guard', () => {
     await user.type(screen.getByLabelText('Animal name *'), ' II')
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    expect(confirmSpy).toHaveBeenCalled()
+    const dialog = await screen.findByRole('dialog', { name: 'Discard changes?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => expect(discardDialog()).not.toBeInTheDocument())
     expect(onOpenChange).not.toHaveBeenCalled()
     expect((screen.getByLabelText('Animal name *') as HTMLInputElement).value).toBe('Keti II')
   })
@@ -410,7 +413,6 @@ describe('PatientFormPanel discard guard', () => {
   it('closes when the user confirms the discard', async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     stubLookups()
 
     renderEdit({ onOpenChange })
@@ -418,13 +420,15 @@ describe('PatientFormPanel discard guard', () => {
     await user.type(screen.getByLabelText('Animal name *'), ' II')
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
+    const dialog = await screen.findByRole('dialog', { name: 'Discard changes?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Discard' }))
+
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
   it('guards the ✕ close and Escape the same way as Cancel', async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
     stubLookups()
 
     renderEdit({ onOpenChange })
@@ -432,7 +436,7 @@ describe('PatientFormPanel discard guard', () => {
     await user.type(screen.getByLabelText('Animal name *'), ' II')
     await user.click(screen.getByRole('button', { name: 'Close' }))
 
-    expect(confirmSpy).toHaveBeenCalled()
+    expect(await screen.findByRole('dialog', { name: 'Discard changes?' })).toBeInTheDocument()
     expect(onOpenChange).not.toHaveBeenCalled()
 
     await user.keyboard('{Escape}')
@@ -443,7 +447,6 @@ describe('PatientFormPanel discard guard', () => {
   it('does not prompt in create mode', async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
-    const confirmSpy = vi.spyOn(window, 'confirm')
     stubLookups()
 
     render(
@@ -459,7 +462,7 @@ describe('PatientFormPanel discard guard', () => {
     await user.type(screen.getByLabelText('Animal name *'), 'Bela')
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    expect(confirmSpy).not.toHaveBeenCalled()
+    expect(discardDialog()).not.toBeInTheDocument()
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 

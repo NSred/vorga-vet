@@ -12,7 +12,11 @@ export interface SegmentedControlProps<T extends string> {
   options: readonly SegmentedControlOption<T>[]
 }
 
-export function SegmentedControl<T extends string>({ value, onChange, options }: SegmentedControlProps<T>) {
+export function SegmentedControl<T extends string>({
+  value,
+  onChange,
+  options,
+}: SegmentedControlProps<T>) {
   const buttonRefs = useRef(new Map<T, HTMLButtonElement>())
   const [thumbStyle, setThumbStyle] = useState<{ left: number; width: number } | null>(null)
 
@@ -21,7 +25,6 @@ export function SegmentedControl<T extends string>({ value, onChange, options }:
     if (activeButton) {
       setThumbStyle({ left: activeButton.offsetLeft, width: activeButton.offsetWidth })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, options.length])
 
   return (

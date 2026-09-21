@@ -1,9 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { ApiError } from '@/shared/lib/apiClient'
+import { ApiError, isApiErrorCode } from '@/shared/lib/apiClient'
 import { todayIso } from '@/shared/lib/dateOnly'
-import { Button, DatePicker, Select, SlidePanel, TextField, Textarea } from '@/shared/ui'
-import { createPatient, updatePatient } from '../api/patientsApi'
+import {
+  Button,
+  ConfirmDialog,
+  DatePicker,
+  Select,
+  SlidePanel,
+  TextField,
+  Textarea,
+} from '@/shared/ui'
+import { patientErrors } from '../api/patientErrors'
+import { useCreatePatient, useUpdatePatient } from '../hooks/usePatientMutations'
 import { generatePatientCardNumber } from '../lib/cardNumber'
 import { splitOwnerName } from '../lib/ownerName'
 import { toPatientWriteRequest } from '../lib/patientRequest'
@@ -13,8 +22,6 @@ import { BreedPicker } from './pickers/BreedPicker'
 import { OwnerPicker } from './pickers/OwnerPicker'
 import styles from './PatientFormPanel.module.css'
 
-const CARD_NUMBER_TAKEN = 'Patients.CardNumberNotUnique'
-const PATIENT_MISSING = 'Patients.NotFound'
 const DISCARD_PROMPT = 'You have unsaved changes. Discard them?'
 
 export interface PatientFormPanelProps {
@@ -67,6 +74,9 @@ export function PatientFormPanel({
   onMissing,
 }: PatientFormPanelProps) {
   const [submitError, setSubmitError] = useState<string | undefined>(undefined)
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const create = useCreatePatient()
+  const update = useUpdatePatient()
   const {
     register,
     control,
@@ -107,14 +117,20 @@ export function PatientFormPanel({
   })
 
   function requestClose() {
-    if (mode === 'edit' && isDirty && !window.confirm(DISCARD_PROMPT)) {
+    if (mode === 'edit' && isDirty) {
+      setDiscardOpen(true)
       return
     }
     onOpenChange(false)
   }
 
+  function discardChanges() {
+    setDiscardOpen(false)
+    onOpenChange(false)
+  }
+
   function handleFailure(error: unknown) {
-    if (error instanceof ApiError && error.code === CARD_NUMBER_TAKEN) {
+    if (isApiErrorCode(error, patientErrors.cardNumberNotUnique)) {
       setError(
         'cardNumber',
         { message: 'This card number is already taken. Try another.' },
@@ -123,27 +139,27 @@ export function PatientFormPanel({
       return
     }
 
-    if (error instanceof ApiError && error.code === PATIENT_MISSING) {
+    if (isApiErrorCode(error, patientErrors.notFound)) {
       onMissing()
       return
     }
 
-    if (error instanceof ApiError && error.status === 404) {
-      if (error.code === 'Owners.NotFound') {
-        setValue('owner', null)
-        setSubmitError('That owner no longer exists. Please select another.')
-        return
-      }
-      if (error.code === 'Breeds.NotFound') {
-        setValue('breed', null)
-        setSubmitError('That breed no longer exists. Please select another.')
-        return
-      }
-      if (error.code === 'Allergens.NotFound') {
-        setValue('allergens', [])
-        setSubmitError('One of the allergens no longer exists. Please select them again.')
-        return
-      }
+    if (isApiErrorCode(error, patientErrors.ownerNotFound)) {
+      setValue('owner', null)
+      setSubmitError('That owner no longer exists. Please select another.')
+      return
+    }
+
+    if (isApiErrorCode(error, patientErrors.breedNotFound)) {
+      setValue('breed', null)
+      setSubmitError('That breed no longer exists. Please select another.')
+      return
+    }
+
+    if (isApiErrorCode(error, patientErrors.allergenNotFound)) {
+      setValue('allergens', [])
+      setSubmitError('One of the allergens no longer exists. Please select them again.')
+      return
     }
 
     if (error instanceof ApiError && error.validationMessages) {
@@ -160,7 +176,7 @@ export function PatientFormPanel({
 
     if (mode === 'edit' && patient) {
       try {
-        await updatePatient(patient.id, request)
+        await update.mutateAsync({ id: patient.id, request })
         onSaved(values.name.trim())
       } catch (error: unknown) {
         handleFailure(error)
@@ -169,11 +185,11 @@ export function PatientFormPanel({
     }
 
     try {
-      await createPatient(request)
+      await create.mutateAsync(request)
       onSaved(values.name.trim())
       return
     } catch (error: unknown) {
-      const isTaken = error instanceof ApiError && error.code === CARD_NUMBER_TAKEN
+      const isTaken = isApiErrorCode(error, patientErrors.cardNumberNotUnique)
 
       if (!isTaken || cardNumberEdited.current) {
         handleFailure(error)
@@ -184,7 +200,7 @@ export function PatientFormPanel({
       setValue('cardNumber', retryCardNumber)
 
       try {
-        await createPatient(toPatientWriteRequest({ ...values, cardNumber: retryCardNumber }))
+        await create.mutateAsync(toPatientWriteRequest({ ...values, cardNumber: retryCardNumber }))
         onSaved(values.name.trim())
       } catch (retryError: unknown) {
         handleFailure(retryError)
@@ -219,7 +235,7 @@ export function PatientFormPanel({
             variant="primary"
             type="submit"
             form="patient-form"
-            disabled={isSubmitting}
+            disabled={isSubmitting || create.isPending || update.isPending}
           >
             Save
           </Button>
@@ -378,6 +394,16 @@ export function PatientFormPanel({
           </p>
         )}
       </form>
+
+      <ConfirmDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="Discard changes?"
+        description={DISCARD_PROMPT}
+        confirmLabel="Discard"
+        tone="danger"
+        onConfirm={discardChanges}
+      />
     </SlidePanel>
   )
 }

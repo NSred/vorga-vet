@@ -143,3 +143,9 @@
   color: var(--accent-strong);
   font-size: 0.75rem;
 }
+
+.error {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--danger);
+}

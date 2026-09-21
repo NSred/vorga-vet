@@ -18,6 +18,7 @@ export interface CalendarToolbarProps {
   onToday: () => void
   showCancelled: boolean
   onShowCancelledChange: (value: boolean) => void
+  onNewAppointment?: () => void
 }
 
 export function CalendarToolbar({
@@ -30,13 +31,19 @@ export function CalendarToolbar({
   onToday,
   showCancelled,
   onShowCancelledChange,
+  onNewAppointment,
 }: CalendarToolbarProps) {
   return (
     <div className={styles.toolbar}>
       <SegmentedControl value={view} onChange={onViewChange} options={VIEW_OPTIONS} />
 
       <div className={styles.nav}>
-        <button type="button" className={styles.arrow} onClick={onPrev} aria-label="Previous period">
+        <button
+          type="button"
+          className={styles.arrow}
+          onClick={onPrev}
+          aria-label="Previous period"
+        >
           ‹
         </button>
         <Button variant="outline" type="button" onClick={onToday}>
@@ -65,9 +72,11 @@ export function CalendarToolbar({
         Show cancelled
       </label>
 
-      <Button variant="outline" type="button" disabled>
-        🖨 Print
-      </Button>
+      {onNewAppointment && (
+        <Button variant="primary" type="button" onClick={onNewAppointment}>
+          ＋ New appointment
+        </Button>
+      )}
     </div>
   )
 }

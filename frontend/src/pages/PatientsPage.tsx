@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { ApiError } from '@/shared/lib/apiClient'
-import { Button, useToast } from '@/shared/ui'
+import { isApiErrorCode } from '@/shared/lib/apiClient'
+import { Button, ConfirmDialog, useToast } from '@/shared/ui'
 import { useAuth } from '@/features/auth'
 import {
   PeakHoursPanel,
@@ -12,9 +12,9 @@ import {
   TotalPatientsTile,
 } from '@/widgets/dashboard'
 import {
-  deletePatient,
   getPatient,
   parseFilterParams,
+  patientErrors,
   patientKeys,
   PatientDetailPanel,
   PatientFilters,
@@ -22,6 +22,7 @@ import {
   PatientTable,
   toFilterParams,
   useAllergenByName,
+  useDeletePatient,
   usePatientsQuery,
 } from '@/features/patients'
 import type {
@@ -53,8 +54,10 @@ export function PatientsPage() {
     setDisplayPanel(panel)
   }
   const [peakHoursOpen, setPeakHoursOpen] = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const queryClient = useQueryClient()
+  const remove = useDeletePatient()
   const { allergen, isPending: isAllergenPending } = useAllergenByName(allergenName)
   const activeFilters: PatientFiltersType = { ...filters, allergen }
 
@@ -67,12 +70,6 @@ export function PatientsPage() {
     },
     [setSearchParams],
   )
-
-  useEffect(() => {
-    if (patientsQuery.isError) {
-      showToast({ tone: 'error', title: 'Could not load patients' })
-    }
-  }, [patientsQuery.isError, showToast])
 
   useEffect(() => {
     const patientId = searchParams.get('patient')
@@ -100,7 +97,6 @@ export function PatientsPage() {
 
   const afterWrite = (title: string) => {
     closePanel()
-    queryClient.invalidateQueries({ queryKey: patientKeys.all })
     showToast({ tone: 'success', title })
   }
 
@@ -117,25 +113,21 @@ export function PatientsPage() {
       })
   }
 
-  const handleDelete = async (patientId: string) => {
-    if (!window.confirm('Are you sure you want to delete this record?')) {
-      return
-    }
-
-    try {
-      await deletePatient(patientId)
-    } catch (error: unknown) {
-      const alreadyGone =
-        error instanceof ApiError &&
-        (error.code === 'Patients.NotFound' || error.code === 'Patients.AlreadyDeleted')
-
-      if (!alreadyGone) {
+  const handleDelete = (patientId: string) => {
+    remove.mutate(patientId, {
+      onSuccess: () => {
+        setConfirmDeleteId(null)
+        afterWrite('Patient deleted')
+      },
+      onError: (error) => {
+        setConfirmDeleteId(null)
+        if (isApiErrorCode(error, patientErrors.notFound, patientErrors.alreadyDeleted)) {
+          afterWrite('Patient deleted')
+          return
+        }
         showToast({ tone: 'error', title: 'Could not delete that patient' })
-        return
-      }
-    }
-
-    afterWrite('Patient deleted')
+      },
+    })
   }
 
   return (
@@ -143,7 +135,9 @@ export function PatientsPage() {
       <div className={styles.pageHeader}>
         <div>
           <h1 className={styles.title}>Patient Records</h1>
-          <p className={styles.subtitle}>Overview and entry of animals, owners, and basic medical information.</p>
+          <p className={styles.subtitle}>
+            Overview and entry of animals, owners, and basic medical information.
+          </p>
         </div>
         {isVeterinarian && (
           <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
@@ -189,7 +183,7 @@ export function PatientsPage() {
               ? () => setPanel({ mode: 'edit', patient: displayPanel.patient })
               : undefined
           }
-          onDelete={isVeterinarian ? () => handleDelete(displayPanel.patient.id) : undefined}
+          onDelete={isVeterinarian ? () => setConfirmDeleteId(displayPanel.patient.id) : undefined}
         />
       )}
 
@@ -214,6 +208,17 @@ export function PatientsPage() {
           onMissing={() => afterWrite('That patient no longer exists')}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        onOpenChange={(open) => !open && setConfirmDeleteId(null)}
+        title="Delete this record?"
+        description="The patient will be removed from the active list."
+        confirmLabel="Delete"
+        tone="danger"
+        isPending={remove.isPending}
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+      />
 
       {isVeterinarian && <PeakHoursPanel open={peakHoursOpen} onOpenChange={setPeakHoursOpen} />}
     </div>

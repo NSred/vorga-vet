@@ -14,9 +14,23 @@ export interface SelectProps {
   id?: string
   className?: string
   hideLabel?: boolean
+  placeholder?: string
+  error?: string
 }
 
-export function Select({ label, value, onChange, options, id, className, hideLabel }: SelectProps) {
+export function Select({
+  label,
+  value,
+  onChange,
+  options,
+  id,
+  className,
+  hideLabel,
+  placeholder,
+  error,
+}: SelectProps) {
+  const selectedLabel = options.find((option) => option.value === value)?.label
+
   return (
     <div className={`${styles.field} ${className ?? ''}`}>
       {!hideLabel && (
@@ -25,8 +39,13 @@ export function Select({ label, value, onChange, options, id, className, hideLab
         </label>
       )}
       <RadixSelect.Root value={value} onValueChange={onChange}>
-        <RadixSelect.Trigger id={id} className={styles.trigger} aria-label={label}>
-          <RadixSelect.Value />
+        <RadixSelect.Trigger
+          id={id}
+          className={styles.trigger}
+          aria-label={label}
+          aria-invalid={error ? true : undefined}
+        >
+          <RadixSelect.Value placeholder={placeholder}>{selectedLabel}</RadixSelect.Value>
           <RadixSelect.Icon className={styles.icon}>▾</RadixSelect.Icon>
         </RadixSelect.Trigger>
         <RadixSelect.Portal>
@@ -44,6 +63,11 @@ export function Select({ label, value, onChange, options, id, className, hideLab
           </RadixSelect.Content>
         </RadixSelect.Portal>
       </RadixSelect.Root>
+      {error && (
+        <p role="alert" className={styles.error}>
+          {error}
+        </p>
+      )}
     </div>
   )
 }

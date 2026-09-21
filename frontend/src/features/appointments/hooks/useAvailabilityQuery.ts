@@ -3,10 +3,18 @@ import type { DateRange } from '@/shared/lib/clinicTime'
 import { appointmentKeys } from '../api/appointmentKeys'
 import { getAvailability } from '../api/appointmentsApi'
 
-export function useAvailabilityQuery(range: DateRange, enabled = true) {
+export interface AvailabilityQueryOptions {
+  durationMinutes?: number
+  enabled?: boolean
+}
+
+export function useAvailabilityQuery(range: DateRange, options: AvailabilityQueryOptions = {}) {
+  const { durationMinutes, enabled = true } = options
+
   return useQuery({
-    queryKey: appointmentKeys.availability(range),
-    queryFn: () => getAvailability(range),
+    queryKey: appointmentKeys.availability(range, durationMinutes),
+    queryFn: () => getAvailability(range, durationMinutes),
     enabled,
+    meta: { errorTitle: 'Could not load opening hours' },
   })
 }

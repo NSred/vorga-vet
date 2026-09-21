@@ -5,10 +5,13 @@ import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { PatientsPage } from '@/pages/PatientsPage'
 import { AppointmentsPage } from '@/pages/AppointmentsPage'
+import { NotFoundPage } from '@/pages/NotFoundPage'
+import { RouteErrorPage } from '@/pages/RouteErrorPage'
 
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
+    errorElement: <RouteErrorPage />,
     children: [
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
@@ -16,6 +19,7 @@ export const router = createBrowserRouter([
   },
   {
     element: <ProtectedRoute />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         element: <AppLayout />,
@@ -26,6 +30,7 @@ export const router = createBrowserRouter([
             element: <RoleRoute allow="veterinarian" />,
             children: [{ path: '/appointments', element: <AppointmentsPage /> }],
           },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, apiFetch } from './apiClient'
+import { ApiError, apiFetch, isApiErrorCode } from './apiClient'
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -70,5 +70,22 @@ describe('apiFetch error parsing', () => {
 
     expect(error.status).toBe(403)
     expect(error.message).toBe("You don't have permission to do that.")
+  })
+})
+
+describe('isApiErrorCode', () => {
+  it('matches one of the given codes', () => {
+    const error = new ApiError(409, 'taken', 'Appointments.SlotTaken')
+
+    expect(isApiErrorCode(error, 'Appointments.SlotTaken')).toBe(true)
+    expect(isApiErrorCode(error, 'Appointments.NotFound', 'Appointments.SlotTaken')).toBe(true)
+  })
+
+  it('rejects other codes, missing codes and non-api errors', () => {
+    expect(
+      isApiErrorCode(new ApiError(404, 'x', 'Appointments.NotFound'), 'Appointments.SlotTaken'),
+    ).toBe(false)
+    expect(isApiErrorCode(new ApiError(500, 'x'), 'Appointments.SlotTaken')).toBe(false)
+    expect(isApiErrorCode(new Error('x'), 'Appointments.SlotTaken')).toBe(false)
   })
 })

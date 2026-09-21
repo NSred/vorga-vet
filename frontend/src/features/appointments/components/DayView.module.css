@@ -51,3 +51,18 @@
   color: var(--warn);
   padding-top: 0.15rem;
 }
+
+.freeButton {
+  font-size: 0.72rem;
+  color: var(--accent);
+  padding: 0.2rem 0.45rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.freeButton:hover {
+  background: var(--accent-soft);
+}

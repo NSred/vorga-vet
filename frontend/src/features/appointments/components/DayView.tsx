@@ -9,6 +9,7 @@ export interface DayViewProps {
   slots: AvailabilitySlot[]
   appointments: Appointment[]
   onAppointmentClick: (appointment: Appointment) => void
+  onSlotClick?: (startsAt: string) => void
   isLoading?: boolean
   hasSlotData: boolean
 }
@@ -17,6 +18,7 @@ export function DayView({
   slots,
   appointments,
   onAppointmentClick,
+  onSlotClick,
   isLoading,
   hasSlotData,
 }: DayViewProps) {
@@ -35,7 +37,9 @@ export function DayView({
     <div className={styles.day}>
       {outside.length > 0 && (
         <div className={styles.outside}>
-          <span className={styles.outsideLabel}>Outside opening hours</span>
+          <span className={styles.outsideLabel}>
+            {hasSlotData ? 'Outside opening hours' : 'Opening hours unavailable'}
+          </span>
           <div className={styles.slotChips}>
             {outside.map((appointment) => (
               <AppointmentChip
@@ -60,7 +64,19 @@ export function DayView({
               />
             ))}
             {row.continuing.length > 0 && <span className={styles.continues}>↳ continues</span>}
-            {row.isFree && <span className={styles.free}>Free</span>}
+            {row.isFree &&
+              (onSlotClick ? (
+                <button
+                  type="button"
+                  className={styles.freeButton}
+                  onClick={() => onSlotClick(row.startsAt)}
+                  aria-label={`Book ${row.label}`}
+                >
+                  Free
+                </button>
+              ) : (
+                <span className={styles.free}>Free</span>
+              ))}
           </div>
         </div>
       ))}

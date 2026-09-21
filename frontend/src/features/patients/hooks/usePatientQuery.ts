@@ -7,5 +7,6 @@ export function usePatientQuery(patientId: string, enabled = true) {
     queryKey: patientKeys.detail(patientId),
     queryFn: () => getPatient(patientId),
     enabled,
+    meta: { errorTitle: 'Could not load the patient' },
   })
 }

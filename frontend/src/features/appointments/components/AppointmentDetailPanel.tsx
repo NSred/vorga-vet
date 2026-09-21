@@ -3,6 +3,7 @@ import { Badge, Button, SlidePanel } from '@/shared/ui'
 import { clinicDateOf, clinicTimeOf } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { partyLabel, statusLabel, statusTone, typeLabel } from '../lib/appointmentLabels'
+import { canReschedule, canTransition } from '../lib/appointmentTransitions'
 import { WEEKDAYS } from '../lib/dateHelpers'
 import type { Appointment } from '../types'
 import styles from './AppointmentDetailPanel.module.css'
@@ -13,6 +14,9 @@ export interface AppointmentDetailPanelProps {
   onOpenChange: (open: boolean) => void
   patientSection: ReactNode
   onOpenPatientRecord?: () => void
+  onReschedule?: () => void
+  onCancel?: () => void
+  onNoShow?: () => void
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -30,15 +34,27 @@ function weekdayOf(dateIso: string): string {
   return WEEKDAYS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()]
 }
 
+function hasStarted(appointment: Appointment): boolean {
+  return Date.parse(appointment.startsAt) < Date.now()
+}
+
 export function AppointmentDetailPanel({
   appointment,
   open,
   onOpenChange,
   patientSection,
   onOpenPatientRecord,
+  onReschedule,
+  onCancel,
+  onNoShow,
 }: AppointmentDetailPanelProps) {
   const dateIso = clinicDateOf(appointment.startsAt)
   const timeRange = `${clinicTimeOf(appointment.startsAt)}–${clinicTimeOf(appointment.endsAt)}`
+  const showReschedule = onReschedule && canReschedule(appointment.status)
+  const showCancel = onCancel && canTransition(appointment.status, 'cancelled')
+  const showNoShow =
+    onNoShow && canTransition(appointment.status, 'no_show') && hasStarted(appointment)
+  const hasFooter = showReschedule || showCancel || showNoShow || onOpenPatientRecord
 
   return (
     <SlidePanel
@@ -58,10 +74,29 @@ export function AppointmentDetailPanel({
         </div>
       }
       footer={
-        onOpenPatientRecord ? (
-          <Button variant="outline" type="button" onClick={onOpenPatientRecord}>
-            Patient record
-          </Button>
+        hasFooter ? (
+          <>
+            {showNoShow && (
+              <Button variant="danger" type="button" onClick={onNoShow}>
+                No-show
+              </Button>
+            )}
+            {showCancel && (
+              <Button variant="danger" type="button" onClick={onCancel}>
+                Cancel appointment
+              </Button>
+            )}
+            {showReschedule && (
+              <Button variant="outline" type="button" onClick={onReschedule}>
+                Reschedule
+              </Button>
+            )}
+            {onOpenPatientRecord && (
+              <Button variant="outline" type="button" onClick={onOpenPatientRecord}>
+                Patient record
+              </Button>
+            )}
+          </>
         ) : null
       }
     >

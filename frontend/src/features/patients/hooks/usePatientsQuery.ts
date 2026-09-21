@@ -38,5 +38,6 @@ export function usePatientsQuery(
     queryFn: () => getPatients(filters, page, pageSize),
     enabled,
     placeholderData: keepPreviousData,
+    meta: { errorTitle: 'Could not load patients' },
   })
 }

@@ -15,6 +15,10 @@ const STATUSES: Record<number, AppointmentStatus> = {
   4: 'cancelled',
 }
 
+const TYPES_TO_API = Object.fromEntries(
+  Object.entries(TYPES).map(([value, type]) => [type, Number(value)]),
+) as Record<AppointmentType, number>
+
 function optional<T>(value: T | null): T | undefined {
   return value ?? undefined
 }
@@ -23,6 +27,10 @@ export function typeFromApi(value: number): AppointmentType {
   const type = TYPES[value]
   if (!type) throw new Error(`Unknown appointment type: ${value}`)
   return type
+}
+
+export function typeToApi(type: AppointmentType): number {
+  return TYPES_TO_API[type]
 }
 
 export function statusFromApi(value: number): AppointmentStatus {

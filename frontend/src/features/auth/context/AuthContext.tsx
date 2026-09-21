@@ -1,5 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import { login as loginRequest, register as registerRequest } from '@/features/auth/api/authApi'
 import { decodeJwt, roleFromClaim } from '@/features/auth/lib/decodeJwt'
 import { accessTokenStore } from '@/shared/lib/accessTokenStore'
@@ -58,28 +66,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = async (request: LoginRequest) => {
-    const tokens = await loginRequest(request)
-    accessTokenStore.set(tokens.accessToken)
-    tokenStorage.set(tokens.refreshToken)
-    queryClient.clear()
-    setUser(userFromAccessToken(tokens.accessToken))
-  }
+  const login = useCallback(
+    async (request: LoginRequest) => {
+      const tokens = await loginRequest(request)
+      accessTokenStore.set(tokens.accessToken)
+      tokenStorage.set(tokens.refreshToken)
+      queryClient.clear()
+      setUser(userFromAccessToken(tokens.accessToken))
+    },
+    [queryClient],
+  )
 
-  const register = async (request: RegisterRequest) => {
+  const register = useCallback(async (request: RegisterRequest) => {
     await registerRequest(request)
-  }
+  }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     accessTokenStore.set(null)
     tokenStorage.clear()
     queryClient.clear()
     setUser(null)
-  }
+  }, [queryClient])
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, isAuthenticated: user !== null, isLoading, login, register, logout }),
-    [user, isLoading],
+    [user, isLoading, login, register, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

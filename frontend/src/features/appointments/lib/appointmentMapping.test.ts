@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toAppointment } from './appointmentMapping'
+import { toAppointment, typeFromApi, typeToApi } from './appointmentMapping'
 import type { AppointmentDto } from '../types'
 
 const dto: AppointmentDto = {
@@ -45,5 +45,13 @@ describe('toAppointment', () => {
   it('throws on an unknown enum value', () => {
     expect(() => toAppointment({ ...dto, status: 9 })).toThrow(/status/i)
     expect(() => toAppointment({ ...dto, type: 9 })).toThrow(/type/i)
+  })
+})
+
+describe('typeToApi', () => {
+  it('round-trips every type', () => {
+    for (const value of [0, 1, 2, 3]) {
+      expect(typeToApi(typeFromApi(value))).toBe(value)
+    }
   })
 })

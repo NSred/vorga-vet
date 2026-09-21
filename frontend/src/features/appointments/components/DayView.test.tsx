@@ -32,11 +32,7 @@ const appointment: Appointment = {
   createdAt: '2026-09-10T10:00:00Z',
 }
 
-function renderDay(
-  appointments: Appointment[],
-  daySlots: AvailabilitySlot[],
-  hasSlotData = true,
-) {
+function renderDay(appointments: Appointment[], daySlots: AvailabilitySlot[], hasSlotData = true) {
   render(
     <DayView
       date="2026-09-17"
@@ -89,5 +85,32 @@ describe('DayView', () => {
     )
 
     expect(screen.getByText('Outside opening hours')).toBeInTheDocument()
+  })
+
+  it('offers a free slot for booking when a handler is given', () => {
+    const onSlotClick = vi.fn()
+    render(
+      <DayView
+        date="2026-09-17"
+        slots={slots}
+        appointments={[appointment]}
+        onAppointmentClick={vi.fn()}
+        onSlotClick={onSlotClick}
+        isLoading={false}
+        hasSlotData
+      />,
+    )
+
+    screen.getByRole('button', { name: 'Book 07:30' }).click()
+
+    expect(onSlotClick).toHaveBeenCalledWith('2026-09-17T05:30:00Z')
+  })
+
+  it('labels unslotted appointments neutrally when slot data is missing', () => {
+    renderDay([appointment], [], false)
+
+    expect(screen.getByText('Opening hours unavailable')).toBeInTheDocument()
+    expect(screen.queryByText('Outside opening hours')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Luna/ })).toBeInTheDocument()
   })
 })
