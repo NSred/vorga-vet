@@ -46,6 +46,15 @@ describe('slotOptions', () => {
     expect(isSelectable(options, '2026-09-17T05:30:00Z')).toBe(false)
     expect(isSelectable(options, '2026-09-17T09:00:00Z')).toBe(false)
   })
+
+  it('omits slots that have already started', () => {
+    const options = slotOptions(slots, undefined, Date.parse('2026-09-17T05:15:00Z'))
+
+    expect(options.map((option) => option.value)).toEqual([
+      '2026-09-17T05:30:00Z',
+      '2026-09-17T06:00:00Z',
+    ])
+  })
 })
 
 describe('slotOptions isMine', () => {

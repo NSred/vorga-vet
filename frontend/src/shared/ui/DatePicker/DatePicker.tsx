@@ -26,6 +26,7 @@ export interface DatePickerProps {
   hideLabel?: boolean
   placeholder?: string
   className?: string
+  minDate?: string
   maxDate?: string
 }
 
@@ -53,6 +54,7 @@ export function DatePicker({
   hideLabel,
   placeholder = 'Select date',
   className,
+  minDate,
   maxDate,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
@@ -60,11 +62,16 @@ export function DatePicker({
   const [displayDate, setDisplayDate] = useState<Date>(() => (value ? parseDateOnly(value) : new Date()))
   const [yearPageStart, setYearPageStart] = useState<number>(() => getYear(displayDate) - 5)
 
+  const minDay = minDate ? parseDateOnly(minDate) : undefined
   const maxDay = maxDate ? parseDateOnly(maxDate) : undefined
 
+  const isBeforeMin = (day: Date) => (minDay ? day < minDay : false)
   const isAfterMax = (day: Date) => (maxDay ? day > maxDay : false)
+  const isMonthBeforeMin = (monthDate: Date) =>
+    minDay ? startOfMonth(monthDate) < startOfMonth(minDay) : false
   const isMonthAfterMax = (monthDate: Date) =>
     maxDay ? startOfMonth(monthDate) > startOfMonth(maxDay) : false
+  const isYearBeforeMin = (year: number) => (minDay ? year < getYear(minDay) : false)
   const isYearAfterMax = (year: number) => (maxDay ? year > getYear(maxDay) : false)
 
   const handleOpenChange = (next: boolean) => {
@@ -137,6 +144,7 @@ export function DatePicker({
                     type="button"
                     className={styles.navArrow}
                     onClick={() => setDisplayDate((prev) => addMonths(prev, -1))}
+                    disabled={isMonthBeforeMin(addMonths(displayDate, -1))}
                     aria-label="Previous month"
                   >
                     ‹
@@ -175,7 +183,7 @@ export function DatePicker({
                     const inMonth = isSameMonth(day, displayDate)
                     const selected = selectedDate ? isSameDay(day, selectedDate) : false
                     const today = isToday(day)
-                    const disabled = isAfterMax(day)
+                    const disabled = isBeforeMin(day) || isAfterMax(day)
                     return (
                       <button
                         key={day.toISOString()}
@@ -212,6 +220,7 @@ export function DatePicker({
                     type="button"
                     className={styles.navArrow}
                     onClick={() => setDisplayDate((prev) => addYears(prev, -1))}
+                    disabled={isYearBeforeMin(getYear(displayDate) - 1)}
                     aria-label="Previous year"
                   >
                     ‹
@@ -234,7 +243,7 @@ export function DatePicker({
                   {MONTH_LABELS.map((monthLabel, index) => {
                     const monthDate = new Date(getYear(displayDate), index, 1)
                     const isCurrent = isSameMonth(monthDate, displayDate)
-                    const disabled = isMonthAfterMax(monthDate)
+                    const disabled = isMonthBeforeMin(monthDate) || isMonthAfterMax(monthDate)
                     return (
                       <button
                         key={monthLabel}
@@ -262,6 +271,7 @@ export function DatePicker({
                     type="button"
                     className={styles.navArrow}
                     onClick={() => setYearPageStart((prev) => prev - YEARS_PER_PAGE)}
+                    disabled={isYearBeforeMin(yearPageStart - 1)}
                     aria-label="Previous years"
                   >
                     ‹
@@ -284,7 +294,7 @@ export function DatePicker({
                   {Array.from({ length: YEARS_PER_PAGE }, (_, index) => yearPageStart + index).map(
                     (year) => {
                       const isCurrent = year === getYear(displayDate)
-                      const disabled = isYearAfterMax(year)
+                      const disabled = isYearBeforeMin(year) || isYearAfterMax(year)
                       return (
                         <button
                           key={year}

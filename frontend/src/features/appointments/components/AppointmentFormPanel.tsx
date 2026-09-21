@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { clinicDateOf, clinicDayRange } from '@/shared/lib/clinicTime'
+import { clinicDateOf, clinicDayRange, clinicToday } from '@/shared/lib/clinicTime'
 import { Button, DatePicker, Select, SlidePanel, Textarea } from '@/shared/ui'
 import { appointmentErrorMessage, appointmentErrors } from '../api/appointmentErrors'
 import { useCreateAppointment, useRescheduleAppointment } from '../hooks/useAppointmentMutations'
@@ -142,7 +142,11 @@ export function AppointmentFormPanel({
   })
 
   const options = useMemo(() => {
-    const all = slotOptions(availabilityQuery.data ?? [], isReschedule ? appointment : undefined)
+    const all = slotOptions(
+      availabilityQuery.data ?? [],
+      isReschedule ? appointment : undefined,
+      Date.now(),
+    )
 
     if (!isClient) {
       return all.filter((option) => !option.disabled)
@@ -259,6 +263,7 @@ export function AppointmentFormPanel({
                 label="Date *"
                 value={field.value}
                 onChange={field.onChange}
+                minDate={clinicToday()}
                 error={errors.date?.message}
               />
             )}
@@ -266,7 +271,13 @@ export function AppointmentFormPanel({
           <Controller
             name="startsAt"
             control={control}
-            rules={{ required: 'Pick a start time' }}
+            rules={{
+              required: 'Pick a start time',
+              validate: (value) =>
+                !value || Date.parse(value) > Date.now()
+                  ? true
+                  : 'Pick a start time in the future',
+            }}
             render={({ field }) => (
               <Select
                 id="appointment-start"

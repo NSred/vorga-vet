@@ -73,6 +73,7 @@ function renderForm(overrides: Partial<AppointmentFormPanelProps> = {}) {
 let availabilitySpy: ReturnType<typeof vi.spyOn>
 
 beforeEach(() => {
+  vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-16T12:00:00Z'))
   availabilitySpy = vi.spyOn(appointmentsApi, 'getAvailability').mockResolvedValue(slots)
 })
 

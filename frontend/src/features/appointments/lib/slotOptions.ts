@@ -20,13 +20,19 @@ function overlaps(slot: AvailabilitySlot, span: SlotSpan): boolean {
   )
 }
 
-export function slotOptions(slots: AvailabilitySlot[], current?: SlotSpan): SlotOption[] {
-  return slots.map((slot) => ({
-    value: slot.startsAt,
-    label: clinicTimeOf(slot.startsAt),
-    disabled: !slot.isAvailable && !(current && overlaps(slot, current)),
-    isMine: slot.isMine,
-  }))
+export function slotOptions(
+  slots: AvailabilitySlot[],
+  current?: SlotSpan,
+  after?: number,
+): SlotOption[] {
+  return slots
+    .filter((slot) => after === undefined || Date.parse(slot.startsAt) > after)
+    .map((slot) => ({
+      value: slot.startsAt,
+      label: clinicTimeOf(slot.startsAt),
+      disabled: !slot.isAvailable && !(current && overlaps(slot, current)),
+      isMine: slot.isMine,
+    }))
 }
 
 export function isSelectable(options: SlotOption[], value: string): boolean {

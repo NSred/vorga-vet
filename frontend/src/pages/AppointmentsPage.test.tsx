@@ -63,6 +63,7 @@ function renderAt(path: string) {
 let getAppointmentsSpy: ReturnType<typeof vi.spyOn>
 
 beforeEach(() => {
+  vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-17T04:45:00Z'))
   getAppointmentsSpy = vi
     .spyOn(appointmentsApi, 'getAppointments')
     .mockResolvedValue([scheduled, cancelled])
@@ -325,6 +326,7 @@ describe('AppointmentsPage actions', () => {
   })
 
   it('marks a no-show without a note', async () => {
+    vi.mocked(Date.now).mockReturnValue(Date.parse('2026-09-17T05:15:00Z'))
     const noShowSpy = vi.spyOn(appointmentsApi, 'markNoShow').mockResolvedValue(undefined)
     const user = await openLuna()
 

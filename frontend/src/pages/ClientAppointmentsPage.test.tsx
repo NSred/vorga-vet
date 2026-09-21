@@ -84,6 +84,7 @@ function mockWindows(upcoming: Appointment[], past: Appointment[] = []) {
 }
 
 beforeEach(() => {
+  vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-16T12:00:00Z'))
   getAppointmentsSpy = vi.spyOn(appointmentsApi, 'getAppointments')
   mockWindows([], [])
   vi.spyOn(appointmentsApi, 'getAvailability').mockResolvedValue(slots)

@@ -173,3 +173,30 @@ describe('DatePicker maxDate', () => {
     expect(screen.getByRole('button', { name: 'Next month' })).toBeEnabled()
   })
 })
+
+describe('DatePicker minDate', () => {
+  it('disables days before minDate and keeps today and later enabled', async () => {
+    const user = userEvent.setup()
+    render(
+      <DatePicker id="appointmentDate" label="Date" onChange={vi.fn()} minDate="2026-08-26" />,
+    )
+
+    await user.click(screen.getByLabelText('Date'))
+
+    expect(screen.getByRole('button', { name: '25.08.2026' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '26.08.2026' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '27.08.2026' })).toBeEnabled()
+  })
+
+  it('blocks navigating before the minimum month', async () => {
+    const user = userEvent.setup()
+    render(
+      <DatePicker id="appointmentDate" label="Date" onChange={vi.fn()} minDate="2026-08-26" />,
+    )
+
+    await user.click(screen.getByLabelText('Date'))
+
+    expect(screen.getByRole('button', { name: 'Previous month' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next month' })).toBeEnabled()
+  })
+})
