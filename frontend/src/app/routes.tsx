@@ -1,10 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router'
-import { AuthLayout, ProtectedRoute, RoleRoute } from '@/features/auth'
+import { AuthLayout, ProtectedRoute } from '@/features/auth'
 import { AppLayout } from '@/app/layout/AppLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { PatientsPage } from '@/pages/PatientsPage'
-import { AppointmentsPage } from '@/pages/AppointmentsPage'
+import { AppointmentsRoute } from '@/app/AppointmentsRoute'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RouteErrorPage } from '@/pages/RouteErrorPage'
 
@@ -26,10 +26,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="/patients" replace /> },
           { path: '/patients', element: <PatientsPage /> },
-          {
-            element: <RoleRoute allow="veterinarian" />,
-            children: [{ path: '/appointments', element: <AppointmentsPage /> }],
-          },
+          { path: '/appointments', element: <AppointmentsRoute /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },

@@ -8,6 +8,7 @@ import {
   clinicMonthGridRange,
   clinicRecentDaysRange,
   clinicTimeOf,
+  clinicUpcomingDaysRange,
   clinicWeekRange,
 } from './clinicTime'
 
@@ -87,5 +88,20 @@ describe('clinic date arithmetic', () => {
     expect(addClinicDays('2026-03-28', 1)).toBe('2026-03-29')
     expect(addClinicWeeks('2026-09-17', -1)).toBe('2026-09-10')
     expect(addClinicMonths('2026-01-31', 1)).toBe('2026-02-28')
+  })
+})
+
+describe('clinicUpcomingDaysRange', () => {
+  it('starts on the given day and spans that many clinic days', () => {
+    const { from, to } = clinicUpcomingDaysRange(62, '2026-09-17')
+
+    expect(from).toBe(clinicDayRange('2026-09-17').from)
+    expect(to).toBe(clinicDayRange('2026-11-17').to)
+  })
+
+  it('is the mirror of clinicRecentDaysRange', () => {
+    expect(clinicUpcomingDaysRange(7, '2026-09-17')).toEqual(
+      clinicRecentDaysRange(7, '2026-09-23'),
+    )
   })
 })

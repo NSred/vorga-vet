@@ -228,3 +228,85 @@ describe('AppointmentFormPanel reschedule', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('AppointmentFormPanel client variant', () => {
+  it('offers no surgery and no duration', async () => {
+    const user = userEvent.setup()
+    renderForm({ variant: 'client' })
+
+    expect(screen.queryByRole('combobox', { name: 'Duration' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('combobox', { name: 'Type' }))
+
+    expect(await screen.findByRole('option', { name: 'Checkup' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'First visit' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Surgery' })).not.toBeInTheDocument()
+  })
+
+  it('renders no owner field and no patient field unless one is given', () => {
+    renderForm({ variant: 'client', ownerField: undefined, patientField: undefined })
+
+    expect(screen.queryByRole('button', { name: /^Owner:/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Patient:/ })).not.toBeInTheDocument()
+  })
+
+  it('renders the patient field when the page supplies one', () => {
+    renderForm({ variant: 'client', ownerField: undefined })
+
+    expect(screen.getByRole('button', { name: /^Patient:/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Owner:/ })).not.toBeInTheDocument()
+  })
+
+  it('asks availability without a duration and books thirty minutes', async () => {
+    const user = userEvent.setup()
+    const createSpy = vi.spyOn(appointmentsApi, 'createAppointment').mockResolvedValue('a9')
+    renderForm({ variant: 'client', ownerField: undefined, patientField: undefined })
+
+    await waitFor(() => expect(availabilitySpy).toHaveBeenCalledWith(expect.anything(), undefined))
+
+    await pickTime(user, '07:00')
+    await user.click(screen.getByRole('button', { name: 'Book' }))
+
+    await waitFor(() =>
+      expect(createSpy).toHaveBeenCalledWith({
+        ownerId: undefined,
+        patientId: undefined,
+        startsAt: '2026-09-17T05:00:00Z',
+        durationMinutes: 30,
+        type: 1,
+        reason: undefined,
+      }),
+    )
+  })
+
+  it('shows a slot the client already booked as theirs and does not offer it', async () => {
+    availabilitySpy.mockResolvedValue([
+      {
+        startsAt: '2026-09-17T05:00:00Z',
+        endsAt: '2026-09-17T05:30:00Z',
+        isAvailable: true,
+        isMine: false,
+      },
+      {
+        startsAt: '2026-09-17T05:30:00Z',
+        endsAt: '2026-09-17T06:00:00Z',
+        isAvailable: false,
+        isMine: true,
+      },
+    ])
+    const user = userEvent.setup()
+    renderForm({ variant: 'client', ownerField: undefined, patientField: undefined })
+
+    await user.click(screen.getByRole('combobox', { name: 'Start time *' }))
+
+    expect(await screen.findByRole('option', { name: '07:00' })).toBeInTheDocument()
+    const own = screen.getByRole('option', { name: '07:30 · yours' })
+    expect(own).toHaveAttribute('data-disabled')
+  })
+
+  it('calls the visit a visit', () => {
+    renderForm({ variant: 'client', ownerField: undefined, patientField: undefined })
+
+    expect(screen.getByRole('dialog', { name: 'Book a visit' })).toBeInTheDocument()
+  })
+})

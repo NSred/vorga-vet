@@ -7,3 +7,7 @@ export function countsTowardLoad(appointment: Appointment): boolean {
 export function isVisible(appointment: Appointment, showCancelled: boolean): boolean {
   return showCancelled || countsTowardLoad(appointment)
 }
+
+export function isOpen(appointment: Appointment): boolean {
+  return appointment.status === 'scheduled' || appointment.status === 'checked_in'
+}

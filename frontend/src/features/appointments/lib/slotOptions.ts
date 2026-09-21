@@ -5,6 +5,7 @@ export interface SlotOption {
   value: string
   label: string
   disabled: boolean
+  isMine: boolean
 }
 
 export interface SlotSpan {
@@ -24,6 +25,7 @@ export function slotOptions(slots: AvailabilitySlot[], current?: SlotSpan): Slot
     value: slot.startsAt,
     label: clinicTimeOf(slot.startsAt),
     disabled: !slot.isAvailable && !(current && overlaps(slot, current)),
+    isMine: slot.isMine,
   }))
 }
 

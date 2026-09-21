@@ -18,20 +18,29 @@ export interface PartyField {
   error?: string
 }
 
+export type AppointmentFormVariant = 'vet' | 'client'
+
 export interface AppointmentFormPanelProps {
   mode: 'create' | 'reschedule'
+  variant?: AppointmentFormVariant
   appointment?: Appointment
   initialDate: string
   initialStartsAt?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onSaved: () => void
-  ownerField: (field: PartyField) => ReactElement
-  patientField: (field: PartyField) => ReactElement
+  ownerField?: (field: PartyField) => ReactElement
+  patientField?: (field: PartyField) => ReactElement
 }
 
 const TYPES: AppointmentType[] = ['first_visit', 'checkup', 'blood_draw', 'surgery']
-const TYPE_OPTIONS = TYPES.map((type) => ({ value: type, label: typeLabel(type) }))
+const CLIENT_TYPES = TYPES.filter((type) => type !== 'surgery')
+
+function typeOptions(variant: AppointmentFormVariant) {
+  const allowed = variant === 'client' ? CLIENT_TYPES : TYPES
+
+  return allowed.map((type) => ({ value: type, label: typeLabel(type) }))
+}
 const DURATION_OPTIONS = Array.from({ length: 16 }, (_, index) => (index + 1) * 30).map(
   (minutes) => ({ value: String(minutes), label: `${minutes} min` }),
 )
@@ -80,6 +89,7 @@ function Summary({ label, value }: { label: string; value: string }) {
 
 export function AppointmentFormPanel({
   mode,
+  variant = 'vet',
   appointment,
   initialDate,
   initialStartsAt,
@@ -110,7 +120,8 @@ export function AppointmentFormPanel({
   const durationMinutes = watch('durationMinutes')
   const startsAt = watch('startsAt')
   const isReschedule = mode === 'reschedule'
-  const isSurgery = type === 'surgery'
+  const isClient = variant === 'client'
+  const isSurgery = !isClient && type === 'surgery'
 
   useEffect(() => {
     if (open) {
@@ -130,13 +141,18 @@ export function AppointmentFormPanel({
     enabled: open && Boolean(date),
   })
 
-  const options = useMemo(
-    () =>
-      slotOptions(availabilityQuery.data ?? [], isReschedule ? appointment : undefined).filter(
-        (option) => !option.disabled,
-      ),
-    [availabilityQuery.data, isReschedule, appointment],
-  )
+  const options = useMemo(() => {
+    const all = slotOptions(availabilityQuery.data ?? [], isReschedule ? appointment : undefined)
+
+    if (!isClient) {
+      return all.filter((option) => !option.disabled)
+    }
+
+    // A client sees their own bookings in place, disabled, instead of an unexplained gap.
+    return all
+      .filter((option) => !option.disabled || option.isMine)
+      .map((option) => (option.disabled ? { ...option, label: `${option.label} · yours` } : option))
+  }, [availabilityQuery.data, isReschedule, appointment, isClient])
 
   useEffect(() => {
     if (availabilityQuery.isSuccess && startsAt && !isSelectable(options, startsAt)) {
@@ -187,7 +203,13 @@ export function AppointmentFormPanel({
   })
 
   const isPending = isSubmitting || create.isPending || reschedule.isPending
-  const title = isReschedule && appointment ? `Move ${partyLabel(appointment)}` : 'New appointment'
+  const title = isReschedule
+    ? isClient || !appointment
+      ? 'Move your visit'
+      : `Move ${partyLabel(appointment)}`
+    : isClient
+      ? 'Book a visit'
+      : 'New appointment'
   const noSlots = availabilityQuery.isSuccess && options.length === 0
 
   return (
@@ -270,7 +292,7 @@ export function AppointmentFormPanel({
                   label="Type"
                   value={field.value}
                   onChange={(value) => field.onChange(value as AppointmentType)}
-                  options={TYPE_OPTIONS}
+                  options={typeOptions(variant)}
                 />
               )}
             />
@@ -310,28 +332,32 @@ export function AppointmentFormPanel({
 
         {!isReschedule && (
           <>
-            <Controller
-              name="patient"
-              control={control}
-              render={({ field }) =>
-                patientField({
-                  value: field.value,
-                  onChange: field.onChange,
-                  error: errors.patient?.message,
-                })
-              }
-            />
-            <Controller
-              name="owner"
-              control={control}
-              render={({ field }) =>
-                ownerField({
-                  value: field.value,
-                  onChange: field.onChange,
-                  error: errors.owner?.message,
-                })
-              }
-            />
+            {patientField && (
+              <Controller
+                name="patient"
+                control={control}
+                render={({ field }) =>
+                  patientField({
+                    value: field.value,
+                    onChange: field.onChange,
+                    error: errors.patient?.message,
+                  })
+                }
+              />
+            )}
+            {ownerField && (
+              <Controller
+                name="owner"
+                control={control}
+                render={({ field }) =>
+                  ownerField({
+                    value: field.value,
+                    onChange: field.onChange,
+                    error: errors.owner?.message,
+                  })
+                }
+              />
+            )}
             <Textarea
               id="appointment-reason"
               label="Reason"

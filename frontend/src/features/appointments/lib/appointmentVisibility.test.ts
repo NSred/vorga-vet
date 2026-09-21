@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countsTowardLoad, isVisible } from './appointmentVisibility'
+import { countsTowardLoad, isOpen, isVisible } from './appointmentVisibility'
 import type { Appointment, AppointmentStatus } from '../types'
 
 function appointmentWith(status: AppointmentStatus): Appointment {
@@ -30,5 +30,22 @@ describe('isVisible', () => {
     expect(isVisible(appointmentWith('cancelled'), false)).toBe(false)
     expect(isVisible(appointmentWith('cancelled'), true)).toBe(true)
     expect(isVisible(appointmentWith('completed'), false)).toBe(true)
+  })
+})
+
+describe('isOpen', () => {
+  it('is true only while the visit still needs to happen', () => {
+    const statuses: AppointmentStatus[] = [
+      'scheduled',
+      'checked_in',
+      'completed',
+      'no_show',
+      'cancelled',
+    ]
+
+    expect(statuses.filter((status) => isOpen(appointmentWith(status)))).toEqual([
+      'scheduled',
+      'checked_in',
+    ])
   })
 })

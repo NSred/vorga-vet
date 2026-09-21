@@ -47,3 +47,24 @@ describe('slotOptions', () => {
     expect(isSelectable(options, '2026-09-17T09:00:00Z')).toBe(false)
   })
 })
+
+describe('slotOptions isMine', () => {
+  it('flags the slots the caller already booked', () => {
+    const mine: AvailabilitySlot[] = [
+      {
+        startsAt: '2026-09-17T05:00:00Z',
+        endsAt: '2026-09-17T05:30:00Z',
+        isAvailable: true,
+        isMine: false,
+      },
+      {
+        startsAt: '2026-09-17T05:30:00Z',
+        endsAt: '2026-09-17T06:00:00Z',
+        isAvailable: false,
+        isMine: true,
+      },
+    ]
+
+    expect(slotOptions(mine).map((option) => option.isMine)).toEqual([false, true])
+  })
+})

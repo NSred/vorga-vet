@@ -30,9 +30,9 @@ describe('AppLayout navigation', () => {
     expect(screen.getByRole('link', { name: 'Appointments' })).toBeInTheDocument()
   })
 
-  it('hides it from a client', () => {
+  it('shows it to a client too, who now has their own visits page', () => {
     renderLayout('client')
 
-    expect(screen.queryByRole('link', { name: 'Appointments' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Appointments' })).toBeInTheDocument()
   })
 })

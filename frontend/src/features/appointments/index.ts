@@ -1,7 +1,11 @@
 export { AppointmentChip } from './components/AppointmentChip'
 export { AppointmentDetailPanel } from './components/AppointmentDetailPanel'
 export { AppointmentFormPanel } from './components/AppointmentFormPanel'
-export type { AppointmentFormPanelProps, PartyField } from './components/AppointmentFormPanel'
+export type {
+  AppointmentFormPanelProps,
+  AppointmentFormVariant,
+  PartyField,
+} from './components/AppointmentFormPanel'
 export { CalendarToolbar } from './components/CalendarToolbar'
 export { DayView } from './components/DayView'
 export { MonthView } from './components/MonthView'
@@ -42,7 +46,7 @@ export {
 export { typeToApi } from './lib/appointmentMapping'
 export { toCreateRequest, toRescheduleRequest } from './lib/appointmentRequest'
 export { allowedTransitions, canReschedule, canTransition } from './lib/appointmentTransitions'
-export { countsTowardLoad, isVisible } from './lib/appointmentVisibility'
+export { countsTowardLoad, isOpen, isVisible } from './lib/appointmentVisibility'
 export { parseViewParams, toViewParams } from './lib/appointmentViewParams'
 export { WEEKDAYS } from './lib/dateHelpers'
 export type { AppointmentViewState } from './lib/appointmentViewParams'

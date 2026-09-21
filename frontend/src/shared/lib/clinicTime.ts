@@ -63,6 +63,10 @@ export function clinicRecentDaysRange(days: number, endDateIso: string): DateRan
   return rangeOfDays(addClinicDays(endDateIso, -(days - 1)), days)
 }
 
+export function clinicUpcomingDaysRange(days: number, startDateIso: string): DateRange {
+  return rangeOfDays(startDateIso, days)
+}
+
 export function addClinicDays(dateIso: string, amount: number): string {
   return dateIsoOf(addDays(clinicMidnight(dateIso), amount))
 }

@@ -4,6 +4,7 @@ import styles from './Select.module.css'
 export interface SelectOption {
   value: string
   label: string
+  disabled?: boolean
 }
 
 export interface SelectProps {
@@ -52,7 +53,12 @@ export function Select({
           <RadixSelect.Content className={styles.content} position="popper" sideOffset={6}>
             <RadixSelect.Viewport className={styles.viewport}>
               {options.map((option) => (
-                <RadixSelect.Item key={option.value} value={option.value} className={styles.item}>
+                <RadixSelect.Item
+                  key={option.value}
+                  value={option.value}
+                  disabled={option.disabled}
+                  className={styles.item}
+                >
                   <span className={styles.check} aria-hidden="true">
                     <RadixSelect.ItemIndicator>✓</RadixSelect.ItemIndicator>
                   </span>
