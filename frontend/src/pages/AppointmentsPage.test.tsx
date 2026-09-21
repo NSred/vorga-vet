@@ -16,6 +16,12 @@ import * as ownersApi from '@/features/patients/api/ownersApi'
 import { appointmentKeys } from '@/features/appointments'
 import type { Appointment, AvailabilitySlot } from '@/features/appointments'
 
+vi.mock('@/features/auth', () => ({
+  useCurrentUser: () => ({
+    data: { id: 'u1', firstName: 'Mira', lastName: 'Vet', email: 'v@x.com' },
+  }),
+}))
+
 const slot: AvailabilitySlot = {
   startsAt: '2026-09-17T05:00:00Z',
   endsAt: '2026-09-17T05:30:00Z',
@@ -408,5 +414,78 @@ describe('AppointmentsPage unresolved list', () => {
         '24.09.2026',
       ),
     )
+  })
+})
+
+describe('AppointmentsPage check-in', () => {
+  it('checks in a full booking from the detail panel', async () => {
+    const checkInSpy = vi
+      .spyOn(appointmentsApi, 'checkInAppointment')
+      .mockImplementation(async () => {
+        getAppointmentsSpy.mockResolvedValue([{ ...scheduled, status: 'checked_in' }, cancelled])
+        return { ownerId: 'o1', patientId: 'p1' }
+      })
+    const user = userEvent.setup()
+    renderAt('/appointments?view=day&date=2026-09-17')
+
+    await user.click(await screen.findByRole('button', { name: /Luna/ }))
+    const detail = await screen.findByRole('dialog', { name: /Appointment for Luna/ })
+    await user.click(within(detail).getByRole('button', { name: 'Check in' }))
+    const confirm = await screen.findByRole('dialog', { name: /Check in Luna/ })
+    await user.click(within(confirm).getByRole('button', { name: 'Check in' }))
+
+    await waitFor(() => expect(checkInSpy).toHaveBeenCalledWith('a1', {}))
+    expect(
+      await screen.findByText('Checked in', { selector: '[class*="title"]' }),
+    ).toBeInTheDocument()
+    await waitFor(() =>
+      expect(within(detail).getByText('Checked in', { selector: 'span' })).toBeInTheDocument(),
+    )
+  })
+})
+
+describe('AppointmentsPage complete visit', () => {
+  it('records the visit from the detail panel', async () => {
+    const completeSpy = vi.spyOn(appointmentsApi, 'completeAppointment').mockResolvedValue('e1')
+    const user = userEvent.setup()
+    renderAt('/appointments?view=day&date=2026-09-17')
+
+    await user.click(await screen.findByRole('button', { name: /Luna/ }))
+    const detail = await screen.findByRole('dialog', { name: /Appointment for Luna/ })
+    await user.click(within(detail).getByRole('button', { name: 'Complete visit' }))
+    const panel = await screen.findByRole('dialog', { name: /Complete visit/ })
+    await user.type(within(panel).getByLabelText('Diagnosis'), 'otitis')
+    await user.click(within(panel).getByRole('button', { name: 'Record visit' }))
+
+    await waitFor(() =>
+      expect(completeSpy).toHaveBeenCalledWith(
+        'a1',
+        expect.objectContaining({
+          examination: expect.objectContaining({
+            performedByFirstName: 'Mira',
+            diagnosis: 'otitis',
+          }),
+        }),
+      ),
+    )
+    expect(await screen.findByText('Visit recorded')).toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Done' })).toBeInTheDocument()
+  })
+})
+
+describe('AppointmentsPage walk-in', () => {
+  it('opens the walk-in panel from the toolbar', async () => {
+    vi.spyOn(patientsApi, 'getPatients').mockResolvedValue({
+      items: [],
+      totalCount: 0,
+      page: 1,
+      pageSize: 10,
+    })
+    const user = userEvent.setup()
+    renderAt('/appointments?view=day&date=2026-09-17')
+
+    await user.click(await screen.findByRole('button', { name: 'Walk-in' }))
+
+    expect(await screen.findByRole('dialog', { name: 'Walk-in visit' })).toBeInTheDocument()
   })
 })

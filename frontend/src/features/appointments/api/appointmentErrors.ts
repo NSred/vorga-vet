@@ -15,6 +15,8 @@ export const appointmentErrors = {
   onlyScheduledCanBeRescheduled: 'Appointments.OnlyScheduledCanBeRescheduled',
   ownerNotFound: 'Owners.NotFound',
   patientNotFound: 'Patients.NotFound',
+  breedNotFound: 'Breeds.NotFound',
+  cardNumberNotUnique: 'Patients.CardNumberNotUnique',
 } as const
 
 const MESSAGES: Partial<Record<string, string>> = {

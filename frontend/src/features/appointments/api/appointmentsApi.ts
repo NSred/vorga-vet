@@ -5,6 +5,9 @@ import type {
   Appointment,
   AppointmentDto,
   AvailabilitySlot,
+  CheckInRequest,
+  CheckInResponse,
+  CompleteAppointmentRequest,
   CreateAppointmentRequest,
   RescheduleAppointmentRequest,
 } from '../types'
@@ -67,4 +70,15 @@ export function cancelAppointment(id: string, reason?: string): Promise<void> {
 
 export function markNoShow(id: string, note?: string): Promise<void> {
   return post<void>(`/appointments/${id}/no-show`, { note: note || undefined })
+}
+
+export function checkInAppointment(id: string, request: CheckInRequest): Promise<CheckInResponse> {
+  return post<CheckInResponse>(`/appointments/${id}/check-in`, request)
+}
+
+export function completeAppointment(
+  id: string,
+  request: CompleteAppointmentRequest,
+): Promise<string> {
+  return post<string>(`/appointments/${id}/complete`, request)
 }

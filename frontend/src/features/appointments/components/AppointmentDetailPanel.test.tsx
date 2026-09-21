@@ -120,3 +120,39 @@ describe('AppointmentDetailPanel actions', () => {
     expect(screen.queryByRole('button', { name: 'No-show' })).not.toBeInTheDocument()
   })
 })
+
+describe('AppointmentDetailPanel visit actions', () => {
+  function renderWith(status: Appointment['status']) {
+    render(
+      <AppointmentDetailPanel
+        appointment={{ ...appointment, status }}
+        open
+        onOpenChange={vi.fn()}
+        patientSection={null}
+        onCheckIn={vi.fn()}
+        onComplete={vi.fn()}
+      />,
+    )
+  }
+
+  it('offers check-in and complete while scheduled', () => {
+    renderWith('scheduled')
+
+    expect(screen.getByRole('button', { name: 'Check in' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Complete visit' })).toBeInTheDocument()
+  })
+
+  it('offers only complete once checked in', () => {
+    renderWith('checked_in')
+
+    expect(screen.queryByRole('button', { name: 'Check in' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Complete visit' })).toBeInTheDocument()
+  })
+
+  it('offers neither once completed', () => {
+    renderWith('completed')
+
+    expect(screen.queryByRole('button', { name: 'Check in' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Complete visit' })).not.toBeInTheDocument()
+  })
+})

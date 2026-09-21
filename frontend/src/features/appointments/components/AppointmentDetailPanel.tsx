@@ -17,6 +17,8 @@ export interface AppointmentDetailPanelProps {
   onReschedule?: () => void
   onCancel?: () => void
   onNoShow?: () => void
+  onCheckIn?: () => void
+  onComplete?: () => void
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -47,6 +49,8 @@ export function AppointmentDetailPanel({
   onReschedule,
   onCancel,
   onNoShow,
+  onCheckIn,
+  onComplete,
 }: AppointmentDetailPanelProps) {
   const dateIso = clinicDateOf(appointment.startsAt)
   const timeRange = `${clinicTimeOf(appointment.startsAt)}–${clinicTimeOf(appointment.endsAt)}`
@@ -54,7 +58,10 @@ export function AppointmentDetailPanel({
   const showCancel = onCancel && canTransition(appointment.status, 'cancelled')
   const showNoShow =
     onNoShow && canTransition(appointment.status, 'no_show') && hasStarted(appointment)
-  const hasFooter = showReschedule || showCancel || showNoShow || onOpenPatientRecord
+  const showCheckIn = onCheckIn && canTransition(appointment.status, 'checked_in')
+  const showComplete = onComplete && canTransition(appointment.status, 'completed')
+  const hasFooter =
+    showReschedule || showCancel || showNoShow || showCheckIn || showComplete || onOpenPatientRecord
 
   return (
     <SlidePanel
@@ -76,6 +83,16 @@ export function AppointmentDetailPanel({
       footer={
         hasFooter ? (
           <>
+            {showComplete && (
+              <Button variant="primary" type="button" onClick={onComplete}>
+                Complete visit
+              </Button>
+            )}
+            {showCheckIn && (
+              <Button variant="primary" type="button" onClick={onCheckIn}>
+                Check in
+              </Button>
+            )}
             {showNoShow && (
               <Button variant="danger" type="button" onClick={onNoShow}>
                 No-show

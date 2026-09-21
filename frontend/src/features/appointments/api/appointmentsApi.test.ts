@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   cancelAppointment,
+  checkInAppointment,
+  completeAppointment,
   createAppointment,
   getAppointment,
   getAppointments,
@@ -190,5 +192,36 @@ describe('appointment writes', () => {
     const call = lastCall(fetchSpy)
     expect(call.url).toContain('/appointments/a1/no-show')
     expect(call.body).toEqual({ note: 'no answer' })
+  })
+})
+
+describe('visit writes', () => {
+  it('checkInAppointment posts the resolution and returns the parties', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse({ ownerId: 'o1', patientId: 'p1' }))
+    const request = { patient: { existingPatientId: 'p1' } }
+
+    await expect(checkInAppointment('a1', request)).resolves.toEqual({
+      ownerId: 'o1',
+      patientId: 'p1',
+    })
+
+    const call = lastCall(fetchSpy)
+    expect(call.url).toContain('/appointments/a1/check-in')
+    expect(call.body).toEqual(request)
+  })
+
+  it('completeAppointment posts the examination and returns its id', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse('e1'))
+    const request = {
+      examination: { performedByFirstName: 'Mira', performedByLastName: 'Vet' },
+    }
+
+    await expect(completeAppointment('a1', request)).resolves.toBe('e1')
+
+    const call = lastCall(fetchSpy)
+    expect(call.url).toContain('/appointments/a1/complete')
+    expect(call.body).toEqual(request)
   })
 })

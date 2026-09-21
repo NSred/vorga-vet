@@ -10,6 +10,8 @@ export { UnresolvedPanel } from './components/UnresolvedPanel'
 export { WeekView } from './components/WeekView'
 export {
   cancelAppointment,
+  checkInAppointment,
+  completeAppointment,
   createAppointment,
   getAppointment,
   getAppointments,
@@ -51,7 +53,14 @@ export type {
   AppointmentWriteValues,
   AvailabilitySlot,
   CalendarView,
+  CheckInRequest,
+  CheckInResponse,
+  CompleteAppointmentRequest,
   CreateAppointmentRequest,
+  NewOwnerDetails,
+  NewPatientDetails,
+  OwnerResolution,
   PartyRef,
+  PatientResolution,
   RescheduleAppointmentRequest,
 } from './types'

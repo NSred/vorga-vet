@@ -1,3 +1,5 @@
+import type { ExaminationDetails } from '@/shared/domain/examinationDetails'
+
 export type AppointmentType = 'first_visit' | 'checkup' | 'blood_draw' | 'surgery'
 export type AppointmentStatus = 'scheduled' | 'checked_in' | 'completed' | 'no_show' | 'cancelled'
 export type CalendarView = 'day' | 'week' | 'month'
@@ -68,4 +70,48 @@ export interface CreateAppointmentRequest {
 export interface RescheduleAppointmentRequest {
   startsAt: string
   durationMinutes?: number
+}
+
+export interface NewOwnerDetails {
+  firstName: string
+  lastName: string
+  phoneNumber: string
+  address: string
+  city: string
+  email?: string
+}
+
+export interface NewPatientDetails {
+  breedId: string
+  cardNumber: string
+  name: string
+  sex: number
+  birthDate?: string
+  color?: string
+  chipNumber?: string
+  note?: string
+}
+
+export interface OwnerResolution {
+  existingOwnerId?: string
+  create?: NewOwnerDetails
+}
+
+export interface PatientResolution {
+  existingPatientId?: string
+  create?: NewPatientDetails
+}
+
+export interface CheckInRequest {
+  owner?: OwnerResolution
+  patient?: PatientResolution
+}
+
+export interface CheckInResponse {
+  ownerId: string
+  patientId: string
+}
+
+export interface CompleteAppointmentRequest extends CheckInRequest {
+  examination: ExaminationDetails
 }

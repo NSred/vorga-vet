@@ -19,6 +19,8 @@ describe('appointmentErrors', () => {
       'Appointments.OnlyScheduledCanBeRescheduled',
       'Owners.NotFound',
       'Patients.NotFound',
+      'Breeds.NotFound',
+      'Patients.CardNumberNotUnique',
     ])
   })
 })

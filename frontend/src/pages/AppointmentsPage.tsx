@@ -44,6 +44,7 @@ import {
   PatientSummary,
 } from '@/features/patients'
 import type { OwnerOption, PatientListItem } from '@/features/patients'
+import { CheckInPanel, CompleteVisitPanel, WalkInPanel } from '@/widgets/visit'
 import styles from './AppointmentsPage.module.css'
 
 type FormState =
@@ -52,6 +53,8 @@ type FormState =
   | { mode: 'reschedule'; appointment: Appointment }
 
 type ActionState = { kind: 'cancel' | 'no_show'; appointment: Appointment } | null
+
+type VisitState = { kind: 'checkIn' | 'complete'; appointment: Appointment } | null
 
 const ACTION_COPY = {
   cancel: {
@@ -79,6 +82,8 @@ export function AppointmentsPage() {
   const [action, setAction] = useState<ActionState>(null)
   const [note, setNote] = useState('')
   const [unresolvedOpen, setUnresolvedOpen] = useState(false)
+  const [visit, setVisit] = useState<VisitState>(null)
+  const [walkInOpen, setWalkInOpen] = useState(false)
   const ownerCache = useRef(new Map<string, OwnerOption>())
   const patientCache = useRef(new Map<string, PatientListItem>())
   const cancel = useCancelAppointment()
@@ -221,6 +226,7 @@ export function AppointmentsPage() {
         showCancelled={showCancelled}
         onShowCancelledChange={setShowCancelled}
         onNewAppointment={() => setForm({ mode: 'create', date: currentDate })}
+        onWalkIn={() => setWalkInOpen(true)}
       />
 
       {hasError ? (
@@ -288,6 +294,8 @@ export function AppointmentsPage() {
           onReschedule={() => setForm({ mode: 'reschedule', appointment: selected })}
           onCancel={() => openAction('cancel', selected)}
           onNoShow={() => openAction('no_show', selected)}
+          onCheckIn={() => setVisit({ kind: 'checkIn', appointment: selected })}
+          onComplete={() => setVisit({ kind: 'complete', appointment: selected })}
         />
       )}
 
@@ -316,6 +324,43 @@ export function AppointmentsPage() {
           patientField={patientField}
         />
       )}
+
+      {visit?.kind === 'checkIn' && (
+        <CheckInPanel
+          appointment={visit.appointment}
+          open
+          onOpenChange={(open) => !open && setVisit(null)}
+          onDone={() => {
+            setVisit(null)
+            showToast({ tone: 'success', title: 'Checked in' })
+          }}
+          onFailed={(message) => {
+            setVisit(null)
+            showToast({ tone: 'error', title: message })
+          }}
+        />
+      )}
+
+      {visit?.kind === 'complete' && (
+        <CompleteVisitPanel
+          appointment={visit.appointment}
+          open
+          onOpenChange={(open) => !open && setVisit(null)}
+          onRecorded={() => showToast({ tone: 'success', title: 'Visit recorded' })}
+          onPaid={() => showToast({ tone: 'success', title: 'Marked as paid' })}
+          onFailed={(message) => {
+            setVisit(null)
+            showToast({ tone: 'error', title: message })
+          }}
+        />
+      )}
+
+      <WalkInPanel
+        open={walkInOpen}
+        onOpenChange={setWalkInOpen}
+        onRecorded={() => showToast({ tone: 'success', title: 'Visit recorded' })}
+        onPaid={() => showToast({ tone: 'success', title: 'Marked as paid' })}
+      />
 
       <UnresolvedPanel
         open={unresolvedOpen}

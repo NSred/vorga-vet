@@ -19,6 +19,7 @@ export interface CalendarToolbarProps {
   showCancelled: boolean
   onShowCancelledChange: (value: boolean) => void
   onNewAppointment?: () => void
+  onWalkIn?: () => void
 }
 
 export function CalendarToolbar({
@@ -32,6 +33,7 @@ export function CalendarToolbar({
   showCancelled,
   onShowCancelledChange,
   onNewAppointment,
+  onWalkIn,
 }: CalendarToolbarProps) {
   return (
     <div className={styles.toolbar}>
@@ -75,6 +77,11 @@ export function CalendarToolbar({
       {onNewAppointment && (
         <Button variant="primary" type="button" onClick={onNewAppointment}>
           ＋ New appointment
+        </Button>
+      )}
+      {onWalkIn && (
+        <Button variant="outline" type="button" onClick={onWalkIn}>
+          Walk-in
         </Button>
       )}
     </div>
