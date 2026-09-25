@@ -6,15 +6,15 @@ Patient Records, Zakazano = Appointments).
 
 ## Where things are
 
-| Path | What |
-|---|---|
-| `backend/src/Domain` | Entities, enums, errors, domain events |
-| `backend/src/Application` | Use cases as slices: command/query + handler + validator |
-| `backend/src/Infrastructure` | EF Core configurations, migrations, authentication, storage |
-| `backend/src/Web.Api/Endpoints` | Minimal API endpoints, one class per endpoint |
-| `backend/tests` | `UnitTests`, `IntegrationTests` (Testcontainers), `ArchitectureTests` |
-| `frontend/src` | Layers: `app -> pages -> widgets -> features -> shared` |
-| `docs/` | Specs and plans — start at [docs/README.md](docs/README.md) |
+| Path                            | What                                                                  |
+| ------------------------------- | --------------------------------------------------------------------- |
+| `backend/src/Domain`            | Entities, enums, errors, domain events                                |
+| `backend/src/Application`       | Use cases as slices: command/query + handler + validator              |
+| `backend/src/Infrastructure`    | EF Core configurations, migrations, authentication, storage           |
+| `backend/src/Web.Api/Endpoints` | Minimal API endpoints, one class per endpoint                         |
+| `backend/tests`                 | `UnitTests`, `IntegrationTests` (Testcontainers), `ArchitectureTests` |
+| `frontend/src`                  | Layers: `app -> pages -> widgets -> features -> shared`               |
+| `docs/`                         | Specs and plans — start at [docs/README.md](docs/README.md)           |
 
 ## Commands
 
@@ -61,4 +61,4 @@ login. Staff endpoints require the `Veterinarian` policy; clients see only their
 - Feature work happens on a branch in this working tree, not in a separate worktree.
 - Execute plans inline (the `executing-plans` skill), not through subagents.
 - Delete temporary preview files and stop any local server as soon as a visual check is done.
-- Every feature is one document in `docs/specs/`, written before the code and pruned when the code lands. The `feature-doc` skill owns that lifecycle: invoke it when planning and again to close. No separate design or plan file.
+- Every feature is one document in `docs/specs/`, written as a plan before the code and pruned when the code lands. The `feature-doc` skill owns that lifecycle: invoke it when planning and again to close. No separate design or plan file.

@@ -1,6 +1,6 @@
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { ApiError } from '@/shared/lib/apiClient'
 import * as examinationsApi from '../api/examinationsApi'
@@ -20,7 +20,16 @@ function fileOf(type: string, name: string, size?: number): File {
   return file
 }
 
+beforeEach(() => {
+  vi.stubGlobal('URL', {
+    ...URL,
+    createObjectURL: vi.fn(() => 'blob:mock'),
+    revokeObjectURL: vi.fn(),
+  })
+})
+
 afterEach(() => {
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
@@ -107,6 +116,21 @@ describe('AttachmentUploader', () => {
       await screen.findByText('Only JPEG, PNG and WebP images can be attached.'),
     ).toBeInTheDocument()
     expect(props.onUploaded).not.toHaveBeenCalled()
+  })
+
+  it('accepts a file dropped on the dropzone', async () => {
+    const uploadSpy = vi.spyOn(examinationsApi, 'uploadAttachment').mockResolvedValue('att1')
+    const user = userEvent.setup()
+    renderUploader()
+    const file = fileOf('image/png', 'dropped.png', 2048)
+
+    const dropzone = screen.getByLabelText('Image').parentElement as HTMLElement
+    fireEvent.drop(dropzone, { dataTransfer: { files: [file] } })
+
+    expect(await screen.findByText('dropped.png · 2 KB')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Upload' }))
+    await waitFor(() => expect(uploadSpy).toHaveBeenCalledWith('e1', file, 'xray'))
   })
 
   it('shows the chosen file name and size', async () => {

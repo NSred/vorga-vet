@@ -78,7 +78,7 @@
   box-shadow:
     0 1.25rem 2.5rem -1.25rem rgba(27, 26, 23, 0.32),
     0 0.125rem 0.25rem rgba(27, 26, 23, 0.06);
-  z-index: 200;
+  z-index: 220;
 }
 
 .content[data-state='open'] {
