@@ -36,6 +36,8 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
         // The vet role comes only from this allowlist — there is no endpoint that grants it.
         builder.UseSetting("Clinic:VeterinarianEmails:0", AllowlistedVeterinarianEmail);
 
+        builder.UseSetting("Seeding:DemoData", "false");
+
         // Attachment bytes go to a per-run temp directory, never the repo.
         builder.UseSetting(
             "Storage:ImagesRootPath",

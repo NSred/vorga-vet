@@ -35,6 +35,11 @@ if (app.Environment.IsDevelopment())
     app.ApplyMigrations();
 }
 
+if (app.Configuration.GetValue<bool>("Seeding:DemoData"))
+{
+    await app.SeedDemoDataAsync();
+}
+
 app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
