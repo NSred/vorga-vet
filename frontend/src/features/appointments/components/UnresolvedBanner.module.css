@@ -1,0 +1,16 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--warn);
+  border-radius: var(--radius-sm);
+  background: var(--warn-soft);
+}
+
+.text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--warn);
+}

@@ -1,0 +1,86 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.when {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.what {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.rowSide {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

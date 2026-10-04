@@ -1,4 +1,11 @@
 using Application.Abstractions.Data;
+using Domain.Allergens;
+using Domain.Appointments;
+using Domain.Breeds;
+using Domain.Clinic;
+using Domain.Examinations;
+using Domain.Owners;
+using Domain.Patients;
 using Domain.Todos;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -17,4 +24,22 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public DbSet<TodoItem> TodoItems { get; set; }
+
+    public DbSet<Owner> Owners { get; set; }
+
+    public DbSet<Patient> Patients { get; set; }
+
+    public DbSet<Breed> Breeds { get; set; }
+
+    public DbSet<Allergen> Allergens { get; set; }
+
+    public DbSet<PatientAllergen> PatientAllergens { get; set; }
+
+    public DbSet<ClinicSchedule> ClinicSchedules { get; set; }
+
+    public DbSet<Appointment> Appointments { get; set; }
+
+    public DbSet<Examination> Examinations { get; set; }
+
+    public DbSet<Attachment> Attachments { get; set; }
 }

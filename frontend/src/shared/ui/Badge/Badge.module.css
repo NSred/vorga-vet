@@ -1,0 +1,39 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.male {
+  background: var(--male-soft);
+  color: var(--male);
+}
+
+.female {
+  background: var(--female-soft);
+  color: var(--female);
+}
+
+.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.ok {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.neutral {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}

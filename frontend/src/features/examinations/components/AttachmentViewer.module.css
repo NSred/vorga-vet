@@ -1,0 +1,20 @@
+.frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 12rem;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.image {
+  max-width: 100%;
+  max-height: 70vh;
+  display: block;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--danger);
+}

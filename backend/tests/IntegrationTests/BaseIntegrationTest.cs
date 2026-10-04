@@ -1,13 +1,20 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Domain.Users;
+using Infrastructure.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace IntegrationTests;
 
 [Collection(nameof(IntegrationTestCollection))]
 public abstract class BaseIntegrationTest
 {
+    private readonly IntegrationTestWebAppFactory _factory;
+
     protected BaseIntegrationTest(IntegrationTestWebAppFactory factory)
     {
+        _factory = factory;
         HttpClient = factory.CreateClient();
     }
 
@@ -52,6 +59,30 @@ public abstract class BaseIntegrationTest
         AccessTokens tokens = await LoginAsync(email);
 
         return (userId, tokens);
+    }
+
+    /// <summary>
+    /// Registers a user, promotes them to <see cref="Role.Veterinarian"/> in the database, then logs
+    /// in so the issued token carries the vet role. New registrations default to <see cref="Role.Client"/>.
+    /// </summary>
+    protected async Task<(Guid UserId, AccessTokens Tokens)> RegisterVeterinarianAndLoginAsync()
+    {
+        string email = UniqueEmail();
+        Guid userId = await RegisterUserAsync(email);
+        await SetRoleAsync(userId, Role.Veterinarian);
+        AccessTokens tokens = await LoginAsync(email);
+
+        return (userId, tokens);
+    }
+
+    protected async Task SetRoleAsync(Guid userId, Role role)
+    {
+        using IServiceScope scope = _factory.Services.CreateScope();
+        ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        User user = await dbContext.Users.SingleAsync(u => u.Id == userId);
+        user.Role = role;
+        await dbContext.SaveChangesAsync();
     }
 
     protected void Authenticate(string accessToken)

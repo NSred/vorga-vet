@@ -1,4 +1,5 @@
 using Application.Abstractions.Authentication;
+using Application.Abstractions.Clinic;
 using Application.Users;
 using Application.Users.Login;
 using Application.UnitTests.Abstractions;
@@ -22,7 +23,8 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
             context,
             Substitute.For<IPasswordHasher>(),
             Substitute.For<ITokenProvider>(),
-            Substitute.For<IDateTimeProvider>());
+            Substitute.For<IDateTimeProvider>(),
+            Substitute.For<IClinicSettings>());
 
         // Act
         Result<AccessTokensResponse> result = await handler.Handle(
@@ -48,7 +50,8 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
             context,
             passwordHasher,
             Substitute.For<ITokenProvider>(),
-            Substitute.For<IDateTimeProvider>());
+            Substitute.For<IDateTimeProvider>(),
+            Substitute.For<IClinicSettings>());
 
         // Act
         Result<AccessTokensResponse> result = await handler.Handle(
@@ -77,7 +80,8 @@ public sealed class LoginUserCommandHandlerTests : BaseHandlerTest
         IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
         dateTimeProvider.UtcNow.Returns(DateTime.UtcNow);
 
-        var handler = new LoginUserCommandHandler(context, passwordHasher, tokenProvider, dateTimeProvider);
+        var handler = new LoginUserCommandHandler(
+            context, passwordHasher, tokenProvider, dateTimeProvider, Substitute.For<IClinicSettings>());
 
         // Act
         Result<AccessTokensResponse> result = await handler.Handle(

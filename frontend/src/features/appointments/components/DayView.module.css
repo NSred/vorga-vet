@@ -1,0 +1,68 @@
+.day {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.slotRow {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.slotRow:last-child {
+  border-bottom: none;
+}
+
+.slotLabel {
+  flex: 0 0 3rem;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  padding-top: 0.15rem;
+}
+
+.slotChips {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 1.5rem;
+}
+
+.free,
+.continues {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  padding: 0.2rem 0.45rem;
+}
+
+.outside {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--warn-soft);
+}
+
+.outsideLabel {
+  flex: 0 0 9rem;
+  font-size: 0.72rem;
+  color: var(--warn);
+  padding-top: 0.15rem;
+}
+
+.freeButton {
+  font-size: 0.72rem;
+  color: var(--accent);
+  padding: 0.2rem 0.45rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.freeButton:hover {
+  background: var(--accent-soft);
+}

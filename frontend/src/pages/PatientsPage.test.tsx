@@ -1,0 +1,374 @@
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { createMemoryRouter, RouterProvider } from 'react-router'
+import { renderWithQuery as render } from '@/test/renderWithQuery'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { PatientsPage } from './PatientsPage'
+import { ToastProvider } from '@/shared/ui'
+import * as allergensApi from '@/features/patients/api/allergensApi'
+import * as patientsApi from '@/features/patients/api/patientsApi'
+import * as appointmentsApi from '@/features/appointments/api/appointmentsApi'
+import * as examinationsApi from '@/features/examinations/api/examinationsApi'
+import type { PatientListItem } from '@/features/patients'
+import { ApiError } from '@/shared/lib/apiClient'
+
+const auth = vi.hoisted(() => ({ role: 'veterinarian' as 'veterinarian' | 'client' }))
+
+vi.mock('@/features/auth', () => ({
+  useAuth: () => ({ user: { userId: 'u1', email: 'user@example.com', role: auth.role } }),
+}))
+
+const patient: PatientListItem = {
+  id: 'p1',
+  cardNumber: 'D26-04821',
+  name: 'Rex',
+  species: 'dog',
+  breedName: 'Pug',
+  sex: 'male',
+  isDeleted: false,
+  ownerName: 'Marko Marković',
+  phoneNumber: '060/1234567',
+  city: 'Novi Sad',
+  allergies: [],
+}
+
+function renderAt(path: string) {
+  const router = createMemoryRouter([{ path: '/patients', element: <PatientsPage /> }], {
+    initialEntries: [path],
+  })
+
+  return render(
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>,
+  )
+}
+
+let getPatientsSpy: ReturnType<typeof vi.spyOn>
+
+beforeEach(() => {
+  getPatientsSpy = vi
+    .spyOn(patientsApi, 'getPatients')
+    .mockResolvedValue({ items: [patient], totalCount: 25, page: 1, pageSize: 10 })
+  vi.spyOn(appointmentsApi, 'getAppointments').mockResolvedValue([])
+  vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([])
+  vi.spyOn(allergensApi, 'searchAllergens').mockResolvedValue([{ id: 'a1', name: 'Pollen' }])
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+  auth.role = 'veterinarian'
+})
+
+describe('PatientsPage URL state', () => {
+  it('requests the filters in the URL with no interaction', async () => {
+    renderAt('/patients?species=dog&status=all&page=2')
+
+    await waitFor(() => {
+      expect(getPatientsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ species: 'dog', status: 'all' }),
+        2,
+        10,
+      )
+    })
+  })
+
+  it('defaults to active patients on page one', async () => {
+    renderAt('/patients')
+
+    await waitFor(() => {
+      expect(getPatientsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'active' }),
+        1,
+        10,
+      )
+    })
+  })
+
+  it('resolves an allergen name to its id before requesting the list', async () => {
+    renderAt('/patients?allergen=Pollen')
+
+    await waitFor(() => {
+      expect(getPatientsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ allergen: { id: 'a1', name: 'Pollen' } }),
+        1,
+        10,
+      )
+    })
+  })
+
+  it('clears an allergen the backend does not know and still loads the list', async () => {
+    vi.spyOn(allergensApi, 'searchAllergens').mockResolvedValue([])
+
+    renderAt('/patients?allergen=Nonsense')
+
+    await waitFor(() => {
+      expect(getPatientsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ allergen: null }),
+        1,
+        10,
+      )
+    })
+  })
+
+  it('still renders rows when the URL allergen matches nothing', async () => {
+    vi.spyOn(allergensApi, 'searchAllergens').mockResolvedValue([])
+
+    renderAt('/patients?allergen=Nonsense')
+
+    expect(await screen.findByText(/Rex/)).toBeInTheDocument()
+  })
+
+  it('returns to page one when a filter changes', async () => {
+    const user = userEvent.setup()
+    renderAt('/patients?page=3')
+
+    await screen.findByText(/Rex/)
+    getPatientsSpy.mockClear()
+
+    await user.click(screen.getByRole('combobox', { name: 'Sex' }))
+    await user.click(await screen.findByRole('option', { name: 'Female' }))
+
+    await waitFor(() => {
+      expect(getPatientsSpy).toHaveBeenCalledWith(expect.objectContaining({ sex: 'female' }), 1, 10)
+    })
+  })
+
+  it('paginates without dropping the active filters', async () => {
+    const user = userEvent.setup()
+    renderAt('/patients?species=dog')
+
+    await screen.findByText(/Rex/)
+    getPatientsSpy.mockClear()
+
+    await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+    await waitFor(() => {
+      expect(getPatientsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ species: 'dog' }),
+        2,
+        10,
+      )
+    })
+  })
+})
+
+describe('PatientsPage detail', () => {
+  it('fetches the full detail when a row is clicked', async () => {
+    const user = userEvent.setup()
+    const getPatientSpy = vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...patient,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
+
+    renderAt('/patients')
+
+    await user.click(await screen.findByText(/Rex/))
+
+    await waitFor(() => {
+      expect(getPatientSpy).toHaveBeenCalledWith('p1')
+    })
+  })
+})
+
+describe('PatientsPage delete', () => {
+  function stubDetail() {
+    vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...patient,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
+  }
+
+  async function openAndConfirmDelete() {
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+    await user.click(await screen.findByRole('button', { name: 'Delete' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Delete this record?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+  }
+
+  it('reports a failed delete instead of claiming success', async () => {
+    stubDetail()
+    const deleteSpy = vi
+      .spyOn(patientsApi, 'deletePatient')
+      .mockRejectedValue(new ApiError(500, 'boom'))
+
+    await openAndConfirmDelete()
+
+    await waitFor(() => expect(deleteSpy).toHaveBeenCalledWith('p1'))
+    expect(await screen.findByText('Could not delete that patient')).toBeInTheDocument()
+    expect(screen.queryByText('Patient deleted')).not.toBeInTheDocument()
+  })
+
+  it('treats an already-deleted patient as success', async () => {
+    stubDetail()
+    vi.spyOn(patientsApi, 'deletePatient').mockRejectedValue(
+      new ApiError(400, 'gone', 'Patients.AlreadyDeleted'),
+    )
+
+    await openAndConfirmDelete()
+
+    expect(await screen.findByText('Patient deleted')).toBeInTheDocument()
+  })
+})
+
+describe('PatientsPage for a client', () => {
+  beforeEach(() => {
+    auth.role = 'client'
+  })
+
+  it('hides the new patient action', async () => {
+    renderAt('/patients')
+
+    expect(await screen.findByText(/Rex/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /New patient/ })).not.toBeInTheDocument()
+  })
+
+  it('shows the record without edit or delete', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...patient,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+
+    expect(await screen.findByText('Owner contact')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Edit/ })).not.toBeInTheDocument()
+  })
+
+  it('hides the clinic-wide appointment tiles', async () => {
+    renderAt('/patients')
+
+    expect(await screen.findByText(/Rex/)).toBeInTheDocument()
+    expect(screen.queryByText('SCHEDULED TODAY')).not.toBeInTheDocument()
+    expect(screen.queryByText('PEAK HOUR')).not.toBeInTheDocument()
+  })
+
+  it('explains an empty list', async () => {
+    getPatientsSpy.mockResolvedValue({ items: [], totalCount: 0, page: 1, pageSize: 10 })
+
+    renderAt('/patients')
+
+    expect(
+      await screen.findByText(
+        'Your animals will appear here after their first visit to the clinic.',
+      ),
+    ).toBeInTheDocument()
+  })
+})
+
+describe('PatientsPage visit history', () => {
+  function stubDetail() {
+    vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...patient,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
+  }
+
+  it('shows the visits section to a veterinarian', async () => {
+    stubDetail()
+    const historySpy = vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([])
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+
+    expect(await screen.findByRole('heading', { name: 'Visits' })).toBeInTheDocument()
+    await waitFor(() => expect(historySpy).toHaveBeenCalledWith('p1'))
+  })
+
+  it('hides the visits section from a client', async () => {
+    auth.role = 'client'
+    stubDetail()
+    const historySpy = vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([])
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+
+    expect(await screen.findByText('Owner contact')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Visits' })).not.toBeInTheDocument()
+    expect(historySpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('PatientsPage visit editing', () => {
+  const examination = {
+    id: 'e1',
+    patientId: 'p1',
+    appointmentId: 'a1',
+    performedByFirstName: 'Mira',
+    performedByLastName: 'Vet',
+    startedAt: '2026-09-17T07:00:00Z',
+    diagnosis: 'otitis',
+    cost: 45.5,
+    isPaid: false,
+    createdAt: '2026-09-17T07:30:00Z',
+    attachments: [],
+  }
+
+  function stubDetailAndHistory() {
+    vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...patient,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
+    vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([examination])
+  }
+
+  it('edits a visit from the history and refreshes it', async () => {
+    stubDetailAndHistory()
+    const updateSpy = vi.spyOn(examinationsApi, 'updateExamination').mockResolvedValue(undefined)
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+    const card = await screen.findByRole('article')
+    await user.click(within(card).getByRole('button', { name: /Edit/ }))
+
+    const panel = await screen.findByRole('dialog', { name: /Edit visit of 17.09.2026/ })
+    await user.type(within(panel).getByLabelText('Therapy'), 'drops')
+    await user.click(within(panel).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(updateSpy).toHaveBeenCalledWith('e1', expect.objectContaining({ therapy: 'drops' })),
+    )
+    expect(await screen.findByText('Visit saved')).toBeInTheDocument()
+  })
+
+  it('reports a visit that vanished before the save', async () => {
+    stubDetailAndHistory()
+    vi.spyOn(examinationsApi, 'updateExamination').mockRejectedValue(
+      new ApiError(404, 'gone', 'Examinations.NotFound'),
+    )
+    const user = userEvent.setup()
+
+    renderAt('/patients')
+    await user.click(await screen.findByText(/Rex/))
+    const card = await screen.findByRole('article')
+    await user.click(within(card).getByRole('button', { name: /Edit/ }))
+    const panel = await screen.findByRole('dialog', { name: /Edit visit of/ })
+    await user.click(within(panel).getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('That examination no longer exists.')).toBeInTheDocument()
+  })
+})

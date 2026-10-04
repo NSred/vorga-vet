@@ -1,0 +1,23 @@
+.spinner {
+  display: inline-block;
+  border-radius: 999px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  animation: spin 700ms linear infinite;
+}
+
+.sm {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.md {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

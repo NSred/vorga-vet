@@ -1,0 +1,104 @@
+.title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.loading {
+  color: var(--text-faint);
+  font-size: 0.85rem;
+}
+
+.section {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.section:first-child {
+  padding-top: 0;
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.sectionTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tileLabel {
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+.tileValue {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr 4.5rem;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+  font-size: 0.8rem;
+}
+
+.barLabel {
+  color: var(--text-muted);
+}
+
+.barTrack {
+  height: 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.barFillAccent {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+.barCount {
+  text-align: right;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.note {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}

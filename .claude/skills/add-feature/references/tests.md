@@ -47,13 +47,7 @@ public sealed class ArchiveTodoCommandHandlerTests : BaseHandlerTest
     {
         // Arrange
         await using TestDbContext context = CreateDbContext();
-        var todoItem = new TodoItem
-        {
-            Id = Guid.NewGuid(),
-            UserId = UserId,
-            Description = "Archive me",
-            CreatedAt = DateTime.UtcNow
-        };
+        TodoItem todoItem = TodoItem.Create(UserId, "Archive me", DateTime.UtcNow);
         context.TodoItems.Add(todoItem);
         await context.SaveChangesAsync();
 
@@ -82,8 +76,9 @@ Conventions:
 - Test names: `Handle_Should_{Outcome}_When{Condition}`.
 - `// Arrange` / `// Act` / `// Assert` comments in every test.
 - Assert failures by comparing the exact error: `result.Error.ShouldBe(TodoItemErrors.NotFound(id))`.
-- `GlobalUsings.cs` already imports `Xunit`, `NSubstitute`, `Shouldly`, and `SharedKernel` — don't re-add those usings.
+- `GlobalUsings.cs` already imports `Xunit`, `NSubstitute`, and `Shouldly` — don't re-add those usings. `SharedKernel` (for `Result`, `IDateTimeProvider`, etc.) is *not* global — add it explicitly whenever a test references those types (confirmed by an actual CS0246 build failure, not assumed).
 - If the entity gains new properties, `TestDbContext` picks them up automatically; only touch it when adding a whole new `DbSet`.
+- Entities have private setters — always seed test data through the entity's `Create(...)` factory (and any mutation methods), never an object initializer. `new TodoItem { ... }` won't compile.
 
 ## Validator tests
 

@@ -1,4 +1,5 @@
 using Application.Abstractions.Authentication;
+using Application.Abstractions.Clinic;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Users;
@@ -11,12 +12,12 @@ internal sealed class LoginUserCommandHandler(
     IApplicationDbContext context,
     IPasswordHasher passwordHasher,
     ITokenProvider tokenProvider,
-    IDateTimeProvider dateTimeProvider) : ICommandHandler<LoginUserCommand, AccessTokensResponse>
+    IDateTimeProvider dateTimeProvider,
+    IClinicSettings clinicSettings) : ICommandHandler<LoginUserCommand, AccessTokensResponse>
 {
     public async Task<Result<AccessTokensResponse>> Handle(LoginUserCommand command, CancellationToken cancellationToken)
     {
         User? user = await context.Users
-            .AsNoTracking()
             .SingleOrDefaultAsync(u => u.Email == command.Email, cancellationToken);
 
         if (user is null)
@@ -29,6 +30,13 @@ internal sealed class LoginUserCommandHandler(
         if (!verified)
         {
             return Result.Failure<AccessTokensResponse>(UserErrors.NotFoundByEmail);
+        }
+
+        // An account that pre-dates its email being allowlisted heals itself here, so the token
+        // it receives already carries the vet role — no one edits the database by hand.
+        if (user.Role != Role.Veterinarian && clinicSettings.IsVeterinarianEmail(user.Email))
+        {
+            user.Role = Role.Veterinarian;
         }
 
         string accessToken = tokenProvider.Create(user);

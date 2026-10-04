@@ -1,4 +1,11 @@
 ﻿using Application.Abstractions.Data;
+using Domain.Allergens;
+using Domain.Appointments;
+using Domain.Breeds;
+using Domain.Clinic;
+using Domain.Examinations;
+using Domain.Owners;
+using Domain.Patients;
 using Domain.Todos;
 using Domain.Users;
 using Infrastructure.DomainEvents;
@@ -18,11 +25,33 @@ public sealed class ApplicationDbContext(
 
     public DbSet<TodoItem> TodoItems { get; set; }
 
+    public DbSet<Owner> Owners { get; set; }
+
+    public DbSet<Patient> Patients { get; set; }
+
+    public DbSet<Breed> Breeds { get; set; }
+
+    public DbSet<Allergen> Allergens { get; set; }
+
+    public DbSet<PatientAllergen> PatientAllergens { get; set; }
+
+    public DbSet<ClinicSchedule> ClinicSchedules { get; set; }
+
+    public DbSet<Appointment> Appointments { get; set; }
+
+    public DbSet<Examination> Examinations { get; set; }
+
+    public DbSet<Attachment> Attachments { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
         modelBuilder.HasDefaultSchema(Schemas.Default);
+
+        // Enables trigram (substring) indexes — see the gin_trgm_ops indexes in
+        // Owner/Patient/Breed/Allergen configurations for what actually uses this.
+        modelBuilder.HasPostgresExtension("pg_trgm");
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

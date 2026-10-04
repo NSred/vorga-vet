@@ -1,0 +1,15 @@
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.cost {
+  max-width: 12rem;
+}

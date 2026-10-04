@@ -1,0 +1,11 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--danger);
+}
