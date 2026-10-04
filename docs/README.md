@@ -19,6 +19,7 @@ not implemented yet. **Superseded** — kept for history; the linked document re
 
 | Date | Area | Topic | Document | Status |
 |---|---|---|---|---|
+| 2026-10-04 | DevOps | Free test environment on Render and Neon | [document](specs/2026-10-04-render-test-environment.md) | Implemented; first deploy pending |
 | 2026-09-21 | FE | Client appointments: own visits, booking, reschedule, cancel (sub-project 5) | [document](specs/2026-09-21-client-appointments.md) | Implemented |
 | 2026-09-21 | FE | Examinations and attachments: visit history, edit, images (sub-project 4) | [document](specs/2026-09-21-examinations-and-attachments.md) | Implemented |
 | 2026-09-21 | FE | Appointments: visit flow (check-in, complete with examination, walk-in, pay) | [document](specs/2026-09-21-appointments-visit-flow.md) | Implemented |

@@ -31,7 +31,10 @@ app.MapEndpoints();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerWithUi();
+}
 
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
     app.ApplyMigrations();
 }
 
@@ -43,6 +46,11 @@ if (app.Configuration.GetValue<bool>("Seeding:DemoData"))
 app.MapHealthChecks("health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecks("health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
 });
 
 app.UseRequestContextLogging();

@@ -3,6 +3,20 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-04 — Test environment on Render and Neon
+
+Backend and DevOps. 224 backend tests pass (134 unit, 6 architecture, 84 integration), run in a
+Linux container because of a local Application Control policy.
+([document](specs/2026-10-04-render-test-environment.md))
+
+- Migrations run when `Database:MigrateOnStartup` is set instead of only in Development, so the
+  hosted API runs as Production without Swagger, stack traces or committed secrets.
+- New `health/live` endpoint that skips the database check, used by Render and the optional
+  keep-awake pinger so Neon can still suspend.
+- The base configuration logs to the console; before this a Production container logged nothing.
+- `devops/render.yaml` describes the frontend static site and the API, deploying from `main`
+  after CI passes; `devops/README.md` is the setup runbook.
+
 ## 2026-09-21 — Client appointments
 
 Frontend only. 83 test files, 469 tests, typecheck, lint and build clean.
