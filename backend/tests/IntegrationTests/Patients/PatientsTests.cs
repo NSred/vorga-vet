@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace IntegrationTests.Patients;
 
@@ -64,6 +65,40 @@ public sealed class PatientsTests(IntegrationTestWebAppFactory factory) : BaseIn
         response.EnsureSuccessStatusCode();
         Guid patientId = await response.Content.ReadFromJsonAsync<Guid>();
         patientId.ShouldNotBe(Guid.Empty);
+    }
+
+    [Fact]
+    public async Task CreatePatient_Should_StoreBirthDate_WhenSentAsABareDate()
+    {
+        // Arrange
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+        (Guid ownerId, Guid breedId) = await SeedOwnerAndBreedAsync();
+
+        // A bare "2021-08-10" deserializes to Kind=Unspecified, which Npgsql refuses to write
+        // to a timestamptz column unless the mapping pins it to UTC.
+        var request = new
+        {
+            ownerId,
+            breedId,
+            cardNumber = Guid.NewGuid().ToString("N")[..10],
+            name = "Rex",
+            sex = 0,
+            birthDate = "2021-08-10",
+            allergenIds = new List<Guid>()
+        };
+
+        // Act
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("patients", request);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        Guid patientId = await response.Content.ReadFromJsonAsync<Guid>();
+
+        HttpResponseMessage created = await HttpClient.GetAsync($"patients/{patientId}");
+        created.EnsureSuccessStatusCode();
+        JsonElement body = await created.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("birthDate").GetDateTime().Date.ShouldBe(new DateTime(2021, 8, 10, 0, 0, 0, DateTimeKind.Utc));
     }
 
     [Fact]

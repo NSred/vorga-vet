@@ -19,6 +19,7 @@ not implemented yet. **Superseded** — kept for history; the linked document re
 
 | Date | Area | Topic | Document | Status |
 |---|---|---|---|---|
+| 2026-10-04 | BE + FE | Bridging the gap to the legacy program: price list, catalogs, vaccinations, certificates (eight sub-projects) | [document](specs/2026-10-04-legacy-program-gap.md) | Planned |
 | 2026-10-04 | DevOps | Free test environment on Render and Neon | [document](specs/2026-10-04-render-test-environment.md) | Implemented; first deploy pending |
 | 2026-09-21 | FE | Client appointments: own visits, booking, reschedule, cancel (sub-project 5) | [document](specs/2026-09-21-client-appointments.md) | Implemented |
 | 2026-09-21 | FE | Examinations and attachments: visit history, edit, images (sub-project 4) | [document](specs/2026-09-21-examinations-and-attachments.md) | Implemented |

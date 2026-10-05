@@ -1,6 +1,8 @@
+using Domain.Appointments;
 using Domain.Breeds;
 using Domain.Owners;
 using Domain.Patients;
+using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Database;
@@ -58,15 +60,41 @@ public static class DemoDataSeeder
         new("C25-10013", "Oscar", "milica.djordjevic@example.com", "British Shorthair", Sex.Male, Date(2021, 10, 10), 5.6m, "Blue", "688038000123463", null)
     ];
 
+    // Day offsets are relative to today in clinic-local time, so the demo calendar always
+    // has something in the past, something now and something ahead.
+    private static readonly AppointmentSeed[] AppointmentSeeds =
+    [
+        new(-7, 9, 0, 30, AppointmentType.Checkup, AppointmentStatus.Completed, "D25-10001", "Annual checkup and vaccination"),
+        new(-7, 11, 0, 45, AppointmentType.BloodDraw, AppointmentStatus.Completed, "C25-10002", "Routine blood panel"),
+        new(-5, 10, 30, 60, AppointmentType.Surgery, AppointmentStatus.Completed, "D25-10005", "Dental extraction"),
+        new(-3, 8, 30, 30, AppointmentType.Checkup, AppointmentStatus.NoShow, "D25-10009", "Limping on front left leg"),
+        new(-2, 14, 0, 30, AppointmentType.FirstVisit, AppointmentStatus.Cancelled, "B25-10004", "New bird intake"),
+        new(-1, 12, 0, 30, AppointmentType.Checkup, AppointmentStatus.Completed, "D25-10003", "Hip follow-up"),
+        new(0, 9, 0, 30, AppointmentType.Checkup, AppointmentStatus.CheckedIn, "D25-10007", "Breathing check before travel"),
+        new(0, 10, 0, 45, AppointmentType.BloodDraw, AppointmentStatus.Scheduled, "C25-10006", "Pre-anesthetic bloodwork"),
+        new(0, 13, 30, 30, AppointmentType.Checkup, AppointmentStatus.Scheduled, "D25-10012", "Anxiety follow-up"),
+        new(0, 16, 0, 60, AppointmentType.Surgery, AppointmentStatus.Scheduled, "C25-10010", "Neutering"),
+        new(1, 8, 0, 30, AppointmentType.FirstVisit, AppointmentStatus.Scheduled, "O25-10011", "First visit for a young rabbit"),
+        new(1, 11, 30, 30, AppointmentType.Checkup, AppointmentStatus.Scheduled, "C25-10013", "Weight management review"),
+        new(2, 9, 30, 45, AppointmentType.BloodDraw, AppointmentStatus.Scheduled, "D25-10001", "Allergy panel recheck"),
+        new(3, 15, 0, 30, AppointmentType.Checkup, AppointmentStatus.Scheduled, "B25-10008", "Feather plucking"),
+        new(5, 10, 0, 60, AppointmentType.Surgery, AppointmentStatus.Scheduled, "D25-10005", "Arthritis joint injection")
+    ];
+
     public static async Task SeedAsync(
         ApplicationDbContext dbContext,
         DateTime utcNow,
+        TimeZoneInfo clinicTimeZone,
         CancellationToken cancellationToken = default)
     {
         Dictionary<string, Guid> breedIds = await SeedBreedsAsync(dbContext, cancellationToken);
         Dictionary<string, Guid> ownerIds = await SeedOwnersAsync(dbContext, cancellationToken);
 
         await SeedPatientsAsync(dbContext, breedIds, ownerIds, utcNow, cancellationToken);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await SeedAppointmentsAsync(dbContext, utcNow, clinicTimeZone, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -155,6 +183,95 @@ public static class DemoDataSeeder
         }
     }
 
+    // Appointments carry no natural key, so this fills an empty calendar and then leaves it
+    // alone — re-running never stacks a second demo week on top of real bookings.
+    private static async Task SeedAppointmentsAsync(
+        ApplicationDbContext dbContext,
+        DateTime utcNow,
+        TimeZoneInfo clinicTimeZone,
+        CancellationToken cancellationToken)
+    {
+        if (await dbContext.Appointments.AnyAsync(cancellationToken))
+        {
+            return;
+        }
+
+        User? author = await dbContext.Users
+            .OrderByDescending(u => u.Role == Role.Veterinarian)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (author is null)
+        {
+            return;
+        }
+
+        string[] cardNumbers = AppointmentSeeds.Select(a => a.PatientCardNumber).Distinct().ToArray();
+
+        Dictionary<string, Patient> patients = await dbContext.Patients
+            .Where(p => cardNumbers.Contains(p.CardNumber))
+            .ToDictionaryAsync(p => p.CardNumber, cancellationToken);
+
+        DateTime localToday = TimeZoneInfo.ConvertTimeFromUtc(utcNow, clinicTimeZone).Date;
+
+        foreach (AppointmentSeed seed in AppointmentSeeds)
+        {
+            if (!patients.TryGetValue(seed.PatientCardNumber, out Patient? patient))
+            {
+                continue;
+            }
+
+            DateTime localStart = localToday
+                .AddDays(seed.DayOffset)
+                .AddHours(seed.Hour)
+                .AddMinutes(seed.Minute);
+
+            DateTime startsAtUtc = TimeZoneInfo.ConvertTimeToUtc(
+                DateTime.SpecifyKind(localStart, DateTimeKind.Unspecified),
+                clinicTimeZone);
+
+            var appointment = Appointment.Create(
+                author.Id,
+                patient.OwnerId,
+                patient.Id,
+                startsAtUtc,
+                seed.DurationMinutes,
+                seed.Type,
+                seed.Reason,
+                utcNow);
+
+            ApplyStatus(appointment, seed, startsAtUtc, author.Id);
+
+            dbContext.Appointments.Add(appointment);
+        }
+    }
+
+    private static void ApplyStatus(
+        Appointment appointment,
+        AppointmentSeed seed,
+        DateTime startsAtUtc,
+        Guid authorId)
+    {
+        switch (seed.Status)
+        {
+            case AppointmentStatus.CheckedIn:
+                appointment.CheckIn(startsAtUtc);
+                break;
+            case AppointmentStatus.Completed:
+                appointment.CheckIn(startsAtUtc);
+                appointment.Complete(startsAtUtc.AddMinutes(seed.DurationMinutes), authorId);
+                break;
+            case AppointmentStatus.NoShow:
+                appointment.MarkNoShow(startsAtUtc.AddMinutes(seed.DurationMinutes), authorId, "Did not arrive.");
+                break;
+            case AppointmentStatus.Cancelled:
+                appointment.Cancel(startsAtUtc.AddDays(-1), authorId, "Owner cancelled by phone.");
+                break;
+            case AppointmentStatus.Scheduled:
+            default:
+                break;
+        }
+    }
+
     private static DateTime Date(int year, int month, int day) => new(year, month, day, 0, 0, 0, DateTimeKind.Utc);
 
     private sealed record BreedSeed(string Name, Species Species);
@@ -166,6 +283,16 @@ public static class DemoDataSeeder
         string Address,
         string City,
         string Email);
+
+    private sealed record AppointmentSeed(
+        int DayOffset,
+        int Hour,
+        int Minute,
+        int DurationMinutes,
+        AppointmentType Type,
+        AppointmentStatus Status,
+        string PatientCardNumber,
+        string Reason);
 
     private sealed record PatientSeed(
         string CardNumber,
