@@ -9,6 +9,7 @@ import {
 } from '@/test/renderWithQuery'
 import { ToastProvider } from '@/shared/ui'
 import { ApiError } from '@/shared/lib/apiClient'
+import { typeDiagnosis } from '@/test/diagnosisPicking'
 import { AppointmentsPage } from './AppointmentsPage'
 import * as appointmentsApi from '@/features/appointments/api/appointmentsApi'
 import * as patientsApi from '@/features/patients/api/patientsApi'
@@ -456,7 +457,7 @@ describe('AppointmentsPage complete visit', () => {
     const detail = await screen.findByRole('dialog', { name: /Appointment for Luna/ })
     await user.click(within(detail).getByRole('button', { name: 'Complete visit' }))
     const panel = await screen.findByRole('dialog', { name: /Complete visit/ })
-    await user.type(within(panel).getByLabelText('Diagnosis'), 'otitis')
+    await typeDiagnosis(user, 'otitis')
     await user.click(within(panel).getByRole('button', { name: 'Record visit' }))
 
     await waitFor(() =>

@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
 import * as examinationsApi from '@/features/examinations/api/examinationsApi'
 import * as patientsApi from '@/features/patients/api/patientsApi'
+import { resetChargesStore } from '@/features/priceList/api/mockChargesStore'
+import { resetPriceListStore } from '@/features/priceList/api/mockPriceListStore'
 import { WalkInPanel } from './WalkInPanel'
 
 vi.mock('@/features/auth', () => ({
@@ -26,6 +28,18 @@ function renderPanel() {
 let createSpy: ReturnType<typeof vi.spyOn>
 
 beforeEach(() => {
+  resetPriceListStore()
+  resetChargesStore()
+  vi.spyOn(examinationsApi, 'getExamination').mockResolvedValue({
+    id: 'e5',
+    patientId: 'p1',
+    performedByFirstName: 'Mira',
+    performedByLastName: 'Vet',
+    startedAt: new Date().toISOString(),
+    isPaid: false,
+    createdAt: new Date().toISOString(),
+    attachments: [],
+  })
   createSpy = vi.spyOn(examinationsApi, 'createExamination').mockResolvedValue('e5')
   vi.spyOn(patientsApi, 'getPatients').mockResolvedValue({
     items: [
@@ -71,7 +85,9 @@ describe('WalkInPanel', () => {
     await user.click(screen.getByRole('button', { name: /^Patient/ }))
     await user.click(await screen.findByText('Luna · Ana Petrović'))
     await user.type(screen.getByLabelText('Therapy'), 'drops')
-    await user.type(screen.getByLabelText('Cost'), '20')
+    await user.click(screen.getByRole('button', { name: '＋ Additional cost' }))
+    await user.type(screen.getByLabelText('Description of additional cost 1'), 'Night visit')
+    await user.type(screen.getByLabelText('Price of Night visit'), '20')
     await user.click(screen.getByRole('button', { name: 'Record visit' }))
 
     await waitFor(() =>

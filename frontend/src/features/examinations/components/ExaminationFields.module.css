@@ -9,7 +9,3 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
-
-.cost {
-  max-width: 12rem;
-}

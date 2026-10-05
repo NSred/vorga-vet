@@ -1,6 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useRef, useState } from 'react'
-import { Badge, Button, ConfirmDialog, EmptyState, Skeleton, Textarea, useToast } from '@/shared/ui'
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  PageHeader,
+  Skeleton,
+  Textarea,
+  useToast,
+} from '@/shared/ui'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
 import {
   addClinicDays,
@@ -165,15 +174,15 @@ export function ClientAppointmentsPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.title}>Your visits</h1>
-          <p className={styles.subtitle}>Book a visit and see the ones you already have.</p>
-        </div>
-        <Button variant="primary" type="button" onClick={() => setBooking(true)}>
-          ＋ Book a visit
-        </Button>
-      </div>
+      <PageHeader
+        title="Your visits"
+        subtitle="Book a visit and see the ones you already have."
+        actions={
+          <Button variant="primary" type="button" onClick={() => setBooking(true)}>
+            ＋ Book a visit
+          </Button>
+        }
+      />
 
       {hasError ? (
         <EmptyState message="Your visits could not be loaded." />

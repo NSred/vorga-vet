@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { Combobox, type ComboboxOption, type ComboboxProps } from './Combobox'
@@ -108,5 +108,40 @@ describe('Combobox', () => {
     await user.click(screen.getByRole('button', { name: /Owner/ }))
 
     expect(screen.queryByText('Subić Vladimir')).not.toBeInTheDocument()
+  })
+
+  it('asks for more when the list is scrolled to the end and more exist', async () => {
+    const user = userEvent.setup()
+    const onLoadMore = vi.fn()
+    setup({ hasMore: true, onLoadMore })
+
+    await user.click(screen.getByRole('button', { name: 'Owner' }))
+    fireEvent.scroll(screen.getByRole('listbox', { name: 'Owner' }))
+
+    expect(onLoadMore).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not ask for more when everything is loaded or a page is loading', async () => {
+    const user = userEvent.setup()
+    const onLoadMore = vi.fn()
+    setup({ hasMore: true, isLoadingMore: true, onLoadMore })
+
+    await user.click(screen.getByRole('button', { name: 'Owner' }))
+    fireEvent.scroll(screen.getByRole('listbox', { name: 'Owner' }))
+
+    expect(onLoadMore).not.toHaveBeenCalled()
+    expect(screen.getByText('Loading more…')).toBeInTheDocument()
+    expect(screen.getAllByRole('option')).toHaveLength(2)
+  })
+
+  it('asks for more when the keyboard reaches the last options', async () => {
+    const user = userEvent.setup()
+    const onLoadMore = vi.fn()
+    setup({ hasMore: true, onLoadMore, onCreate: undefined })
+
+    await user.click(screen.getByRole('button', { name: 'Owner' }))
+    await user.keyboard('{ArrowDown}')
+
+    expect(onLoadMore).toHaveBeenCalled()
   })
 })

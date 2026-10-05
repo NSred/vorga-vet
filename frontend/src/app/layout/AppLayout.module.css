@@ -6,6 +6,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   border-bottom: 1px solid var(--border);
   background-color: var(--surface);
   padding: 1rem 1.5rem;
@@ -13,11 +14,14 @@
 
 .headerLeft {
   display: flex;
+  flex: 0 1 auto;
   align-items: center;
+  min-width: 0;
   gap: 1.75rem;
 }
 
 .brand {
+  flex-shrink: 0;
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--text);
@@ -26,7 +30,10 @@
 .nav {
   position: relative;
   display: flex;
+  min-width: 0;
   gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .navThumb {
@@ -50,6 +57,7 @@
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: none;
+  white-space: nowrap;
   transition: color 200ms ease;
 }
 
@@ -73,13 +81,24 @@
 
 .userArea {
   display: flex;
+  flex: 0 1 auto;
   align-items: center;
+  min-width: 4rem;
   gap: 1rem;
   font-size: 0.875rem;
   color: var(--text-muted);
 }
 
+.userEmail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .logoutButton {
+  flex-shrink: 0;
+  white-space: nowrap;
   border: none;
   background: none;
   padding: 0;

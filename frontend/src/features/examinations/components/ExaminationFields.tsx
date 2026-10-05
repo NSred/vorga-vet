@@ -1,16 +1,26 @@
-import type { FieldErrors, UseFormRegister } from 'react-hook-form'
+import type { ReactNode } from 'react'
+import { Controller, type Control, type FieldErrors, type UseFormRegister } from 'react-hook-form'
 import { TextField, Textarea } from '@/shared/ui'
-import type { ExaminationFormValues } from '../types'
+import type { DiagnosisFieldProps, ExaminationFormValues } from '../types'
 import styles from './ExaminationFields.module.css'
 
 export interface ExaminationFieldsProps {
   register: UseFormRegister<ExaminationFormValues>
+  control: Control<ExaminationFormValues>
   errors: FieldErrors<ExaminationFormValues>
+  renderDiagnosis: (field: DiagnosisFieldProps) => ReactNode
+  costSection: ReactNode
 }
 
 const TEXT_LIMIT = { value: 4000, message: 'Maximum 4000 characters' }
 
-export function ExaminationFields({ register, errors }: ExaminationFieldsProps) {
+export function ExaminationFields({
+  register,
+  control,
+  errors,
+  renderDiagnosis,
+  costSection,
+}: ExaminationFieldsProps) {
   return (
     <div className={styles.fields}>
       <div className={styles.row}>
@@ -41,36 +51,29 @@ export function ExaminationFields({ register, errors }: ExaminationFieldsProps) 
         {...register('anamnesis', { maxLength: TEXT_LIMIT })}
         error={errors.anamnesis?.message}
       />
-      <Textarea
-        id="diagnosis"
-        label="Diagnosis"
-        {...register('diagnosis', { maxLength: TEXT_LIMIT })}
-        error={errors.diagnosis?.message}
+      <Controller
+        name="diagnosis"
+        control={control}
+        rules={{ maxLength: TEXT_LIMIT }}
+        render={({ field }) => (
+          <>
+            {renderDiagnosis({
+              value: field.value,
+              onChange: field.onChange,
+              error: errors.diagnosis?.message,
+            })}
+          </>
+        )}
       />
       <Textarea
         id="therapy"
         label="Therapy"
-        placeholder="Medication, dosage, follow-up…"
+        placeholder="Instructions for the owner, follow-up…"
         {...register('therapy', { maxLength: TEXT_LIMIT })}
         error={errors.therapy?.message}
       />
 
-      <TextField
-        id="cost"
-        label="Cost"
-        inputMode="decimal"
-        placeholder="0.00"
-        className={styles.cost}
-        {...register('cost', {
-          validate: (value) => {
-            const text = value.trim().replace(',', '.')
-            if (!text) return true
-            const cost = Number(text)
-            return Number.isFinite(cost) && cost >= 0 ? true : 'Enter an amount of 0 or more'
-          },
-        })}
-        error={errors.cost?.message}
-      />
+      {costSection}
     </div>
   )
 }

@@ -4,6 +4,7 @@ export { WalkInPanel } from './components/WalkInPanel'
 export { PaidStep } from './components/PaidStep'
 export { PartyResolutionFields } from './components/PartyResolutionFields'
 export { useCheckInAppointment, useCompleteAppointment } from './hooks/useVisitMutations'
+export { useVisitCharges } from './hooks/useVisitCharges'
 export {
   emptyResolution,
   hasErrors,

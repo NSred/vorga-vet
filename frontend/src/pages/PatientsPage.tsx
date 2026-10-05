@@ -2,8 +2,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, ConfirmDialog, useToast } from '@/shared/ui'
-import { useAuth } from '@/features/auth'
+import { usePanelState } from '@/shared/lib/usePanelState'
+import { Button, ConfirmDialog, PageHeader, useToast } from '@/shared/ui'
+import { useAuth, useCurrentUser } from '@/features/auth'
 import { ExaminationEditPanel, VisitHistory } from '@/features/examinations'
 import type { Examination } from '@/features/examinations'
 import {
@@ -27,6 +28,16 @@ import {
   useDeletePatient,
   usePatientsQuery,
 } from '@/features/patients'
+import { DiagnosisPicker } from '@/features/diagnoses'
+import { ChargesSummary } from '@/features/priceList'
+import { MicrochipSection } from '@/features/microchips'
+import {
+  RemindersSection,
+  useLatestRabiesVaccination,
+  VaccinationsSection,
+  type CertificateSubject,
+} from '@/features/vaccinations'
+import { useVisitCharges } from '@/widgets/visit'
 import type {
   PatientDetail,
   PatientFiltersType,
@@ -36,28 +47,66 @@ import type {
 import styles from './PatientsPage.module.css'
 
 type PanelState =
-  | { mode: 'closed' }
   | { mode: 'create' }
   | { mode: 'view'; patient: PatientDetail }
   | { mode: 'edit'; patient: PatientDetail }
+
+function certificateSubjectOf(patient: PatientDetail): CertificateSubject {
+  return {
+    animal: {
+      name: patient.name,
+      species: patient.species,
+      breed: patient.breedName,
+      sex: patient.sex,
+      birthDate: patient.birthDate,
+      color: patient.color,
+      chipNumber: patient.chipNumber,
+    },
+    owner: {
+      name: patient.ownerName,
+      address: patient.address,
+      city: patient.city,
+      phone: patient.phoneNumber,
+    },
+  }
+}
+
+function PatientMicrochip({ patient, vetName }: { patient: PatientDetail; vetName: string }) {
+  const latestRabies = useLatestRabiesVaccination(patient.id)
+
+  return (
+    <MicrochipSection
+      patientId={patient.id}
+      subject={{ chipNumber: patient.chipNumber, ...certificateSubjectOf(patient) }}
+      lastRabies={
+        latestRabies
+          ? { vaccineName: latestRabies.vaccineName, givenOn: latestRabies.givenOn }
+          : undefined
+      }
+      vetName={vetName}
+    />
+  )
+}
 
 const EMPTY_PAGE: PatientPage = { items: [], totalCount: 0, page: 1, pageSize: 10 }
 
 export function PatientsPage() {
   const { showToast } = useToast()
   const { user } = useAuth()
+  const profile = useCurrentUser()
+  const vetName = profile.data ? `${profile.data.firstName} ${profile.data.lastName}`.trim() : ''
   const isVeterinarian = user?.role === 'veterinarian'
   const [searchParams, setSearchParams] = useSearchParams()
   const { filters, allergenName, page, pageSize } = parseFilterParams(searchParams)
 
-  const [panel, setPanel] = useState<PanelState>({ mode: 'closed' })
-  const [displayPanel, setDisplayPanel] = useState<PanelState>({ mode: 'closed' })
-  if (panel.mode !== 'closed' && panel !== displayPanel) {
-    setDisplayPanel(panel)
-  }
+  const { panel, displayPanel, setPanel, closePanel } = usePanelState<PanelState>()
   const [peakHoursOpen, setPeakHoursOpen] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [editingVisit, setEditingVisit] = useState<Examination | null>(null)
+  const visitCharges = useVisitCharges({
+    open: editingVisit !== null,
+    examination: editingVisit ?? undefined,
+  })
 
   const queryClient = useQueryClient()
   const remove = useDeletePatient()
@@ -94,9 +143,7 @@ export function PatientsPage() {
       })
       .then((patient) => setPanel({ mode: 'view', patient }))
       .catch(() => undefined)
-  }, [searchParams, setSearchParams, queryClient])
-
-  const closePanel = () => setPanel({ mode: 'closed' })
+  }, [searchParams, setSearchParams, queryClient, setPanel])
 
   const afterWrite = (title: string) => {
     closePanel()
@@ -135,19 +182,17 @@ export function PatientsPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.title}>Patient Records</h1>
-          <p className={styles.subtitle}>
-            Overview and entry of animals, owners, and basic medical information.
-          </p>
-        </div>
-        {isVeterinarian && (
-          <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
-            ＋ New patient
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Patient Records"
+        subtitle="Overview and entry of animals, owners, and basic medical information."
+        actions={
+          isVeterinarian && (
+            <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
+              ＋ New patient
+            </Button>
+          )
+        }
+      />
 
       <StatGrid>
         <TotalPatientsTile />
@@ -187,9 +232,30 @@ export function PatientsPage() {
               : undefined
           }
           onDelete={isVeterinarian ? () => setConfirmDeleteId(displayPanel.patient.id) : undefined}
+          vaccinationsSection={
+            isVeterinarian ? (
+              <VaccinationsSection
+                patientId={displayPanel.patient.id}
+                certificateSubject={certificateSubjectOf(displayPanel.patient)}
+                vetName={vetName}
+              />
+            ) : undefined
+          }
+          microchipSection={
+            isVeterinarian ? (
+              <PatientMicrochip patient={displayPanel.patient} vetName={vetName} />
+            ) : undefined
+          }
+          remindersSection={
+            isVeterinarian ? <RemindersSection patientId={displayPanel.patient.id} /> : undefined
+          }
           visitsSection={
             isVeterinarian ? (
-              <VisitHistory patientId={displayPanel.patient.id} onEdit={setEditingVisit} />
+              <VisitHistory
+                patientId={displayPanel.patient.id}
+                onEdit={setEditingVisit}
+                renderCharges={(examination) => <ChargesSummary examinationId={examination.id} />}
+              />
             ) : undefined
           }
         />
@@ -231,6 +297,8 @@ export function PatientsPage() {
       {editingVisit && (
         <ExaminationEditPanel
           examination={editingVisit}
+          costSlot={visitCharges}
+          renderDiagnosis={(field) => <DiagnosisPicker {...field} />}
           open
           onOpenChange={(open) => !open && setEditingVisit(null)}
           onSaved={() => {

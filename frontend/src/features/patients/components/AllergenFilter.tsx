@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { Combobox } from '@/shared/ui'
 import { searchAllergens } from '../api/allergensApi'
-import { useEntitySearch } from '../hooks/useEntitySearch'
+import { searchComboboxProps, useEntitySearch } from '@/shared/lib/useEntitySearch'
 import type { AllergenOption } from '../types'
 
 export interface AllergenFilterProps {
@@ -11,10 +11,7 @@ export interface AllergenFilterProps {
 
 export function AllergenFilter({ value, onChange }: AllergenFilterProps) {
   const fetcher = useCallback((term: string) => searchAllergens(term), [])
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(
-    ['allergens'],
-    fetcher,
-  )
+  const search = useEntitySearch(['allergens'], fetcher)
 
   return (
     <Combobox
@@ -22,14 +19,11 @@ export function AllergenFilter({ value, onChange }: AllergenFilterProps) {
       label="Allergen"
       triggerText={value?.name ?? ''}
       placeholder="All"
-      query={query}
-      onQueryChange={setQuery}
-      options={results.map((allergen) => ({ id: allergen.id, label: allergen.name }))}
+      {...searchComboboxProps(search)}
+      options={search.results.map((allergen) => ({ id: allergen.id, label: allergen.name }))}
       onSelect={(option) => onChange({ id: option.id, name: option.label })}
       onClear={value ? () => onChange(null) : undefined}
       selectedIds={value ? [value.id] : []}
-      isLoading={isLoading}
-      errorMessage={errorMessage}
       emptyMessage="No allergens found"
     />
   )

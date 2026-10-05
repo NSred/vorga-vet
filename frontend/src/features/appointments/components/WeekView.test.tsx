@@ -49,23 +49,29 @@ describe('WeekView', () => {
     expect(screen.getByTestId('week-day-2026-09-17')).toHaveTextContent('Luna')
   })
 
-  it('marks days with no slots as closed', () => {
+  it('marks days with no slots as closed in their header', () => {
     renderWeek([])
 
-    expect(screen.getByTestId('week-day-2026-09-18')).toHaveTextContent('Closed')
-    expect(screen.getByTestId('week-day-2026-09-17')).not.toHaveTextContent('Closed')
+    expect(screen.getByRole('button', { name: 'Open Fri 18' })).toHaveTextContent('Closed')
+    expect(screen.getByRole('button', { name: 'Open Thu 17' })).not.toHaveTextContent('Closed')
   })
 
-  it('opens the day when the overflow link is used', async () => {
-    const user = userEvent.setup()
-    const onDateSelect = renderWeek([
-      appointment('a1', '2026-09-17T05:00:00Z', 'Luna'),
-      appointment('a2', '2026-09-17T05:30:00Z', 'Rex'),
-      appointment('a3', '2026-09-17T06:00:00Z', 'Maza'),
-      appointment('a4', '2026-09-17T06:30:00Z', 'Pufi'),
+  it('stretches a long visit over its rows and counts the visits per day', () => {
+    renderWeek([
+      { ...appointment('a1', '2026-09-17T05:00:00Z', 'Luna'), durationMinutes: 90 },
+      appointment('a2', '2026-09-17T06:30:00Z', 'Rex'),
     ])
 
-    await user.click(screen.getByRole('button', { name: '+1 more' }))
+    expect(screen.getByRole('button', { name: /Luna/ }).style.gridRow).toBe('1 / span 3')
+    expect(screen.getByRole('button', { name: /Rex/ }).style.gridRow).toBe('4 / span 1')
+    expect(screen.getByRole('button', { name: 'Open Thu 17' })).toHaveTextContent('2')
+  })
+
+  it('opens the day from its header', async () => {
+    const user = userEvent.setup()
+    const onDateSelect = renderWeek([appointment('a1', '2026-09-17T05:00:00Z', 'Luna')])
+
+    await user.click(screen.getByRole('button', { name: 'Open Thu 17' }))
 
     expect(onDateSelect).toHaveBeenCalledWith('2026-09-17')
   })

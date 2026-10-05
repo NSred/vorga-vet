@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Badge, Button } from '@/shared/ui'
+import { formatPrice } from '@/shared/lib/money'
+import { Badge, Button, FormError } from '@/shared/ui'
 import {
   examinationErrorMessage,
   examinationErrors,
@@ -49,7 +50,7 @@ export function PaidStep({ examinationId, cost, onPaid }: PaidStepProps) {
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Cost</span>
-          <span className={styles.fieldValue}>{cost === undefined ? '—' : cost.toFixed(2)}</span>
+          <span className={styles.fieldValue}>{cost === undefined ? '—' : formatPrice(cost)}</span>
         </div>
       </div>
 
@@ -63,11 +64,7 @@ export function PaidStep({ examinationId, cost, onPaid }: PaidStepProps) {
       {cost === undefined && (
         <p className={styles.notice}>No cost was entered, so there is nothing to mark as paid.</p>
       )}
-      {error && (
-        <p role="alert" className={styles.submitError}>
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </div>
   )
 }

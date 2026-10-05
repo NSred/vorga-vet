@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Button, Modal, TextField } from '@/shared/ui'
+import { SPECIES_LABELS } from '@/shared/domain/species'
+import { Button, FormError, Modal, TextField } from '@/shared/ui'
 import { createBreed } from '../../api/breedsApi'
 import type { BreedOption, Species } from '../../types'
-
-const SPECIES_LABEL: Record<Species, string> = {
-  dog: 'Dog',
-  cat: 'Cat',
-  bird: 'Bird',
-  other: 'Other',
-}
 
 interface CreateBreedFormValues {
   name: string
@@ -60,7 +54,7 @@ export function CreateBreedDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="New breed"
-      description={`The breed is saved under species ${SPECIES_LABEL[species]}.`}
+      description={`The breed is saved under species ${SPECIES_LABELS[species]}.`}
       footer={
         <>
           <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
@@ -88,7 +82,7 @@ export function CreateBreedDialog({
           })}
           error={errors.name?.message}
         />
-        {submitError && <p role="alert">{submitError}</p>}
+        <FormError message={submitError} />
       </form>
     </Modal>
   )

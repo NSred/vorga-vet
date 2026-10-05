@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Combobox } from '@/shared/ui'
 import { searchBreeds } from '../../api/breedsApi'
-import { useEntitySearch } from '../../hooks/useEntitySearch'
+import { searchComboboxProps, useEntitySearch } from '@/shared/lib/useEntitySearch'
 import type { BreedOption, Species } from '../../types'
 import { CreateBreedDialog } from './CreateBreedDialog'
 
@@ -18,10 +18,8 @@ export function BreedPicker({ species, value, onChange, error }: BreedPickerProp
   const previousSpecies = useRef(species)
 
   const fetcher = useCallback((term: string) => searchBreeds(species, term), [species])
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(
-    ['breeds', species],
-    fetcher,
-  )
+  const search = useEntitySearch(['breeds', species], fetcher)
+  const { setQuery } = search
 
   useEffect(() => {
     if (previousSpecies.current !== species) {
@@ -38,9 +36,8 @@ export function BreedPicker({ species, value, onChange, error }: BreedPickerProp
         label="Breed *"
         triggerText={value?.name ?? ''}
         placeholder="Search breeds…"
-        query={query}
-        onQueryChange={setQuery}
-        options={results.map((breed) => ({ id: breed.id, label: breed.name }))}
+        {...searchComboboxProps(search)}
+        options={search.results.map((breed) => ({ id: breed.id, label: breed.name }))}
         onSelect={(option) => onChange({ id: option.id, name: option.label })}
         onCreate={(typed) => {
           setPendingName(typed)
@@ -48,8 +45,6 @@ export function BreedPicker({ species, value, onChange, error }: BreedPickerProp
         }}
         createLabel="Create breed"
         selectedIds={value ? [value.id] : []}
-        isLoading={isLoading}
-        errorMessage={errorMessage}
         emptyMessage="No breeds found for this species"
         error={error}
       />

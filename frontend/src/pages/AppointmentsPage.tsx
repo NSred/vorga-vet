@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router'
-import { ConfirmDialog, EmptyState, Textarea, useToast } from '@/shared/ui'
+import { ConfirmDialog, EmptyState, PageHeader, Textarea, useToast } from '@/shared/ui'
 import {
   addClinicDays,
   addClinicMonths,
@@ -35,12 +36,15 @@ import type {
   AppointmentViewState,
   CalendarView,
   PartyField,
+  PartyRef,
 } from '@/features/appointments'
 import {
+  getPatient,
   ownerLabel,
   OwnerPicker,
   patientLabel,
   PatientPicker,
+  patientKeys,
   PatientSummary,
 } from '@/features/patients'
 import type { OwnerOption, PatientListItem } from '@/features/patients'
@@ -86,6 +90,7 @@ export function AppointmentsPage() {
   const [walkInOpen, setWalkInOpen] = useState(false)
   const ownerCache = useRef(new Map<string, OwnerOption>())
   const patientCache = useRef(new Map<string, PatientListItem>())
+  const queryClient = useQueryClient()
   const cancel = useCancelAppointment()
   const noShow = useMarkNoShow()
 
@@ -202,16 +207,22 @@ export function AppointmentsPage() {
     />
   )
 
+  const ownerOfPatient = async (patientId: string): Promise<PartyRef> => {
+    const patient = await queryClient.fetchQuery({
+      queryKey: patientKeys.detail(patientId),
+      queryFn: () => getPatient(patientId),
+    })
+    return { id: patient.ownerId, label: `${patient.ownerName} · ${patient.phoneNumber}` }
+  }
+
   const actionCopy = action ? ACTION_COPY[action.kind] : null
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.title}>Appointments</h1>
-          <p className={styles.subtitle}>Appointment calendar — day, week, and month view.</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Appointments"
+        subtitle="Appointment calendar — day, week, and month view."
+      />
 
       <UnresolvedBanner onOpen={() => setUnresolvedOpen(true)} />
 
@@ -309,6 +320,7 @@ export function AppointmentsPage() {
           onSaved={() => afterSave('Appointment booked')}
           ownerField={ownerField}
           patientField={patientField}
+          ownerOfPatient={ownerOfPatient}
         />
       )}
 

@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { SPECIES_OPTIONS } from '@/shared/domain/species'
 import { ApiError, isApiErrorCode } from '@/shared/lib/apiClient'
 import { todayIso } from '@/shared/lib/dateOnly'
 import {
   Button,
   ConfirmDialog,
   DatePicker,
+  FormError,
   Select,
   SlidePanel,
-  TextField,
   Textarea,
+  TextField,
 } from '@/shared/ui'
 import { patientErrors } from '../api/patientErrors'
 import { useCreatePatient, useUpdatePatient } from '../hooks/usePatientMutations'
@@ -288,12 +290,7 @@ export function PatientFormPanel({
                 label="Species"
                 value={field.value}
                 onChange={(value) => field.onChange(value as Species)}
-                options={[
-                  { value: 'dog', label: 'Dog' },
-                  { value: 'cat', label: 'Cat' },
-                  { value: 'bird', label: 'Bird' },
-                  { value: 'other', label: 'Other' },
-                ]}
+                options={SPECIES_OPTIONS}
               />
             )}
           />
@@ -388,11 +385,7 @@ export function PatientFormPanel({
           className={styles.fullWidth}
         />
 
-        {submitError && (
-          <p role="alert" className={styles.submitError}>
-            {submitError}
-          </p>
-        )}
+        <FormError message={submitError} />
       </form>
 
       <ConfirmDialog

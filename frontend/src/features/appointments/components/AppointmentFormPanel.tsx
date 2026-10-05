@@ -1,9 +1,17 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { clinicDateOf, clinicDayRange, clinicToday } from '@/shared/lib/clinicTime'
-import { Button, DatePicker, Select, SlidePanel, Textarea } from '@/shared/ui'
+import {
+  addClinicDays,
+  clinicDateOf,
+  clinicDayRange,
+  clinicToday,
+  clinicUpcomingDaysRange,
+} from '@/shared/lib/clinicTime'
+import { formatDisplayDate } from '@/shared/lib/dateOnly'
+import { Button, DatePicker, FormError, Select, SlidePanel, Textarea } from '@/shared/ui'
 import { appointmentErrorMessage, appointmentErrors } from '../api/appointmentErrors'
+import { getAvailability } from '../api/appointmentsApi'
 import { useCreateAppointment, useRescheduleAppointment } from '../hooks/useAppointmentMutations'
 import { useAvailabilityQuery } from '../hooks/useAvailabilityQuery'
 import { partyLabel, typeLabel } from '../lib/appointmentLabels'
@@ -31,6 +39,7 @@ export interface AppointmentFormPanelProps {
   onSaved: () => void
   ownerField?: (field: PartyField) => ReactElement
   patientField?: (field: PartyField) => ReactElement
+  ownerOfPatient?: (patientId: string) => Promise<PartyRef>
 }
 
 const TYPES: AppointmentType[] = ['first_visit', 'checkup', 'blood_draw', 'surgery']
@@ -78,6 +87,11 @@ function buildDefaults(
   }
 }
 
+type OwnerLookup = 'idle' | 'loading' | 'failed'
+type FreeDaySearch = 'idle' | 'searching' | 'none' | 'failed'
+
+const FREE_DAY_SEARCH_DAYS = 14
+
 function Summary({ label, value }: { label: string; value: string }) {
   return (
     <div className={styles.summary}>
@@ -98,8 +112,12 @@ export function AppointmentFormPanel({
   onSaved,
   ownerField,
   patientField,
+  ownerOfPatient,
 }: AppointmentFormPanelProps) {
   const [submitError, setSubmitError] = useState<string | undefined>(undefined)
+  const [ownerLookup, setOwnerLookup] = useState<OwnerLookup>('idle')
+  const lookedUpPatient = useRef<string | null>(null)
+  const [freeDaySearch, setFreeDaySearch] = useState<FreeDaySearch>('idle')
   const create = useCreateAppointment()
   const reschedule = useRescheduleAppointment()
   const {
@@ -110,6 +128,7 @@ export function AppointmentFormPanel({
     watch,
     setValue,
     setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<AppointmentWriteValues>({
     defaultValues: buildDefaults(mode, appointment, initialDate, initialStartsAt),
@@ -119,14 +138,19 @@ export function AppointmentFormPanel({
   const type = watch('type')
   const durationMinutes = watch('durationMinutes')
   const startsAt = watch('startsAt')
+  const patient = watch('patient')
+  const owner = watch('owner')
   const isReschedule = mode === 'reschedule'
   const isClient = variant === 'client'
   const isSurgery = !isClient && type === 'surgery'
+  const ownerFromPatient = Boolean(ownerOfPatient && patient)
 
   useEffect(() => {
     if (open) {
       reset(buildDefaults(mode, appointment, initialDate, initialStartsAt))
       setSubmitError(undefined)
+      setOwnerLookup('idle')
+      lookedUpPatient.current = null
     }
   }, [open, mode, appointment, initialDate, initialStartsAt, reset])
 
@@ -135,6 +159,10 @@ export function AppointmentFormPanel({
       setValue('durationMinutes', 30)
     }
   }, [isSurgery, durationMinutes, setValue])
+
+  useEffect(() => {
+    setFreeDaySearch('idle')
+  }, [date])
 
   const availabilityQuery = useAvailabilityQuery(clinicDayRange(date), {
     durationMinutes: isSurgery ? durationMinutes : undefined,
@@ -163,6 +191,53 @@ export function AppointmentFormPanel({
       setValue('startsAt', '')
     }
   }, [availabilityQuery.isSuccess, options, startsAt, setValue])
+
+  async function goToNextFreeDay() {
+    setFreeDaySearch('searching')
+    try {
+      const slots = await getAvailability(
+        clinicUpcomingDaysRange(FREE_DAY_SEARCH_DAYS, addClinicDays(date, 1)),
+        isSurgery ? durationMinutes : undefined,
+      )
+      const free = slotOptions(slots, isReschedule ? appointment : undefined, Date.now()).find(
+        (option) => !option.disabled,
+      )
+      if (!free) {
+        setFreeDaySearch('none')
+        return
+      }
+      setValue('date', clinicDateOf(free.value))
+      setValue('startsAt', free.value)
+      clearErrors('startsAt')
+    } catch {
+      setFreeDaySearch('failed')
+    }
+  }
+
+  function choosePatient(next: PartyRef | null, onChange: (value: PartyRef | null) => void) {
+    onChange(next)
+    clearErrors('patient')
+    if (!ownerOfPatient) return
+
+    lookedUpPatient.current = next?.id ?? null
+    setValue('owner', null)
+    clearErrors('owner')
+    if (!next) {
+      setOwnerLookup('idle')
+      return
+    }
+
+    setOwnerLookup('loading')
+    ownerOfPatient(next.id)
+      .then((found) => {
+        if (lookedUpPatient.current !== next.id) return
+        setValue('owner', found)
+        setOwnerLookup('idle')
+      })
+      .catch(() => {
+        if (lookedUpPatient.current === next.id) setOwnerLookup('failed')
+      })
+  }
 
   function handleFailure(error: unknown) {
     if (isApiErrorCode(error, appointmentErrors.slotTaken)) {
@@ -274,9 +349,7 @@ export function AppointmentFormPanel({
             rules={{
               required: 'Pick a start time',
               validate: (value) =>
-                !value || Date.parse(value) > Date.now()
-                  ? true
-                  : 'Pick a start time in the future',
+                !value || Date.parse(value) > Date.now() ? true : 'Pick a start time in the future',
             }}
             render={({ field }) => (
               <Select
@@ -287,10 +360,32 @@ export function AppointmentFormPanel({
                 options={options}
                 placeholder={noSlots ? 'No free slots' : 'Select a time'}
                 error={errors.startsAt?.message}
+                disabled={noSlots}
               />
             )}
           />
         </div>
+
+        {noSlots && (
+          <div className={styles.noSlots}>
+            <p className={styles.noSlotsText} role="status">
+              {freeDaySearch === 'none'
+                ? `No free time in the next ${FREE_DAY_SEARCH_DAYS} days.`
+                : freeDaySearch === 'failed'
+                  ? 'Could not look for a free day. Try again.'
+                  : `No free time left on ${formatDisplayDate(date)}.`}
+            </p>
+            <Button
+              variant="outline"
+              type="button"
+              className={styles.noSlotsButton}
+              disabled={freeDaySearch === 'searching'}
+              onClick={() => void goToNextFreeDay()}
+            >
+              Next free day
+            </Button>
+          </div>
+        )}
 
         {!isReschedule && (
           <div className={styles.row}>
@@ -350,13 +445,32 @@ export function AppointmentFormPanel({
                 render={({ field }) =>
                   patientField({
                     value: field.value,
-                    onChange: field.onChange,
+                    onChange: (next) => choosePatient(next, field.onChange),
                     error: errors.patient?.message,
                   })
                 }
               />
             )}
-            {ownerField && (
+            {ownerFromPatient && (
+              <div className={styles.lockedField}>
+                <span className={styles.lockedLabel} id="appointment-owner-label">
+                  Owner
+                </span>
+                <div
+                  className={styles.lockedValue}
+                  role="status"
+                  aria-labelledby="appointment-owner-label"
+                >
+                  {ownerLookup === 'loading'
+                    ? 'Finding the owner…'
+                    : ownerLookup === 'failed'
+                      ? "The owner on the patient's card is used when you book."
+                      : (owner?.label ?? '')}
+                </div>
+                <p className={styles.lockedHint}>Taken from the patient's card.</p>
+              </div>
+            )}
+            {ownerField && !ownerFromPatient && (
               <Controller
                 name="owner"
                 control={control}
@@ -381,11 +495,7 @@ export function AppointmentFormPanel({
           </>
         )}
 
-        {submitError && (
-          <p role="alert" className={styles.submitError}>
-            {submitError}
-          </p>
-        )}
+        <FormError message={submitError} />
       </form>
     </SlidePanel>
   )

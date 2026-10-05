@@ -311,3 +311,135 @@ describe('AppointmentFormPanel client variant', () => {
     expect(screen.getByRole('dialog', { name: 'Book a visit' })).toBeInTheDocument()
   })
 })
+
+describe('AppointmentFormPanel owner from the patient', () => {
+  function patientChooser(
+    field: Parameters<NonNullable<AppointmentFormPanelProps['patientField']>>[0],
+  ) {
+    return (
+      <div>
+        <button type="button" onClick={() => field.onChange({ id: 'p1', label: 'Luna' })}>
+          Choose Luna
+        </button>
+        <button type="button" onClick={() => field.onChange({ id: 'p2', label: 'Rex' })}>
+          Choose Rex
+        </button>
+        <button type="button" onClick={() => field.onChange(null)}>
+          Clear patient
+        </button>
+      </div>
+    )
+  }
+
+  it("shows the patient's owner read-only and books with it", async () => {
+    const user = userEvent.setup()
+    const createSpy = vi.spyOn(appointmentsApi, 'createAppointment').mockResolvedValue('a9')
+    const ownerOfPatient = vi.fn(async (patientId: string) =>
+      patientId === 'p1'
+        ? { id: 'o1', label: 'Ana Petrović · 062 123 456' }
+        : { id: 'o2', label: 'Ivan Ilić · 063 1' },
+    )
+    renderForm({ patientField: patientChooser, ownerOfPatient })
+
+    expect(screen.getByRole('button', { name: /^Owner:/ })).toBeInTheDocument()
+
+    await pickTime(user, '07:00')
+    await user.click(screen.getByRole('button', { name: 'Choose Luna' }))
+
+    expect(await screen.findByRole('status', { name: 'Owner' })).toHaveTextContent(
+      'Ana Petrović · 062 123 456',
+    )
+    expect(screen.queryByRole('button', { name: /^Owner:/ })).not.toBeInTheDocument()
+    expect(screen.getByText("Taken from the patient's card.")).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Choose Rex' }))
+    expect(await screen.findByRole('status', { name: 'Owner' })).toHaveTextContent('Ivan Ilić')
+
+    await user.click(screen.getByRole('button', { name: 'Book' }))
+
+    await waitFor(() =>
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ ownerId: 'o2', patientId: 'p2' }),
+      ),
+    )
+  })
+
+  it('gives the owner field back when the patient is cleared', async () => {
+    const user = userEvent.setup()
+    renderForm({
+      patientField: patientChooser,
+      ownerOfPatient: async () => ({ id: 'o1', label: 'Ana Petrović' }),
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Choose Luna' }))
+    await screen.findByRole('status', { name: 'Owner' })
+    await user.click(screen.getByRole('button', { name: 'Clear patient' }))
+
+    expect(screen.queryByRole('status', { name: 'Owner' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Owner:/ })).toHaveTextContent('Owner: none')
+  })
+
+  it('books without an owner when the lookup fails, so the backend takes it from the patient', async () => {
+    const user = userEvent.setup()
+    const createSpy = vi.spyOn(appointmentsApi, 'createAppointment').mockResolvedValue('a9')
+    renderForm({
+      patientField: patientChooser,
+      ownerOfPatient: () => Promise.reject(new Error('offline')),
+    })
+
+    await pickTime(user, '07:00')
+    await user.click(screen.getByRole('button', { name: 'Choose Luna' }))
+
+    expect(await screen.findByRole('status', { name: 'Owner' })).toHaveTextContent(
+      "The owner on the patient's card is used when you book.",
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Book' }))
+
+    await waitFor(() =>
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ ownerId: undefined, patientId: 'p1' }),
+      ),
+    )
+  })
+})
+
+describe('AppointmentFormPanel with no free time on the day', () => {
+  const later: AvailabilitySlot[] = [
+    {
+      startsAt: '2026-09-19T06:00:00Z',
+      endsAt: '2026-09-19T06:30:00Z',
+      isAvailable: true,
+      isMine: false,
+    },
+  ]
+
+  it('disables the start time and jumps to the next free day', async () => {
+    const user = userEvent.setup()
+    availabilitySpy.mockImplementation(async (range: { from: string }) =>
+      range.from.startsWith('2026-09-16') ? [] : later,
+    )
+    renderForm()
+
+    expect(await screen.findByText('No free time left on 17.09.2026.')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Start time *' })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: 'Next free day' }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: 'Start time *' })).toHaveTextContent('08:00'),
+    )
+    expect(screen.getByRole('button', { name: 'Date *' })).toHaveTextContent('19.09.2026')
+    expect(screen.queryByText(/No free time/)).not.toBeInTheDocument()
+  })
+
+  it('says so when nothing is free in the next two weeks', async () => {
+    const user = userEvent.setup()
+    availabilitySpy.mockResolvedValue([])
+    renderForm()
+
+    await user.click(await screen.findByRole('button', { name: 'Next free day' }))
+
+    expect(await screen.findByText('No free time in the next 14 days.')).toBeInTheDocument()
+  })
+})

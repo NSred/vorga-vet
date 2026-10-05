@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { EmptyState, Skeleton } from '@/shared/ui'
 import { usePatientExaminationsQuery } from '../hooks/usePatientExaminationsQuery'
 import type { Examination } from '../types'
@@ -7,9 +8,10 @@ import styles from './VisitHistory.module.css'
 export interface VisitHistoryProps {
   patientId: string
   onEdit?: (examination: Examination) => void
+  renderCharges?: (examination: Examination) => ReactNode
 }
 
-export function VisitHistory({ patientId, onEdit }: VisitHistoryProps) {
+export function VisitHistory({ patientId, onEdit, renderCharges }: VisitHistoryProps) {
   const { data, isPending, isError } = usePatientExaminationsQuery(patientId)
 
   if (isPending) {
@@ -27,7 +29,12 @@ export function VisitHistory({ patientId, onEdit }: VisitHistoryProps) {
   return (
     <div className={styles.list}>
       {data.map((examination) => (
-        <ExaminationCard key={examination.id} examination={examination} onEdit={onEdit} />
+        <ExaminationCard
+          key={examination.id}
+          examination={examination}
+          onEdit={onEdit}
+          charges={renderCharges?.(examination)}
+        />
       ))}
     </div>
   )

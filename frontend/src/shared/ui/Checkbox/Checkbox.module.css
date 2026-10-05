@@ -1,0 +1,14 @@
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.input {
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: inherit;
+}

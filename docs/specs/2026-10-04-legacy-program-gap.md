@@ -10,12 +10,15 @@ The clinic's previous program was a Clarion desktop application with TopSpeed da
 2026-09-28 its 30 files were exported to CSV; 28 decoded cleanly and two small encrypted ones
 held only its login password and one setting. The export stays outside the repository because it
 holds owners' personal data, so this document quotes only counts. It is the evidence for which
-parts of the old program are worth building into VorgaVet. Each sub-project below gets its own
-feature document when its work starts, as the five appointment sub-projects did on 2026-09-17.
+parts of the old program are worth building into VorgaVet. The frontend of sub-projects 1, 2, 3,
+6, 7, 8 and 9 landed on 2026-10-05 on mock data and is described in one document,
+[legacy-gap features on the frontend](2026-10-05-legacy-features-frontend.md), with what the vet
+can test and how. The backend those features need is proposed in
+[the backend API document](2026-10-05-legacy-features-backend-api.md).
 
 ## What this adds
 
-When all eight sub-projects have landed, the vet can:
+When the sub-projects below have landed (5 was dropped), the vet can:
 
 - Keep a **price list** (cenovnik) of services (usluge) and medications, each with its price, and
   the clinic's lists of diagnoses, breeds and allergens: add, edit, find and retire items.
@@ -26,7 +29,6 @@ When all eight sub-projects have landed, the vet can:
   registration forms.
 - Edit an owner's details and keep a second phone number; record an animal's pet passport and
   whether it is neutered.
-- Book visits by what the clinic actually does: vaccination, deworming, microchipping.
 - Read a daily report, the unpaid exams and the deleted records.
 
 Out of scope: moving the old data into VorgaVet, which gets its own document (the
@@ -40,22 +42,22 @@ Each data file of the old program, what it held, and where it lands. Counts are 
 
 | Legacy file | What it held | VorgaVet today | Plan |
 |---|---|---|---|
-| `KARTON` | Patient card with the owner's details inline: 3,970 cards, 235 marked deleted | `Patient` and `Owner` | Covered; gaps in sub-projects 3 and 7 |
-| `PREGLEDI` | Exams: 40,732, about 3,500 a year | `Examination` | Covered; catalog-backed fields in 2 |
-| `NOVATER` | Therapy lines, medication and dose: 12,629 | One `Therapy` text field | 2 |
+| `KARTON` | Patient card with the owner's details inline: 3,970 cards, 235 marked deleted | `Patient` and `Owner` | Covered; gaps in sub-projects 4 and 8 |
+| `PREGLEDI` | Exams: 40,732, about 3,500 a year | `Examination` | Covered; catalog-backed fields in 3 |
+| `NOVATER` | Therapy lines, medication and dose: 12,629 | One `Therapy` text field | 3 |
 | `ALERGIJE` | Allergies per patient, mostly vaccines and drugs: 89 | `PatientAllergen` | Covered |
-| `RASE`, `VRSTE` | Breeds (137) and the four species | `Breed`, `Species` | Covered; list management in 1 |
-| `DIJAG` | Diagnosis list: 1,024 | None | 1 |
+| `RASE`, `VRSTE` | Breeds (137) and the four species | `Breed`, `Species` | Covered; list management in 2 |
+| `DIJAG` | Diagnosis list: 1,024 | None | 2 |
 | `INTERV` | Interventions, 111 of 336 with a price | None | 1, as services |
 | `LEKOVI` | Medications with a unit: 573 | None | 1 |
-| `CENOVNIK`, `KURS` | Price list of 131 services and medications in EUR and RSD, one exchange rate | None | 1; currency open |
-| `ZAK` | Dated appointment notes: 174, up to 2027-03-20 | `Appointment` | Covered by appointments; reminder use in 5; open question |
-| `VAK` | Yearly vaccination list: 94 | None | 5 |
-| `PPB` | Rabies vaccination certificates: 5,315 | None | 6 |
-| `OPO`, `POT` | Health certificates (395) and older certificates (11, last in 2019) | None | 6 |
-| `KDT`, `POTBR` | Two number ranges and 30 loose numbers | None | 6; open question |
-| `CIP` | Microchip registration forms: 1,805 | Chip number on `Patient` | 7 |
-| `DNE` | Daily report rows, empty in the export | Dashboard tiles | 8 |
+| `CENOVNIK`, `KURS` | Price list of 131 services and medications in EUR and RSD, one exchange rate | None | 1, in RSD only |
+| `ZAK` | Dated appointment notes: 174, up to 2027-03-20 | `Appointment` | Covered by appointments; reminder use in 6; open question |
+| `VAK` | Yearly vaccination list: 94 | None | 6 |
+| `PPB` | Rabies vaccination certificates: 5,315 | None | 7 |
+| `OPO`, `POT` | Health certificates (395) and older certificates (11, last in 2019) | None | 7 |
+| `KDT`, `POTBR` | Two number ranges and 30 loose numbers | None | 7; open question |
+| `CIP` | Microchip registration forms: 1,805 | Chip number on `Patient` | 8 |
+| `DNE` | Daily report rows, empty in the export | Dashboard tiles | 9 |
 | `SLIKE`, `LINKOVI` | Images and file links, both empty | `Attachment` | Covered |
 | `UPUT`, `KTD` | Referral letters (4, last in 2022) and their destinations (10) | None | Not carried over: barely used |
 | `ADRESAR` | Suppliers and partners: 144 | None | Not carried over: not patient care |
@@ -64,8 +66,8 @@ Each data file of the old program, what it held, and where it lands. Counts are 
 
 Fields inside the card and the exam that are not carried over: debt and credit (debt on 4 cards;
 exam prices on 51 of 40,732 exams and none since 2024, replaced by the priced lines of
-sub-project 2), the pricing tier ("Standard" on all but three cards), the exam's control date
-(used 19 times, replaced by reminders in 5) and the extra laboratory and treatment lines (under
+sub-project 3), the pricing tier ("Standard" on all but three cards), the exam's control date
+(used 19 times, replaced by reminders in 6) and the extra laboratory and treatment lines (under
 1% of exams; they fit in the free-text notes).
 
 ## Backend contract
@@ -76,13 +78,13 @@ client may also call.
 
 | Call | Today | Gap |
 |---|---|---|
-| `GET breeds?species&searchTerm`, `POST breeds` | Search returns at most 20 by name, for any signed-in user. Create: name up to 100, species in the enum; a case-insensitive duplicate name within the species returns the existing id. | No list, rename or retire |
-| `GET allergens?searchTerm`, `POST allergens` | Same pattern; a duplicate name returns the existing id. | No list, rename or retire |
+| `GET breeds?species&search`, `POST breeds` | Search returns at most 20 by name, for any signed-in user. Create: name up to 100, species in the enum; a case-insensitive duplicate name within the species returns the existing id. | No list, rename or retire |
+| `GET allergens?search`, `POST allergens` | Same pattern; a duplicate name returns the existing id. | No list, rename or retire |
 | `GET owners?searchTerm`, `POST owners` | First and last name up to 100, phone up to 30, address up to 200, city up to 100, email optional up to 256 and unique when present (`Owners.EmailNotUnique`). | No `PUT owners/{id}`; one phone |
 | `POST patients`, `PUT patients/{id}` | Card number up to 20 and unique (`Patients.CardNumberNotUnique`), name up to 100, weight above 0, birth date not in the future, chip number free text with no uniqueness. | No passport, no neutered flag |
 | `POST examinations`, `PUT examinations/{id}`, `POST appointments/{id}/complete` | All three carry the same `ExaminationDetails`: performer first and last name required, up to 100 each; anamnesis, diagnosis and therapy up to 4000; cost 0 or more, stored as numeric(10,2). | No services, no therapy lines, no list links |
 | `POST examinations/{id}/pay` | Once only (`Examinations.AlreadyPaid`). | — |
-| `POST appointments` | `type`: 0 `FirstVisit`, 1 `Checkup`, 2 `BloodDraw`, 3 `Surgery`. Surgery is vet only (`SurgeryRequiresVeterinarian`); every other type is exactly 30 minutes (`InvalidDuration`). | Types do not match the clinic's work |
+| `POST appointments` | `type`: 0 `FirstVisit`, 1 `Checkup`, 2 `BloodDraw`, 3 `Surgery`. Surgery is vet only (`SurgeryRequiresVeterinarian`); every other type is exactly 30 minutes (`InvalidDuration`). | Unchanged; see the open question on visit types |
 
 ## Design
 
@@ -103,13 +105,15 @@ stores its name and, for priced items, the price at that moment, beside an optio
 list item. Renaming or repricing an item never rewrites a past exam.
 
 **Retire, do not delete.** A list item that exams point to is retired rather than deleted: it
-leaves the pickers and stays readable on old exams. Creating an item whose name already exists
-returns the existing one, as `POST breeds` and `POST allergens` already do.
+leaves the pickers and stays readable on old exams. For unpriced lists, creating an item whose
+name already exists returns the existing one, as `POST breeds` and `POST allergens` already do.
+A priced item refuses the duplicate instead, because returning the existing item would drop the
+price the vet just typed.
 
-**Prices live only on services and medications.** The old price list worked the same way: every
-row was marked as a service or a medication. Diagnoses, breeds and allergens never carry a price.
-An exam's cost is the sum of its service and medication lines. A line's copied price can be
-changed on the exam, for a discount, without touching the price list.
+**Prices live only on services and medications, in dinars.** The old price list worked the same
+way: every row was marked as a service or a medication. Diagnoses, breeds and allergens never
+carry a price. An exam's cost is the sum of its service and medication lines. A line's copied
+price can be changed on the exam, for a discount, without touching the price list.
 
 **One exam contract, three entry points.** A walk-in, an edit and a completed visit all send the
 same `ExaminationDetails`, so the exam form changes once and reaches all three.
@@ -124,7 +128,7 @@ never competes for calendar slots or the overlap rule.
 
 **Certificates are numbered documents.** Each certificate type has its own unique number
 sequence and keeps the data it was printed with. The print approach is chosen once, in
-sub-project 6, and reused for the patient card's Print button (disabled today) and the reports.
+sub-project 7, and reused for the patient card's Print button (disabled today) and the reports.
 
 **Personal data.** The owner's JMBG (national ID number) is needed only for microchip
 registration. It is visible only to vets, never returned to a client and kept out of the logs,
@@ -132,138 +136,83 @@ which go to Seq.
 
 **Where things live.** Backend: one Domain folder per new entity, use cases as slices, staff
 endpoints on the `Veterinarian` policy, through the `add-entity` and `add-feature` skills.
-Frontend: a catalogs feature owns the lists' API, pages and pickers. Features never import each
-other, so the exam form takes the pickers as render slots filled by the page or the visit widget,
-the pattern `AppointmentFormPanel` already uses for the owner and patient pickers.
+Frontend: the price list feature and a lists feature own their API, pages and pickers. Features
+never import each other, so the exam form takes the pickers as render slots filled by the page or
+the visit widget, the pattern `AppointmentFormPanel` already uses for the owner and patient
+pickers.
 
-**Order.** 1 and 2 come first and are the base for 5 to 8. 3 and 4 depend on nothing and can
-slot in anywhere. 5 needs 1 and 2; 6 needs 3 and 5; 7 needs 3, 5 and 6; 8 needs 2.
+**Frontend first where it helps a demonstration.** The sub-projects were built on the frontend
+against mocks shaped like their future API and saved in the browser, so they can be shown to the
+clinic before the backend exists, as the patient records tab was in August 2026. The backend
+follows the [proposal](2026-10-05-legacy-features-backend-api.md).
 
-**Settled on 2026-10-04.** Card numbers keep the current format (`D25-10001`). Lists are
-maintained on their own pages and used through pick-or-type fields. The price list holds services
-and medications, the only items with a price.
+**Order.** 1 to 3 come first and are the base for 6 to 9. 4 depends on nothing and can slot in
+anywhere; 5 was dropped on 2026-10-05. 3 needs 1 and 2; 6 needs 1 and 3; 7 needs 4 and 6; 8 needs 4, 6 and 7; 9 needs 3.
+
+**Settled on 2026-10-04 and 2026-10-05.** Card numbers keep the current format (`D25-10001`).
+Lists are maintained on their own pages and used through pick-or-type fields. The price list
+holds services and medications, the only items with a price, in dinars only. The price list is
+its own sub-project; diagnoses, breeds and allergens follow in the next. A medication's unit is
+picked from a fixed list built from the old units. A medication is not a vaccine, a vaccine or a
+rabies vaccine, never both kinds, as in the old `VAK` list, and every vaccine has a duration.
+Vaccinations remind by themselves through their due date; anything else is a reminder the vet
+adds by hand. A diagnosis not on the list is either added to it through a dialog or kept as text
+on that exam only.
 
 **Open.** First, how the old appointment book's time field was used: many entries are not clock
 times (23 at 01:xx, 21 at 05:xx), so it may have been a dated reminder list rather than a
 calendar; to be asked of the vet. Second, whether `KDT` and `POTBR` are the stock of pre-printed
-certificate numbers. Third, the currency: the old price list kept EUR and RSD with a stored
-exchange rate (114), while VorgaVet has one implied currency.
+certificate numbers. Third, whether visits should get more types than the four of today
+(first visit, checkup, blood draw, surgery). Since 2024 about a third of the old program's exams
+involved a vaccination and about a third parasite control, and the mockup offered vaccination,
+deworming and microchipping as types. More types would let the calendar show the purpose of a
+visit before it happens and allow counting visits by purpose; against that, the work done is
+already recorded as services on the exam, and the booking's reason field can name the purpose.
+Not needed now; revisit if the clinic asks for it. Fourth, whether New patient should ask for the
+pet passport number and date, and whether the animal is sterilised; today the rabies certificate
+and the microchip form ask each time. That belongs to sub-project 4.
 
 ## Tasks
 
-- [ ] 1. Catalogs and price list: vet pages to add, edit, find and retire services and
-  medications with their prices, diagnoses, breeds and allergens. Done when a retired item
-  leaves the pickers and stays readable where it was used.
-- [ ] 2. Exam form on the catalogs: diagnosis, service lines and therapy lines (medication and
-  dose) picked or typed, cost summed from the lines, on walk-in, completion and edit. Done when an
-  exam with a listed diagnosis, two services and a typed medication shows all of it, with the
-  right total, in the visit history.
-- [ ] 3. Owner and patient details: edit an owner, a second phone, pet passport number and date,
-  neutered flag. Done when an owner's new phone number shows on all their animals' cards.
-- [ ] 4. Visit types: vaccination, deworming, microchipping and other, keeping the stored values
-  of the existing types. Done when existing appointments keep their type and the surgery rules
-  still hold.
-- [ ] 5. Vaccinations and reminders: vaccination records with batch and due date from vaccine
-  therapy lines, a due-soon list, dated manual reminders. Done when a vaccine given today shows as
-  due in 365 days on the list.
-- [ ] 6. Certificates and printing: rabies vaccination and health certificates, clinic details
-  for prints, the patient card print. Done when a printed rabies certificate carries a unique
-  number, the vaccine batch and the passport number.
-- [ ] 7. Microchip registration: owner JMBG, the registration record, a printable form. Done when
-  no response a client can call contains a JMBG.
-- [ ] 8. Reports: daily report, unpaid exams, deleted records. Done when a day's report total
-  equals the sum of that day's exam totals.
+The frontend of every task except 4 landed on 2026-10-05 in [legacy-gap features](2026-10-05-legacy-features-frontend.md); the boxes stay open until
+the backend in the [proposal](2026-10-05-legacy-features-backend-api.md) is built.
+
+- [ ] 1. Price list: services and medications with prices, units and vaccine marks; add, edit,
+  find, retire and restore. Done when a retired item leaves the active list and comes back when
+  restored.
+- [ ] 2. Diagnoses, breeds and allergens: list pages; diagnoses added, edited, retired and pasted
+  in bulk; breeds and allergens renamed and retired once the backend allows it. Done when a
+  retired item leaves the dropdowns and stays readable where it was used.
+- [ ] 3. Exam form on the lists: diagnosis from the list or as text, service and medication lines
+  from the price list, cost summed from the lines, on walk-in, completion and edit. Done when an
+  exam with a listed diagnosis, two services and a medication shows all of it, with the right
+  total, in the visit history.
+- [ ] 4. Owner and patient details: edit an owner, a second phone, pet passport number and date,
+  sterilised flag. Done when an owner's new phone number shows on all their animals' cards. Not
+  started; see the fourth open question.
+- [ ] ~~5. Visit types~~: dropped on 2026-10-05. The four types stay as they are, because a type
+  only decides a slot's length and who may book it; what was done is recorded as services on the
+  exam. More types remain an open question above.
+- [ ] 6. Vaccinations and reminders: vaccinations from vaccine lines on the exam and by hand,
+  dated reminders, the Reminders page. Done when a vaccine given today shows as due in 365 days.
+- [ ] 7. Certificates and printing: narrowed on 2026-10-05 to the rabies certificate; the health
+  certificate and the patient card print are left for later. Done when a printed rabies
+  certificate carries a unique number, the vaccine batch and the passport number.
+- [ ] 8. Microchip registration: the registration and its printed sheet, the JMBG typed only for
+  printing. Done when no response a client can call contains a JMBG.
+- [ ] 9. Reports: daily report, unpaid exams, deleted cards. Done when a day's report total equals
+  the sum of that day's exam totals; the backend needs `GET examinations` by date and paid state.
 
 ## Execution detail — delete when closing
 
-Each sub-project moves its part of this section into its own document when it starts. When all
-eight have their own documents, this section is deleted.
+Everything except sub-project 4 moved to
+[legacy-gap features](2026-10-05-legacy-features-frontend.md) on 2026-10-05. What is left is the
+evidence for sub-project 4, kept until it starts.
 
-### 1. Catalogs and price list
-
-- Evidence: `DIJAG` 1,024 diagnoses, 442 with a numeric code. `INTERV` 336 interventions, 111
-  priced. `LEKOVI` 573 medications, a unit on 338, written inconsistently (`kom`, `kom.`, `ml`,
-  `ml.`, `amp.`, `boca`, `kut.`, `tuba`). `CENOVNIK` 131 rows: 62 services, 67 medications, 2
-  unmarked, each with an EUR and an RSD price. `RASE` 137 breeds against 295 spellings on the
-  cards, 88% matching.
-- Lists: services (name, price, active), medications (name, unit, price, active; sub-project 5
-  adds the vaccine marks), diagnoses (name, optional code, active). Breeds and allergens gain
-  rename and retire.
-- The price list page has two tabs, services and medications. Diagnoses get their own page, as
-  the mockup's Dijagnoze tab did; breeds and allergens can share one page.
-- Optional, from the mockup: paste a list, one item per line, to fill a catalog quickly.
-- Waits on the currency question for the price fields.
-
-### 2. Exam form on the catalogs
-
-- Evidence: a diagnosis on 99.8% of exams, 2,071 distinct texts against 1,020 list names; an
-  intervention on 99.7%, 77% matching its list. Therapy: 12,629 lines on 11,618 exams, 94% of
-  them one line and at most 8; a dose on 94% as free text ("1", "0,3 ml", "0,5 ml x 7 dana").
-  Weight on 4% of exams, 8.5% since 2024. The findings note on 16%.
-- `ExaminationDetails` gains a diagnosis link beside the text, service lines (link, copied name
-  and price, quantity), therapy lines (optional link, copied name, dose text, quantity, copied
-  price) and an optional weight at the visit. The `Therapy` text stays, as instructions.
-- The visit history lists the lines and the total. The create row of the pickers reads
-  "Use '…'" and keeps the text; adding an item to a list happens on the list's page.
-
-### 3. Owner and patient details
+### 4. Owner and patient details
 
 - Evidence: 1,117 cards with two or more phone numbers (mobile, home, work); a pet passport
   number on 49% (`RS` and 8 digits), with its issue date on the rabies certificates; neutered
   is asked on every microchip form.
 - `PUT owners/{id}` with the create rules, a second phone, an edit entry wherever the owner is
   shown. Patient: passport number and date, neutered flag.
-
-### 4. Visit types
-
-- Evidence since 2024: vaccinations about 34% and parasite control about 36% of 9,495 exams,
-  microchips 252, surgeries 169. The mockup offered exam, vaccination, deworming, microchipping
-  and other.
-- Keep values 0 to 3 for stored rows and add new values after them; decide whether `FirstVisit`
-  and `BloodDraw` stay offered. Mirror the enum in the frontend mapping and the client booking
-  form, which already hides surgery.
-
-### 5. Vaccinations and reminders
-
-- Evidence: vaccines lead the therapy lines (Vanguard, Nobivac, Canigen, Rabigen). Rabies batch
-  numbers were often typed into the medication name. `VAK` held 94 vaccinations from October
-  2025, each due exactly 365 days later, which is October 2026. `ZAK` held 174 dated notes from
-  2026-09-29 to 2027-03-20, such as "na vacc poli." (due for the combined vaccine) and
-  "podsetiti za sterilizaciju" (remind about spaying).
-- Medication gains a vaccine mark, a rabies mark and a default interval in days. A vaccine line
-  records the batch; the vaccination keeps given-on, due-on and the vet.
-- The patient card shows vaccinations and the next due date. The due-soon list covers overdue,
-  this week and this month, with the owner's phones, and can be marked as contacted.
-- Manual reminders: date, reason, done. Sending SMS or email waits for a provider.
-
-### 6. Certificates and printing
-
-- Evidence: `PPB` 5,315 rabies certificates. Each has a unique number (`P` and 7 digits), the
-  vaccine (mostly Rabigen), its batch (154 distinct), the passport number and date, the chip
-  date, the issuer (the clinic, or the public veterinary station), the vet and their licence
-  number, and the fee. An animal typically gets one a year. `OPO` 395 health certificates, 19 to
-  56 a year, numbered from the vet's initials, card number, sequence and date, nearly all with
-  the standard sentence that no disease transmissible to people or animals was found. `KDT`
-  received two number ranges (41 numbers on 2022-10-25, 65 on 2026-02-12).
-- A certificate register: type, number, date, patient, vet and a snapshot of the printed data. A
-  rabies certificate starts from a rabies vaccination; a health certificate starts from an
-  editable standard text.
-- Clinic details for prints (name, address, the vet's licence number) live in the clinic
-  settings.
-
-### 7. Microchip registration
-
-- Evidence: `CIP` 1,805 forms, 94 to 167 a year since 2019, with the owner's name, JMBG (on
-  all), address and phones; the animal's name, sex, species, breed, birth year and colour; the
-  chip number (15 digits, 97% also on the card, never duplicated); implant date, vet, clinic,
-  sterilised yes or no, consent to publish online yes or no, and the last rabies vaccination.
-- Owner JMBG, vet only. A registration record per chip and a printable form; the national
-  registry's required format is to be confirmed. The chip number becomes unique.
-
-### 8. Reports
-
-- Evidence: the mockup's Izveštaji tab offered a daily report, debtors and deleted records with
-  printing. `DNE`'s columns were vet, owner, breed, animal, diagnosis, work done, price, charged
-  and the difference.
-- Daily report: a day's exams with services, totals and paid state. Unpaid exams from `IsPaid`.
-  Deleted records from `IsDeleted`. Printing reuses sub-project 6.

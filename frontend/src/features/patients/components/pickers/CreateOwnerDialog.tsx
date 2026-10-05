@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Button, Modal, TextField } from '@/shared/ui'
+import { Button, FormError, Modal, TextField } from '@/shared/ui'
 import { createOwner } from '../../api/ownersApi'
 import type { CreateOwnerRequest, OwnerOption } from '../../types'
 
@@ -110,7 +110,7 @@ export function CreateOwnerDialog({ open, onOpenChange, onCreated }: CreateOwner
           })}
           error={errors.city?.message}
         />
-        {submitError && <p role="alert">{submitError}</p>}
+        <FormError message={submitError} />
       </form>
     </Modal>
   )

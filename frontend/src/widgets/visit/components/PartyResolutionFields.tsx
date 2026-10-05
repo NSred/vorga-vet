@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { DatePicker, SegmentedControl, Select, TextField, Textarea } from '@/shared/ui'
+import { SPECIES_OPTIONS } from '@/shared/domain/species'
 import { todayIso } from '@/shared/lib/dateOnly'
 import {
   BreedPicker,
@@ -28,13 +29,6 @@ const MODE_OPTIONS = [
   { value: 'existing', label: 'Existing patient' },
   { value: 'new', label: 'New card' },
 ] as const
-
-const SPECIES_OPTIONS = [
-  { value: 'dog', label: 'Dog' },
-  { value: 'cat', label: 'Cat' },
-  { value: 'bird', label: 'Bird' },
-  { value: 'other', label: 'Other' },
-]
 
 const SEX_OPTIONS = [
   { value: 'male', label: 'Male' },

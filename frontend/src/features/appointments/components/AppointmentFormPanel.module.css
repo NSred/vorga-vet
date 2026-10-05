@@ -50,11 +50,53 @@
   color: var(--text);
 }
 
-.submitError {
+.lockedField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.lockedLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.lockedValue {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.lockedHint {
   margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.noSlots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--danger);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--danger);
-  font-size: 0.8rem;
+  background: var(--surface-2);
+}
+
+.noSlotsText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.noSlotsButton {
+  white-space: nowrap;
 }

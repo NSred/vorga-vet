@@ -1,7 +1,7 @@
+import type { Sex } from '@/shared/domain/animal'
 import type { Species } from '@/shared/domain/species'
 
-export type { Species }
-export type Sex = 'male' | 'female'
+export type { Sex, Species }
 
 export interface OwnerOption {
   id: string

@@ -147,12 +147,3 @@
   border-color: var(--danger);
   color: var(--danger);
 }
-
-.error {
-  margin: 0;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--danger);
-  border-radius: var(--radius-sm);
-  color: var(--danger);
-  font-size: 0.78rem;
-}

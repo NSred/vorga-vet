@@ -30,7 +30,6 @@ export { VisitHistory } from './components/VisitHistory'
 export {
   emptyExaminationValues,
   examinationValuesOf,
-  parseCost,
   toExaminationDetails,
 } from './lib/examinationDetails'
 export {
@@ -44,6 +43,9 @@ export { attachmentKindToApi, toExamination } from './lib/examinationMapping'
 export type {
   Attachment,
   AttachmentKind,
+  CostSlot,
+  DiagnosisFieldProps,
+  ExaminationRef,
   CreateExaminationRequest,
   Examination,
   ExaminationDetails,

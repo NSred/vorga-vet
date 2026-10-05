@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, ConfirmDialog, SlidePanel } from '@/shared/ui'
+import { Button, ConfirmDialog, FormError, SlidePanel } from '@/shared/ui'
 import {
   appointmentErrorMessage,
   appointmentErrors,
@@ -120,11 +120,7 @@ export function CheckInPanel({
         isPending={checkIn.isPending}
         onConfirm={() => submit(values)}
       >
-        {submitError && (
-          <p role="alert" className={styles.submitError}>
-            {submitError}
-          </p>
-        )}
+        <FormError message={submitError} />
       </ConfirmDialog>
     )
   }
@@ -159,11 +155,7 @@ export function CheckInPanel({
     >
       <div className={styles.body}>
         <PartyResolutionFields needs={needs} value={values} onChange={setValues} errors={errors} />
-        {submitError && (
-          <p role="alert" className={styles.submitError}>
-            {submitError}
-          </p>
-        )}
+        <FormError message={submitError} />
       </div>
     </SlidePanel>
   )

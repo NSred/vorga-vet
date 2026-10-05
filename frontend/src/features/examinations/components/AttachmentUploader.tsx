@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
-import { Button, Modal, Select } from '@/shared/ui'
+import { Button, FormError, Modal, Select } from '@/shared/ui'
 import { examinationErrorMessage } from '../api/examinationErrors'
 import { useUploadAttachment } from '../hooks/useExaminationMutations'
 import {
@@ -205,11 +205,7 @@ export function AttachmentUploader({
           options={KIND_OPTIONS}
         />
 
-        {error && (
-          <p role="alert" className={styles.error}>
-            {error}
-          </p>
-        )}
+        <FormError message={error} />
       </div>
     </Modal>
   )

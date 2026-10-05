@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Combobox } from '@/shared/ui'
 import { searchAllergens } from '../../api/allergensApi'
-import { useEntitySearch } from '../../hooks/useEntitySearch'
+import { searchComboboxProps, useEntitySearch } from '@/shared/lib/useEntitySearch'
 import type { AllergenOption } from '../../types'
 import { CreateAllergenDialog } from './CreateAllergenDialog'
 import styles from './AllergenPicker.module.css'
@@ -15,10 +15,7 @@ export function AllergenPicker({ value, onChange }: AllergenPickerProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [pendingName, setPendingName] = useState('')
   const fetcher = useCallback((term: string) => searchAllergens(term), [])
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(
-    ['allergens'],
-    fetcher,
-  )
+  const search = useEntitySearch(['allergens'], fetcher)
 
   function add(allergen: AllergenOption) {
     if (value.some((selected) => selected.id === allergen.id)) return
@@ -32,9 +29,8 @@ export function AllergenPicker({ value, onChange }: AllergenPickerProps) {
         label="Allergens"
         triggerText={value.length > 0 ? `${value.length} selected` : ''}
         placeholder="Search allergens…"
-        query={query}
-        onQueryChange={setQuery}
-        options={results.map((allergen) => ({ id: allergen.id, label: allergen.name }))}
+        {...searchComboboxProps(search)}
+        options={search.results.map((allergen) => ({ id: allergen.id, label: allergen.name }))}
         onSelect={(option) => add({ id: option.id, name: option.label })}
         onCreate={(typed) => {
           setPendingName(typed)
@@ -42,8 +38,6 @@ export function AllergenPicker({ value, onChange }: AllergenPickerProps) {
         }}
         createLabel="Create allergen"
         selectedIds={value.map((allergen) => allergen.id)}
-        isLoading={isLoading}
-        errorMessage={errorMessage}
         emptyMessage="No allergens found"
       />
 

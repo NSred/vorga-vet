@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
+import { searchComboboxProps, usePagedEntitySearch } from '@/shared/lib/useEntitySearch'
 import { Combobox } from '@/shared/ui'
 import { getPatients } from '../../api/patientsApi'
-import { useEntitySearch } from '../../hooks/useEntitySearch'
 import type { PatientListItem } from '../../types'
 
 export interface PatientPickerProps {
@@ -10,20 +10,19 @@ export interface PatientPickerProps {
   error?: string
 }
 
+const PAGE_SIZE = 15
+
 export function patientLabel(patient: PatientListItem): string {
   return `${patient.name} · ${patient.ownerName}`
 }
 
 export function PatientPicker({ value, onChange, error }: PatientPickerProps) {
-  const fetcher = useCallback(
-    (term: string) =>
-      getPatients({ search: term, status: 'active' }, 1, 10).then((page) => page.items),
+  const fetchPage = useCallback(
+    (term: string, page: number) =>
+      getPatients({ search: term, status: 'active' }, page, PAGE_SIZE),
     [],
   )
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(
-    ['patients', 'picker'],
-    fetcher,
-  )
+  const search = usePagedEntitySearch(['patients', 'picker'], fetchPage)
 
   return (
     <Combobox
@@ -31,21 +30,18 @@ export function PatientPicker({ value, onChange, error }: PatientPickerProps) {
       label="Patient"
       triggerText={value ? patientLabel(value) : ''}
       placeholder="Search patients…"
-      query={query}
-      onQueryChange={setQuery}
-      options={results.map((patient) => ({
+      {...searchComboboxProps(search)}
+      options={search.results.map((patient) => ({
         id: patient.id,
         label: patientLabel(patient),
         hint: patient.cardNumber,
       }))}
       onSelect={(option) => {
-        const patient = results.find((candidate) => candidate.id === option.id)
+        const patient = search.results.find((candidate) => candidate.id === option.id)
         if (patient) onChange(patient)
       }}
       onClear={value ? () => onChange(null) : undefined}
       selectedIds={value ? [value.id] : []}
-      isLoading={isLoading}
-      errorMessage={errorMessage}
       emptyMessage="No patients found"
       error={error}
     />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Button, Modal, TextField } from '@/shared/ui'
+import { Button, FormError, Modal, TextField } from '@/shared/ui'
 import { createAllergen } from '../../api/allergensApi'
 import type { AllergenOption } from '../../types'
 
@@ -84,7 +84,7 @@ export function CreateAllergenDialog({
           })}
           error={errors.name?.message}
         />
-        {submitError && <p role="alert">{submitError}</p>}
+        <FormError message={submitError} />
       </form>
     </Modal>
   )

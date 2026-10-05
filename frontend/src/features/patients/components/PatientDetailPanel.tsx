@@ -13,6 +13,9 @@ export interface PatientDetailPanelProps {
   onEdit?: () => void
   onDelete?: () => void
   visitsSection?: ReactNode
+  vaccinationsSection?: ReactNode
+  remindersSection?: ReactNode
+  microchipSection?: ReactNode
 }
 
 function formatValue(value: string | number | undefined): string {
@@ -38,6 +41,9 @@ export function PatientDetailPanel({
   onEdit,
   onDelete,
   visitsSection,
+  vaccinationsSection,
+  remindersSection,
+  microchipSection,
 }: PatientDetailPanelProps) {
   const age = calculateAge(patient.birthDate)
 
@@ -119,6 +125,27 @@ export function PatientDetailPanel({
           <Field label="Created" value={formatDisplayDate(patient.createdAt)} />
         </div>
       </section>
+
+      {vaccinationsSection && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Vaccinations</h3>
+          {vaccinationsSection}
+        </section>
+      )}
+
+      {microchipSection && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Microchip</h3>
+          {microchipSection}
+        </section>
+      )}
+
+      {remindersSection && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Reminders</h3>
+          {remindersSection}
+        </section>
+      )}
 
       {visitsSection && (
         <section className={styles.section}>

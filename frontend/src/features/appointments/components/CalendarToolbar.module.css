@@ -32,10 +32,7 @@
 }
 
 .toggle {
-  display: flex;
-  align-items: center;
   gap: 0.35rem;
   font-size: 0.78rem;
   color: var(--text-muted);
-  cursor: pointer;
 }

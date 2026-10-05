@@ -17,6 +17,7 @@ export interface SelectProps {
   hideLabel?: boolean
   placeholder?: string
   error?: string
+  disabled?: boolean
 }
 
 export function Select({
@@ -29,6 +30,7 @@ export function Select({
   hideLabel,
   placeholder,
   error,
+  disabled,
 }: SelectProps) {
   const selectedLabel = options.find((option) => option.value === value)?.label
 
@@ -39,7 +41,14 @@ export function Select({
           {label}
         </label>
       )}
-      <RadixSelect.Root value={value} onValueChange={onChange}>
+      <RadixSelect.Root
+        value={value}
+        onValueChange={(next) => {
+          if (next === '' && !options.some((option) => option.value === '')) return
+          onChange(next)
+        }}
+        disabled={disabled}
+      >
         <RadixSelect.Trigger
           id={id}
           className={styles.trigger}
