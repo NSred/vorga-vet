@@ -3,6 +3,17 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-06 — Dropdowns scroll with the mouse wheel
+
+Frontend only. 127 test files, 716 tests, typecheck and lint clean, production build passes.
+
+- A `Select` list is capped at the height left in the window, so long lists such as start
+  time, surgery duration and medication unit scroll instead of running off the screen.
+- A `Combobox` popover is modal, so its list scrolls with the wheel inside panels and modals,
+  and scroll paging in the patient, price list and diagnosis pickers triggers again.
+
+Details: [document](specs/2026-10-06-dropdown-wheel-scroll.md)
+
 ## 2026-10-06 — Frontend consolidation
 
 Frontend only. 127 test files, 715 tests, typecheck and lint clean, production build passes.

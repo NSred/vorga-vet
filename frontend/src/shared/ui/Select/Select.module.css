@@ -60,6 +60,7 @@
 }
 
 .content {
+  max-height: var(--radix-select-content-available-height);
   overflow: hidden;
   padding: 0.35rem;
   border: 1px solid var(--border);

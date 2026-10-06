@@ -126,6 +126,7 @@ export function Combobox({
       </label>
 
       <Popover.Root
+        modal
         open={open}
         onOpenChange={(next) => {
           if (disabled) return

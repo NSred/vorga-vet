@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { Modal } from '../Modal/Modal'
 import { Combobox, type ComboboxOption, type ComboboxProps } from './Combobox'
 
 const options: ComboboxOption[] = [
@@ -143,5 +144,38 @@ describe('Combobox', () => {
     await user.keyboard('{ArrowDown}')
 
     expect(onLoadMore).toHaveBeenCalled()
+  })
+})
+
+describe('Combobox inside a dialog', () => {
+  function makeScrollable(list: HTMLElement) {
+    list.style.overflowY = 'auto'
+    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 100 })
+    Object.defineProperty(list, 'scrollHeight', { configurable: true, value: 500 })
+  }
+
+  it('lets the mouse wheel scroll its list while the dialog locks the page', async () => {
+    const user = userEvent.setup()
+    render(
+      <Modal open onOpenChange={vi.fn()} title="New patient" description="Pick an owner.">
+        <Combobox
+          label="Owner"
+          triggerText=""
+          query=""
+          onQueryChange={vi.fn()}
+          options={options}
+          onSelect={vi.fn()}
+        />
+      </Modal>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Owner' }))
+    const list = await screen.findByRole('listbox', { name: 'Owner' })
+    makeScrollable(list)
+
+    const wheel = new WheelEvent('wheel', { deltaY: 40, bubbles: true, cancelable: true })
+    within(list).getAllByRole('option')[0].dispatchEvent(wheel)
+
+    expect(wheel.defaultPrevented).toBe(false)
   })
 })
