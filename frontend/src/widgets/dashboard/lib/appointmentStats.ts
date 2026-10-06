@@ -1,6 +1,6 @@
-import { countsTowardLoad, WEEKDAYS } from '@/features/appointments'
+import { countsTowardLoad } from '@/features/appointments'
 import type { Appointment } from '@/features/appointments'
-import { clinicDateOf, clinicTimeOf } from '@/shared/lib/clinicTime'
+import { clinicDateOf, clinicTimeOf, clinicWeekday, WEEKDAYS } from '@/shared/lib/clinicTime'
 
 export interface HourCount {
   hour: string
@@ -19,12 +19,6 @@ export const PEAK_HOURS_RANGE = Array.from(
 )
 
 const MONDAY_FIRST_ORDER = [1, 2, 3, 4, 5, 6, 0]
-
-function clinicWeekdayIndex(startsAt: string): number {
-  const [year, month, day] = clinicDateOf(startsAt).split('-').map(Number)
-
-  return new Date(Date.UTC(year, month - 1, day)).getUTCDay()
-}
 
 export function hourBucket(startsAt: string): string {
   return `${clinicTimeOf(startsAt).slice(0, 2)}:00`
@@ -71,7 +65,7 @@ export function hourHistogram(appointments: Appointment[]): HourCount[] {
 export function dayBreakdown(appointments: Appointment[]): DayBreakdown[] {
   return MONDAY_FIRST_ORDER.map((weekdayIndex) => {
     const forDay = appointments.filter(
-      (appointment) => clinicWeekdayIndex(appointment.startsAt) === weekdayIndex,
+      (appointment) => clinicWeekday(clinicDateOf(appointment.startsAt)) === weekdayIndex,
     )
 
     return {

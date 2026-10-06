@@ -1,0 +1,81 @@
+.page {
+  box-sizing: border-box;
+  width: 100%;
+  color: black;
+  background: white;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 9pt;
+  line-height: 1.3;
+}
+
+.header {
+  padding-bottom: 3mm;
+  margin-bottom: 4mm;
+  border-bottom: 1.5pt solid black;
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 1mm;
+  font-size: 14pt;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.printed {
+  margin: 0;
+  font-size: 8pt;
+  color: dimgray;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 1.2mm 1.5mm;
+  border-bottom: 0.5pt solid silver;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  border-bottom: 1pt solid black;
+  font-size: 8pt;
+  text-transform: uppercase;
+}
+
+.table tr {
+  break-inside: avoid;
+}
+
+.table .numeric {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 2mm 8mm;
+  margin: 4mm 0 0;
+  padding-top: 2mm;
+  border-top: 1pt solid black;
+}
+
+.total {
+  display: flex;
+  gap: 2mm;
+}
+
+.total dt {
+  color: dimgray;
+}
+
+.total dd {
+  margin: 0;
+  font-weight: 700;
+}

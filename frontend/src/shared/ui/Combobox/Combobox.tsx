@@ -1,5 +1,6 @@
 import * as Popover from '@radix-ui/react-popover'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import fieldStyles from '../field.module.css'
 import styles from './Combobox.module.css'
 
 export interface ComboboxOption {
@@ -26,7 +27,13 @@ export interface ComboboxProps {
   emptyMessage?: string
   disabled?: boolean
   error?: string
+  hasMore?: boolean
+  isLoadingMore?: boolean
+  onLoadMore?: () => void
+  onOpen?: () => void
 }
+
+const LOAD_MORE_DISTANCE_PX = 48
 
 export function Combobox({
   id,
@@ -46,18 +53,39 @@ export function Combobox({
   emptyMessage = 'No matches',
   disabled = false,
   error,
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMore,
+  onOpen,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
   const trimmedQuery = query.trim()
   const showCreate = Boolean(onCreate) && trimmedQuery.length > 0
   const rowCount = options.length + (showCreate ? 1 : 0)
+  const canLoadMore = Boolean(onLoadMore) && hasMore && !isLoadingMore && !isLoading
 
   useEffect(() => {
     setActiveIndex(0)
-  }, [query, options.length])
+  }, [query])
+
+  useEffect(() => {
+    setActiveIndex((index) => Math.min(index, Math.max(rowCount - 1, 0)))
+  }, [rowCount])
+
+  useEffect(() => {
+    listRef.current
+      ?.querySelector(`[data-index="${activeIndex}"]`)
+      ?.scrollIntoView?.({ block: 'nearest' })
+  }, [activeIndex])
+
+  function loadMoreNearEnd(list: HTMLDivElement) {
+    const distance = list.scrollHeight - list.scrollTop - list.clientHeight
+    if (canLoadMore && distance <= LOAD_MORE_DISTANCE_PX) onLoadMore?.()
+  }
 
   function commit(index: number) {
     if (showCreate && index === options.length) {
@@ -78,7 +106,10 @@ export function Combobox({
 
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      setActiveIndex((index) => (index + 1) % rowCount)
+      if (hasMore && activeIndex >= options.length - 3 && canLoadMore) onLoadMore?.()
+      setActiveIndex((index) =>
+        hasMore ? Math.min(index + 1, rowCount - 1) : (index + 1) % rowCount,
+      )
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
       setActiveIndex((index) => (index - 1 + rowCount) % rowCount)
@@ -89,12 +120,20 @@ export function Combobox({
   }
 
   return (
-    <div className={styles.field}>
-      <label htmlFor={id} className={styles.label}>
+    <div className={fieldStyles.field}>
+      <label htmlFor={id} className={fieldStyles.label}>
         {label}
       </label>
 
-      <Popover.Root open={open} onOpenChange={(next) => !disabled && setOpen(next)}>
+      <Popover.Root
+        modal
+        open={open}
+        onOpenChange={(next) => {
+          if (disabled) return
+          setOpen(next)
+          if (next) onOpen?.()
+        }}
+      >
         <Popover.Trigger asChild>
           <button
             id={id}
@@ -132,7 +171,13 @@ export function Combobox({
               onKeyDown={handleKeyDown}
             />
 
-            <div className={styles.list} role="listbox" aria-label={label}>
+            <div
+              ref={listRef}
+              className={styles.list}
+              role="listbox"
+              aria-label={label}
+              onScroll={(event) => loadMoreNearEnd(event.currentTarget)}
+            >
               {onClear && (
                 <button
                   type="button"
@@ -161,6 +206,7 @@ export function Combobox({
                     key={option.id}
                     type="button"
                     role="option"
+                    data-index={index}
                     aria-selected={selectedIds.includes(option.id)}
                     className={`${styles.option} ${index === activeIndex ? styles.active : ''}`}
                     onMouseEnter={() => setActiveIndex(index)}
@@ -175,6 +221,10 @@ export function Combobox({
                     )}
                   </button>
                 ))}
+
+              {!isLoading && !errorMessage && isLoadingMore && (
+                <p className={styles.state}>Loading more…</p>
+              )}
 
               {showCreate && (
                 <button
@@ -191,7 +241,7 @@ export function Combobox({
         </Popover.Portal>
       </Popover.Root>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <p className={fieldStyles.error}>{error}</p>}
     </div>
   )
 }

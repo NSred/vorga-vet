@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { ConfirmDialog, EmptyState, Textarea, useToast } from '@/shared/ui'
+import { ConfirmDialog, EmptyState, layout, PageHeader, Textarea, useToast } from '@/shared/ui'
 import {
   addClinicDays,
   addClinicMonths,
@@ -30,21 +30,9 @@ import {
   useMarkNoShow,
   WeekView,
 } from '@/features/appointments'
-import type {
-  Appointment,
-  AppointmentViewState,
-  CalendarView,
-  PartyField,
-} from '@/features/appointments'
-import {
-  ownerLabel,
-  OwnerPicker,
-  patientLabel,
-  PatientPicker,
-  PatientSummary,
-} from '@/features/patients'
-import type { OwnerOption, PatientListItem } from '@/features/patients'
-import { CheckInPanel, CompleteVisitPanel, WalkInPanel } from '@/widgets/visit'
+import type { Appointment, AppointmentViewState, CalendarView } from '@/features/appointments'
+import { PatientSummary } from '@/features/patients'
+import { CheckInPanel, CompleteVisitPanel, usePartyFields, WalkInPanel } from '@/widgets/visit'
 import styles from './AppointmentsPage.module.css'
 
 type FormState =
@@ -84,8 +72,7 @@ export function AppointmentsPage() {
   const [unresolvedOpen, setUnresolvedOpen] = useState(false)
   const [visit, setVisit] = useState<VisitState>(null)
   const [walkInOpen, setWalkInOpen] = useState(false)
-  const ownerCache = useRef(new Map<string, OwnerOption>())
-  const patientCache = useRef(new Map<string, PatientListItem>())
+  const { ownerField, patientField, ownerOfPatient } = usePartyFields()
   const cancel = useCancelAppointment()
   const noShow = useMarkNoShow()
 
@@ -180,38 +167,14 @@ export function AppointmentsPage() {
     }
   }
 
-  const ownerField = (field: PartyField) => (
-    <OwnerPicker
-      value={field.value ? (ownerCache.current.get(field.value.id) ?? null) : null}
-      onChange={(owner) => {
-        ownerCache.current.set(owner.id, owner)
-        field.onChange({ id: owner.id, label: ownerLabel(owner) })
-      }}
-      error={field.error}
-    />
-  )
-
-  const patientField = (field: PartyField) => (
-    <PatientPicker
-      value={field.value ? (patientCache.current.get(field.value.id) ?? null) : null}
-      onChange={(patient) => {
-        if (patient) patientCache.current.set(patient.id, patient)
-        field.onChange(patient ? { id: patient.id, label: patientLabel(patient) } : null)
-      }}
-      error={field.error}
-    />
-  )
-
   const actionCopy = action ? ACTION_COPY[action.kind] : null
 
   return (
-    <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.title}>Appointments</h1>
-          <p className={styles.subtitle}>Appointment calendar — day, week, and month view.</p>
-        </div>
-      </div>
+    <div className={layout.page}>
+      <PageHeader
+        title="Appointments"
+        subtitle="Appointment calendar — day, week, and month view."
+      />
 
       <UnresolvedBanner onOpen={() => setUnresolvedOpen(true)} />
 
@@ -309,6 +272,7 @@ export function AppointmentsPage() {
           onSaved={() => afterSave('Appointment booked')}
           ownerField={ownerField}
           patientField={patientField}
+          ownerOfPatient={ownerOfPatient}
         />
       )}
 

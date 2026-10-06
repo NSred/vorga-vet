@@ -1,6 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useMemo, useRef, useState } from 'react'
-import { Badge, Button, ConfirmDialog, EmptyState, Skeleton, Textarea, useToast } from '@/shared/ui'
+import { useMemo, useState } from 'react'
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  layout,
+  PageHeader,
+  Skeleton,
+  Textarea,
+  useToast,
+} from '@/shared/ui'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
 import {
   addClinicDays,
@@ -26,11 +36,11 @@ import {
   useCancelAppointment,
 } from '@/features/appointments'
 import type { Appointment, PartyField } from '@/features/appointments'
-import { patientLabel, PatientPicker, usePatientsQuery } from '@/features/patients'
-import type { PatientListItem } from '@/features/patients'
+import { usePatientsQuery } from '@/features/patients'
+import { usePartyFields } from '@/widgets/visit'
 import styles from './ClientAppointmentsPage.module.css'
 
-const WINDOW_DAYS = 62
+const WINDOW_DAYS = 61
 
 function byStartAscending(a: Appointment, b: Appointment): number {
   return a.startsAt.localeCompare(b.startsAt)
@@ -79,7 +89,7 @@ export function ClientAppointmentsPage() {
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const cancel = useCancelAppointment()
-  const patientCache = useRef(new Map<string, PatientListItem>())
+  const party = usePartyFields()
 
   const [booking, setBooking] = useState(false)
   const [rescheduling, setRescheduling] = useState<Appointment | null>(null)
@@ -116,16 +126,9 @@ export function ClientAppointmentsPage() {
 
   const patientField = (field: PartyField) =>
     hasPatients ? (
-      <PatientPicker
-        value={field.value ? (patientCache.current.get(field.value.id) ?? null) : null}
-        onChange={(patient) => {
-          if (patient) patientCache.current.set(patient.id, patient)
-          field.onChange(patient ? { id: patient.id, label: patientLabel(patient) } : null)
-        }}
-        error={field.error}
-      />
+      party.patientField(field)
     ) : (
-      <p className={styles.note}>
+      <p className={layout.note}>
         The clinic will match this booking to your animal when you arrive.
       </p>
     )
@@ -164,22 +167,22 @@ export function ClientAppointmentsPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.title}>Your visits</h1>
-          <p className={styles.subtitle}>Book a visit and see the ones you already have.</p>
-        </div>
-        <Button variant="primary" type="button" onClick={() => setBooking(true)}>
-          ＋ Book a visit
-        </Button>
-      </div>
+    <div className={layout.page}>
+      <PageHeader
+        title="Your visits"
+        subtitle="Book a visit and see the ones you already have."
+        actions={
+          <Button variant="primary" type="button" onClick={() => setBooking(true)}>
+            ＋ Book a visit
+          </Button>
+        }
+      />
 
       {hasError ? (
         <EmptyState message="Your visits could not be loaded." />
       ) : (
         <>
-          <section className={styles.section}>
+          <section className={layout.stackTight}>
             <h2 className={styles.sectionTitle}>Upcoming</h2>
             {isPending ? (
               <Skeleton height="4rem" />
@@ -210,7 +213,7 @@ export function ClientAppointmentsPage() {
             )}
           </section>
 
-          <section className={styles.section}>
+          <section className={layout.stackTight}>
             <h2 className={styles.sectionTitle}>Past</h2>
             {isPending ? (
               <Skeleton height="4rem" />

@@ -1,0 +1,17 @@
+.nameCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-faint);
+}
+
+.retiredRow {
+  opacity: 0.55;
+}

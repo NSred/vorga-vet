@@ -12,6 +12,13 @@ internal sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
     {
         builder.HasKey(p => p.Id);
 
+        // birth_date is timestamptz, but a birthday arrives as a bare "2021-08-10" and lands as
+        // Kind=Unspecified, which Npgsql refuses. It is a calendar date, so read it as UTC midnight.
+        builder.Property(p => p.BirthDate)
+            .HasConversion(
+                d => d != null ? DateTime.SpecifyKind(d.Value, DateTimeKind.Utc) : d,
+                v => v);
+
         builder.HasIndex(p => p.CardNumber).IsUnique();
 
         builder.HasIndex(p => p.Name).HasMethod("gin").HasOperators("gin_trgm_ops");

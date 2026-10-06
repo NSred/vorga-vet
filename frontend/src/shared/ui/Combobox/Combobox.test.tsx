@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { Modal } from '../Modal/Modal'
 import { Combobox, type ComboboxOption, type ComboboxProps } from './Combobox'
 
 const options: ComboboxOption[] = [
@@ -108,5 +109,73 @@ describe('Combobox', () => {
     await user.click(screen.getByRole('button', { name: /Owner/ }))
 
     expect(screen.queryByText('Subić Vladimir')).not.toBeInTheDocument()
+  })
+
+  it('asks for more when the list is scrolled to the end and more exist', async () => {
+    const user = userEvent.setup()
+    const onLoadMore = vi.fn()
+    setup({ hasMore: true, onLoadMore })
+
+    await user.click(screen.getByRole('button', { name: 'Owner' }))
+    fireEvent.scroll(screen.getByRole('listbox', { name: 'Owner' }))
+
+    expect(onLoadMore).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not ask for more when everything is loaded or a page is loading', async () => {
+    const user = userEvent.setup()
+    const onLoadMore = vi.fn()
+    setup({ hasMore: true, isLoadingMore: true, onLoadMore })
+
+    await user.click(screen.getByRole('button', { name: 'Owner' }))
+    fireEvent.scroll(screen.getByRole('listbox', { name: 'Owner' }))
+
+    expect(onLoadMore).not.toHaveBeenCalled()
+    expect(screen.getByText('Loading more…')).toBeInTheDocument()
+    expect(screen.getAllByRole('option')).toHaveLength(2)
+  })
+
+  it('asks for more when the keyboard reaches the last options', async () => {
+    const user = userEvent.setup()
+    const onLoadMore = vi.fn()
+    setup({ hasMore: true, onLoadMore, onCreate: undefined })
+
+    await user.click(screen.getByRole('button', { name: 'Owner' }))
+    await user.keyboard('{ArrowDown}')
+
+    expect(onLoadMore).toHaveBeenCalled()
+  })
+})
+
+describe('Combobox inside a dialog', () => {
+  function makeScrollable(list: HTMLElement) {
+    list.style.overflowY = 'auto'
+    Object.defineProperty(list, 'clientHeight', { configurable: true, value: 100 })
+    Object.defineProperty(list, 'scrollHeight', { configurable: true, value: 500 })
+  }
+
+  it('lets the mouse wheel scroll its list while the dialog locks the page', async () => {
+    const user = userEvent.setup()
+    render(
+      <Modal open onOpenChange={vi.fn()} title="New patient" description="Pick an owner.">
+        <Combobox
+          label="Owner"
+          triggerText=""
+          query=""
+          onQueryChange={vi.fn()}
+          options={options}
+          onSelect={vi.fn()}
+        />
+      </Modal>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Owner' }))
+    const list = await screen.findByRole('listbox', { name: 'Owner' })
+    makeScrollable(list)
+
+    const wheel = new WheelEvent('wheel', { deltaY: 40, bubbles: true, cancelable: true })
+    within(list).getAllByRole('option')[0].dispatchEvent(wheel)
+
+    expect(wheel.defaultPrevented).toBe(false)
   })
 })

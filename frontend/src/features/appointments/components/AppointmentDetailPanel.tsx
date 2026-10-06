@@ -1,10 +1,9 @@
 import type { ReactNode } from 'react'
-import { Badge, Button, SlidePanel } from '@/shared/ui'
-import { clinicDateOf, clinicTimeOf } from '@/shared/lib/clinicTime'
+import { Badge, Button, DetailSection, Field, FieldGrid, SlidePanel } from '@/shared/ui'
+import { clinicDateOf, clinicTimeOf, weekdayName } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { partyLabel, statusLabel, statusTone, typeLabel } from '../lib/appointmentLabels'
 import { canReschedule, canTransition } from '../lib/appointmentTransitions'
-import { WEEKDAYS } from '../lib/dateHelpers'
 import type { Appointment } from '../types'
 import styles from './AppointmentDetailPanel.module.css'
 
@@ -19,21 +18,6 @@ export interface AppointmentDetailPanelProps {
   onNoShow?: () => void
   onCheckIn?: () => void
   onComplete?: () => void
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.field}>
-      <span className={styles.fieldLabel}>{label}</span>
-      <span className={styles.fieldValue}>{value}</span>
-    </div>
-  )
-}
-
-function weekdayOf(dateIso: string): string {
-  const [year, month, day] = dateIso.split('-').map(Number)
-
-  return WEEKDAYS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()]
 }
 
 function hasStarted(appointment: Appointment): boolean {
@@ -75,7 +59,7 @@ export function AppointmentDetailPanel({
           <div>
             <div className={styles.title}>{partyLabel(appointment)}</div>
             <div className={styles.subtitle}>
-              {weekdayOf(dateIso)}, {formatDisplayDate(dateIso)} · {timeRange}
+              {weekdayName(dateIso)}, {formatDisplayDate(dateIso)} · {timeRange}
             </div>
           </div>
         </div>
@@ -117,28 +101,24 @@ export function AppointmentDetailPanel({
         ) : null
       }
     >
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Appointment</h3>
-        <div className={styles.grid}>
+      <DetailSection title="Appointment">
+        <FieldGrid>
           <Field label="Date" value={formatDisplayDate(dateIso)} />
           <Field label="Time" value={timeRange} />
           <Field label="Duration" value={`${appointment.durationMinutes} min`} />
           <Field label="Type" value={typeLabel(appointment.type)} />
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Status</span>
-            <span className={styles.fieldValue}>
+          <Field
+            label="Status"
+            value={
               <Badge tone={statusTone(appointment.status)}>{statusLabel(appointment.status)}</Badge>
-            </span>
-          </div>
+            }
+          />
           <Field label="Created" value={formatDisplayDate(clinicDateOf(appointment.createdAt))} />
-          <Field label="Reason" value={appointment.reason ?? '—'} />
-        </div>
-      </section>
+          <Field label="Reason" value={appointment.reason} />
+        </FieldGrid>
+      </DetailSection>
 
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Patient</h3>
-        {patientSection}
-      </section>
+      <DetailSection title="Patient">{patientSection}</DetailSection>
     </SlidePanel>
   )
 }

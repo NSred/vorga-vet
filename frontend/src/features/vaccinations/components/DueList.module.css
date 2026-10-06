@@ -1,0 +1,81 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 10.5rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.what {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.when,
+.overdue {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.when {
+  color: var(--text-muted);
+}
+
+.overdue {
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.patient {
+  min-width: 0;
+}
+
+.action {
+  justify-self: end;
+}
+
+.muted {
+  margin: 0;
+  color: var(--text-faint);
+}
+
+@media (max-width: 760px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .action {
+    justify-self: start;
+  }
+}

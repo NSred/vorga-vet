@@ -1,0 +1,32 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.addButton {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addButton:hover {
+  text-decoration: underline;
+}
+
+.addButton:disabled {
+  color: var(--text-faint);
+  cursor: default;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}

@@ -2,9 +2,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, ConfirmDialog, useToast } from '@/shared/ui'
+import { usePanelState } from '@/shared/lib/usePanelState'
+import { Button, ConfirmDialog, layout, PageHeader, useToast } from '@/shared/ui'
 import { useAuth } from '@/features/auth'
-import { ExaminationEditPanel, VisitHistory } from '@/features/examinations'
+import { ExaminationEditPanel } from '@/features/examinations'
 import type { Examination } from '@/features/examinations'
 import {
   PeakHoursPanel,
@@ -14,11 +15,10 @@ import {
   TotalPatientsTile,
 } from '@/widgets/dashboard'
 import {
-  getPatient,
   parseFilterParams,
+  patientDetailQuery,
   patientErrors,
   patientKeys,
-  PatientDetailPanel,
   PatientFilters,
   PatientFormPanel,
   PatientTable,
@@ -27,21 +27,15 @@ import {
   useDeletePatient,
   usePatientsQuery,
 } from '@/features/patients'
-import type {
-  PatientDetail,
-  PatientFiltersType,
-  PatientListItem,
-  PatientPage,
-} from '@/features/patients'
-import styles from './PatientsPage.module.css'
+import { DiagnosisPicker } from '@/features/diagnoses'
+import { PatientCardPanel } from '@/widgets/patientCard'
+import { useVisitCharges } from '@/widgets/visit'
+import type { PatientDetail, PatientFiltersType } from '@/features/patients'
 
 type PanelState =
-  | { mode: 'closed' }
   | { mode: 'create' }
   | { mode: 'view'; patient: PatientDetail }
   | { mode: 'edit'; patient: PatientDetail }
-
-const EMPTY_PAGE: PatientPage = { items: [], totalCount: 0, page: 1, pageSize: 10 }
 
 export function PatientsPage() {
   const { showToast } = useToast()
@@ -50,14 +44,14 @@ export function PatientsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { filters, allergenName, page, pageSize } = parseFilterParams(searchParams)
 
-  const [panel, setPanel] = useState<PanelState>({ mode: 'closed' })
-  const [displayPanel, setDisplayPanel] = useState<PanelState>({ mode: 'closed' })
-  if (panel.mode !== 'closed' && panel !== displayPanel) {
-    setDisplayPanel(panel)
-  }
+  const { panel, displayPanel, setPanel, closePanel } = usePanelState<PanelState>()
   const [peakHoursOpen, setPeakHoursOpen] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [editingVisit, setEditingVisit] = useState<Examination | null>(null)
+  const visitCharges = useVisitCharges({
+    open: editingVisit !== null,
+    examination: editingVisit ?? undefined,
+  })
 
   const queryClient = useQueryClient()
   const remove = useDeletePatient()
@@ -65,13 +59,20 @@ export function PatientsPage() {
   const activeFilters: PatientFiltersType = { ...filters, allergen }
 
   const patientsQuery = usePatientsQuery(activeFilters, page, pageSize, !isAllergenPending)
-  const patientPage = patientsQuery.data ?? EMPTY_PAGE
 
   const writeParams = useCallback(
     (nextFilters: PatientFiltersType, nextPage: number, nextPageSize: number) => {
       setSearchParams(toFilterParams(nextFilters, nextPage, nextPageSize), { replace: true })
     },
     [setSearchParams],
+  )
+
+  const openPatient = useCallback(
+    (patientId: string) =>
+      queryClient
+        .query(patientDetailQuery(patientId))
+        .then((patient) => setPanel({ mode: 'view', patient })),
+    [queryClient, setPanel],
   )
 
   useEffect(() => {
@@ -87,34 +88,19 @@ export function PatientsPage() {
       { replace: true },
     )
 
-    queryClient
-      .query({
-        queryKey: patientKeys.detail(patientId),
-        queryFn: () => getPatient(patientId),
-      })
-      .then((patient) => setPanel({ mode: 'view', patient }))
-      .catch(() => undefined)
-  }, [searchParams, setSearchParams, queryClient])
-
-  const closePanel = () => setPanel({ mode: 'closed' })
+    openPatient(patientId).catch(() => undefined)
+  }, [searchParams, setSearchParams, openPatient])
 
   const afterWrite = (title: string) => {
     closePanel()
     showToast({ tone: 'success', title })
   }
 
-  const openPatient = (patient: PatientListItem) => {
-    queryClient
-      .query({
-        queryKey: patientKeys.detail(patient.id),
-        queryFn: () => getPatient(patient.id),
-      })
-      .then((detail) => setPanel({ mode: 'view', patient: detail }))
-      .catch(() => {
-        showToast({ tone: 'error', title: 'Could not open that patient' })
-        queryClient.invalidateQueries({ queryKey: patientKeys.all })
-      })
-  }
+  const openRow = (patientId: string) =>
+    openPatient(patientId).catch(() => {
+      showToast({ tone: 'error', title: 'Could not open that patient' })
+      void queryClient.invalidateQueries({ queryKey: patientKeys.all })
+    })
 
   const handleDelete = (patientId: string) => {
     remove.mutate(patientId, {
@@ -134,20 +120,18 @@ export function PatientsPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.title}>Patient Records</h1>
-          <p className={styles.subtitle}>
-            Overview and entry of animals, owners, and basic medical information.
-          </p>
-        </div>
-        {isVeterinarian && (
-          <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
-            ＋ New patient
-          </Button>
-        )}
-      </div>
+    <div className={layout.page}>
+      <PageHeader
+        title="Patient Records"
+        subtitle="Overview and entry of animals, owners, and basic medical information."
+        actions={
+          isVeterinarian && (
+            <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
+              ＋ New patient
+            </Button>
+          )
+        }
+      />
 
       <StatGrid>
         <TotalPatientsTile />
@@ -158,17 +142,17 @@ export function PatientsPage() {
       <PatientFilters filters={activeFilters} onChange={(next) => writeParams(next, 1, pageSize)} />
 
       <PatientTable
-        patients={patientPage.items}
+        patients={patientsQuery.data?.items ?? []}
         isLoading={patientsQuery.isLoading || isAllergenPending}
         page={page}
         pageSize={pageSize}
-        totalCount={patientPage.totalCount}
+        totalCount={patientsQuery.data?.totalCount ?? 0}
         hasFilters={Boolean(
           filters.search || filters.species || filters.sex || filters.city || allergenName,
         )}
         onPageChange={(next) => writeParams(activeFilters, next, pageSize)}
         onPageSizeChange={(next) => writeParams(activeFilters, 1, next)}
-        onRowClick={openPatient}
+        onRowClick={(patient) => void openRow(patient.id)}
         emptyMessage={
           isVeterinarian
             ? undefined
@@ -177,21 +161,13 @@ export function PatientsPage() {
       />
 
       {displayPanel.mode === 'view' && (
-        <PatientDetailPanel
+        <PatientCardPanel
           patient={displayPanel.patient}
           open={panel.mode === 'view'}
           onOpenChange={(open) => !open && closePanel()}
-          onEdit={
-            isVeterinarian
-              ? () => setPanel({ mode: 'edit', patient: displayPanel.patient })
-              : undefined
-          }
-          onDelete={isVeterinarian ? () => setConfirmDeleteId(displayPanel.patient.id) : undefined}
-          visitsSection={
-            isVeterinarian ? (
-              <VisitHistory patientId={displayPanel.patient.id} onEdit={setEditingVisit} />
-            ) : undefined
-          }
+          onEdit={() => setPanel({ mode: 'edit', patient: displayPanel.patient })}
+          onDelete={() => setConfirmDeleteId(displayPanel.patient.id)}
+          onEditVisit={setEditingVisit}
         />
       )}
 
@@ -231,6 +207,8 @@ export function PatientsPage() {
       {editingVisit && (
         <ExaminationEditPanel
           examination={editingVisit}
+          costSlot={visitCharges}
+          renderDiagnosis={(field) => <DiagnosisPicker {...field} />}
           open
           onOpenChange={(open) => !open && setEditingVisit(null)}
           onSaved={() => {

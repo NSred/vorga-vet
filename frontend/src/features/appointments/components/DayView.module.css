@@ -1,40 +1,77 @@
 .day {
+  --day-slot-height: 2.25rem;
+
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  background: var(--surface);
   overflow: hidden;
 }
 
-.slotRow {
+.grid {
+  display: grid;
+}
+
+.label,
+.labelBusy {
+  padding: 0.55rem 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  color: var(--text-faint);
+}
+
+.labelBusy {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cell,
+.freeCell {
   display: flex;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
+  align-items: center;
   border-bottom: 1px solid var(--border);
 }
 
-.slotRow:last-child {
-  border-bottom: none;
+.freeCell {
+  padding: 0 0.6rem;
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.slotLabel {
-  flex: 0 0 3rem;
+.free {
+  padding-left: 0.6rem;
   font-size: 0.72rem;
-  color: var(--text-faint);
-  padding-top: 0.15rem;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity 140ms ease;
 }
 
-.slotChips {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  min-height: 1.5rem;
+.freeCell .free {
+  padding-left: 0;
 }
 
-.free,
-.continues {
-  font-size: 0.72rem;
+.freeCell:hover,
+.freeCell:focus-visible {
+  outline: none;
+  background: var(--accent-soft);
+}
+
+.freeCell:hover .free,
+.freeCell:focus-visible .free,
+.cell .free {
+  opacity: 1;
+}
+
+.cell .free {
   color: var(--text-faint);
-  padding: 0.2rem 0.45rem;
 }
 
 .outside {
@@ -47,22 +84,15 @@
 
 .outsideLabel {
   flex: 0 0 9rem;
+  padding-top: 0.15rem;
   font-size: 0.72rem;
   color: var(--warn);
-  padding-top: 0.15rem;
 }
 
-.freeButton {
-  font-size: 0.72rem;
-  color: var(--accent);
-  padding: 0.2rem 0.45rem;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  cursor: pointer;
-  align-self: flex-start;
-}
-
-.freeButton:hover {
-  background: var(--accent-soft);
+.outsideChips {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
 }

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { ApiError } from '@/shared/lib/apiClient'
 import * as examinationsApi from '../api/examinationsApi'
-import type { Examination } from '../types'
+import type { CostSlot, DiagnosisFieldProps, Examination } from '../types'
 import { ExaminationEditPanel } from './ExaminationEditPanel'
 
 const examination: Examination = {
@@ -22,11 +22,42 @@ const examination: Examination = {
   attachments: [],
 }
 
-function renderPanel() {
-  const props = { onOpenChange: vi.fn(), onSaved: vi.fn(), onMissing: vi.fn() }
-  render(<ExaminationEditPanel examination={examination} open {...props} />)
+function fakeDiagnosis({ value, onChange, error }: DiagnosisFieldProps) {
+  return (
+    <>
+      <input
+        aria-label="Diagnosis"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {error && <p>{error}</p>}
+    </>
+  )
+}
 
-  return props
+function costSlot(overrides: Partial<CostSlot> = {}): CostSlot {
+  return {
+    section: <p>charges</p>,
+    total: 3200,
+    validate: vi.fn(() => true),
+    commit: vi.fn(() => Promise.resolve()),
+    ...overrides,
+  }
+}
+
+function renderPanel(slot: CostSlot = costSlot()) {
+  const props = { onOpenChange: vi.fn(), onSaved: vi.fn(), onMissing: vi.fn() }
+  render(
+    <ExaminationEditPanel
+      examination={examination}
+      costSlot={slot}
+      renderDiagnosis={fakeDiagnosis}
+      open
+      {...props}
+    />,
+  )
+
+  return { ...props, slot }
 }
 
 afterEach(() => {
@@ -42,7 +73,7 @@ describe('ExaminationEditPanel', () => {
     )
     expect((screen.getByLabelText('Anamnesis') as HTMLTextAreaElement).value).toBe('scratching')
     expect((screen.getByLabelText('Diagnosis') as HTMLTextAreaElement).value).toBe('otitis')
-    expect((screen.getByLabelText('Cost') as HTMLInputElement).value).toBe('45.5')
+    expect(screen.getByText('charges')).toBeInTheDocument()
   })
 
   it('shows the visit date in the header', () => {
@@ -68,10 +99,15 @@ describe('ExaminationEditPanel', () => {
         anamnesis: 'scratching',
         diagnosis: 'otitis externa',
         therapy: 'drops twice daily',
-        cost: 45.5,
+        cost: 3200,
       }),
     )
-    expect(props.onSaved).toHaveBeenCalled()
+    await waitFor(() => expect(props.onSaved).toHaveBeenCalled())
+    expect(props.slot.commit).toHaveBeenCalledWith({
+      id: 'e1',
+      patientId: 'p1',
+      startedAt: '2026-09-17T07:00:00Z',
+    })
   })
 
   it('hands a vanished examination to the caller', async () => {
@@ -86,6 +122,19 @@ describe('ExaminationEditPanel', () => {
     await waitFor(() =>
       expect(props.onMissing).toHaveBeenCalledWith('That examination no longer exists.'),
     )
+    expect(props.onSaved).not.toHaveBeenCalled()
+    expect(props.slot.commit).not.toHaveBeenCalled()
+  })
+
+  it('does not save while the charges are invalid', async () => {
+    const updateSpy = vi.spyOn(examinationsApi, 'updateExamination').mockResolvedValue(undefined)
+    const user = userEvent.setup()
+    const props = renderPanel(costSlot({ validate: vi.fn(() => false) }))
+
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(props.slot.validate).toHaveBeenCalled()
+    expect(updateSpy).not.toHaveBeenCalled()
     expect(props.onSaved).not.toHaveBeenCalled()
   })
 

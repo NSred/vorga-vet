@@ -47,12 +47,16 @@ The `RoleRoute` component stays for future vet-only routes.
 
 **Page.** `pages/ClientAppointmentsPage.tsx`, composed from existing features:
 
-- **Upcoming**: `useAppointmentsQuery` over `[clinicToday, +62 days)`, filtered to
+- **Upcoming**: `useAppointmentsQuery` over `[clinicToday, +61 days)`, filtered to
   `scheduled` and `checked_in`, sorted by start. Each row shows date, time, type, patient if any,
   status, and "Reschedule" and "Cancel" while `canReschedule` / `canTransition(status,
   'cancelled')` allow it.
-- **Past**: a second query over `[today − 62 days, today)`, everything else, newest first, with
+- **Past**: a second query over `[today − 61 days, today)`, everything else, newest first, with
   the status badge. Cancelled and no-show are shown here too; there is no toggle.
+- **Why 61 days, not 62**: the API limit is 62 × 24 hours, and a window of 62 clinic days that
+  crosses the end of daylight saving in October is one hour longer, which the API refuses with
+  `Appointments.RangeTooWide`. The spring change shortens a window, and 61 days cannot cross
+  both changes. Corrected on 2026-10-06; the test pins dates on both sides of each change.
 - **Book a visit**: primary button opening the booking form.
 - Empty states for both lists; the upcoming one carries the booking button.
 

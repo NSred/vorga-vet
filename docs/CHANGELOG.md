@@ -3,6 +3,78 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-06 — Dropdowns scroll with the mouse wheel
+
+Frontend only. 127 test files, 716 tests, typecheck and lint clean, production build passes.
+
+- A `Select` list is capped at the height left in the window, so long lists such as start
+  time, surgery duration and medication unit scroll instead of running off the screen.
+- A `Combobox` popover is modal, so its list scrolls with the wheel inside panels and modals,
+  and scroll paging in the patient, price list and diagnosis pickers triggers again.
+
+Details: [document](specs/2026-10-06-dropdown-wheel-scroll.md)
+
+## 2026-10-06 — Frontend consolidation
+
+Frontend only. 127 test files, 715 tests, typecheck and lint clean, production build passes.
+
+- The six mock stores run on one shared local-storage engine; each keeps only its own rules and
+  message wording, and demo data already saved in a browser still loads.
+- Paged lists share `Page<T>`, one URL-param reader and writer, and `PagedTable`; diagnoses and
+  the price list share their catalogue types, retire/restore hook and button.
+- All eleven dialogs use `FormDialog` and react-hook-form; error messages come from one
+  `apiErrorMessage`.
+- Panels take `title` and `subtitle`; repeated layout and input-label CSS lives in two shared
+  modules, and twelve stylesheets were deleted.
+- The calendar's lane packing, the weekday helpers, the booking pickers and the patient card are
+  each written once; `widgets/patientCard` takes the detail sections out of the patients page.
+- Production TypeScript went from 18,667 to 18,127 lines and CSS from 4,978 to 4,273.
+- Fixed: a client's visit lists failed to load when their window crossed the end of daylight
+  saving, because 62 clinic days came out one hour over the API's 62-day limit. The windows are
+  now 61 days.
+
+Details: [document](specs/2026-10-06-frontend-consolidation.md)
+
+## 2026-10-05 — Calendar day and week as timelines
+
+Frontend only. 121 test files, 691 tests, typecheck and lint clean.
+
+- The day and week views are time grids of half-hour rows, and each visit is one block as long as
+  the visit, with time range, patient, owner and a duration badge ("2h"). Overlapping visits sit
+  side by side; the week's three-visit limit and "+N more" link are gone.
+- Week day headers show the weekday, date, Closed when the clinic is shut and the number of
+  visits, and open that day. Hours outside opening time are shaded and today is tinted.
+- In the day view a free row is the Book button, and completed, cancelled and no-show visits are
+  solid grey instead of faded.
+- `layoutDay` in `lib/daySlots.ts` replaces `buildDayRows`, and `layoutWeek` in `lib/weekGrid.ts`
+  works in clinic-local minutes so days with different opening hours share one set of rows.
+
+## 2026-10-05 — Legacy-gap features on the frontend
+
+Frontend only, on mock data where the backend has no endpoint yet. 121 test files, 691 tests,
+typecheck and lint clean. ([document](specs/2026-10-05-legacy-features-frontend.md))
+
+- New vet-only pages: **Price list** (services and medications, retire and restore), **Lists**
+  (diagnoses with codes and paste a list; breeds and allergens on the real endpoints),
+  **Reminders** (overdue and coming due, with the owner's phone) and **Reports** (daily report,
+  unpaid exams, deleted cards). Each keeps its view in the URL.
+- The exam's typed Cost is replaced by charges picked from the price list plus additional cost
+  lines; a vaccine given on an exam records a vaccination with its next due date, and the
+  diagnosis is picked from the list or typed.
+- The patient card gains vaccinations, reminders and a microchip section, and prints a rabies
+  certificate and a microchip registration sheet in Serbian on A4. The owner's JMBG is printed
+  but never stored.
+- Booking takes the owner from the chosen patient, a full day offers **Next free day**, and search
+  dropdowns load when opened and fetch the next page on scroll.
+- Price list, charges, diagnoses, vaccinations, certificates and microchips run on mocks saved to
+  local storage in the shape of the
+  [backend API proposal](specs/2026-10-05-legacy-features-backend-api.md); reports read every
+  patient's exams until a reports endpoint exists.
+- Repeated UI moved to `shared`: `PrintDocument`, `RecordList`, `PageHeader`, `FormError`,
+  `Checkbox`, `useSearchDraft`, `usePanelState`, paged `useEntitySearch`, `money.ts` and the
+  Serbian print labels. The day's seven documents were merged into one, and the
+  [overview](specs/2026-10-04-legacy-program-gap.md) points to it.
+
 ## 2026-10-04 — Test environment on Render and Neon
 
 Backend and DevOps. 224 backend tests pass (134 unit, 6 architecture, 84 integration), run in a

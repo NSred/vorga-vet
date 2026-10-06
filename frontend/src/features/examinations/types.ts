@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { ExaminationDetails } from '@/shared/domain/examinationDetails'
 
 export type { ExaminationDetails }
@@ -71,5 +72,23 @@ export interface ExaminationFormValues {
   anamnesis: string
   diagnosis: string
   therapy: string
-  cost: string
+}
+
+export interface DiagnosisFieldProps {
+  value: string
+  onChange: (value: string) => void
+  error?: string
+}
+
+export interface ExaminationRef {
+  id: string
+  patientId: string
+  startedAt: string
+}
+
+export interface CostSlot {
+  section: ReactNode
+  total?: number
+  validate: () => boolean
+  commit: (examination: ExaminationRef) => Promise<void>
 }

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Combobox } from '@/shared/ui'
 import { ownerLabel, searchOwners } from '../../api/ownersApi'
-import { useEntitySearch } from '../../hooks/useEntitySearch'
+import { searchComboboxProps, useEntitySearch } from '@/shared/lib/useEntitySearch'
 import type { OwnerOption } from '../../types'
 import { CreateOwnerDialog } from './CreateOwnerDialog'
 import styles from './OwnerPicker.module.css'
@@ -15,7 +15,7 @@ export interface OwnerPickerProps {
 export function OwnerPicker({ value, onChange, error }: OwnerPickerProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const fetcher = useCallback((term: string) => searchOwners(term), [])
-  const { query, setQuery, results, isLoading, errorMessage } = useEntitySearch(['owners'], fetcher)
+  const search = useEntitySearch(['owners'], fetcher)
 
   return (
     <div className={styles.wrapper}>
@@ -24,22 +24,19 @@ export function OwnerPicker({ value, onChange, error }: OwnerPickerProps) {
         label="Owner *"
         triggerText={value ? ownerLabel(value) : ''}
         placeholder="Search owners…"
-        query={query}
-        onQueryChange={setQuery}
-        options={results.map((owner) => ({
+        {...searchComboboxProps(search)}
+        options={search.results.map((owner) => ({
           id: owner.id,
           label: ownerLabel(owner),
           hint: owner.phoneNumber,
         }))}
         onSelect={(option) => {
-          const owner = results.find((candidate) => candidate.id === option.id)
+          const owner = search.results.find((candidate) => candidate.id === option.id)
           if (owner) onChange(owner)
         }}
         onCreate={() => setDialogOpen(true)}
         createLabel="Create owner"
         selectedIds={value ? [value.id] : []}
-        isLoading={isLoading}
-        errorMessage={errorMessage}
         emptyMessage="No owners found"
         error={error}
       />

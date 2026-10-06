@@ -110,6 +110,8 @@ frontend/
 
 This pass was the dedicated clean-up, but four later sub-projects each changed shared code too.
 Together with the list above, this is the whole set of app-wide changes in the appointments arc.
+The rows from the nav-label row to the `widgets/reports/` row come from the legacy-gap work that
+started on 2026-10-04, and the rows after them from the consolidation of 2026-10-06.
 
 | Change | Why | Where it is explained |
 |---|---|---|
@@ -123,3 +125,28 @@ Together with the list above, this is the whole set of app-wide changes in the a
 | `Select` gained per-option `disabled` | a client's own slot is shown as unselectable rather than as a gap | [client appointments](2026-09-21-client-appointments.md) |
 | `clinicTime` gained `clinicUpcomingDaysRange` | the client page needs a forward window, the mirror of the existing backward one | [client appointments](2026-09-21-client-appointments.md) |
 | `AppLayout` shows the Appointments link to both roles | clients now have their own page at the same route | [client appointments](2026-09-21-client-appointments.md) |
+| `AppLayout` keeps nav labels on one line and truncates the email | a third link, Price list, made the header wrap and overlap at about 800 px | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `shared/lib/money.ts` with `formatPrice` and `MAX_AMOUNT` | the price list, the exam card and the paid step all show `2.500,00 RSD` and share the numeric(10,2) limit | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `ExaminationFields` takes `control` and `renderDiagnosis`, and `ExaminationEditPanel` passes `renderDiagnosis`; the Diagnosis text area is gone | the examinations feature may not import diagnoses, so pages and widgets supply the picker | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `CostSlot.commit` takes an `ExaminationRef` (id, patient, start) instead of the id | recording a vaccination needs the exam's patient and date, which the charges alone never did | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `PatientDetailPanel` gained `vaccinationsSection` and `remindersSection` | the patients feature may not import vaccinations, so the page fills the slots | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `index.css` gained `.print-root` and `@media print` rules for an A4 page | printing shows only the print container, hiding the app and its dialogs; any later document can use the same container | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `PrintPortal` moved from the vaccinations feature to `shared/ui` | the microchip registration sheet prints through the same container, and features may not import each other | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `useEntitySearch` and `usePagedEntitySearch` in `shared/lib`; `Combobox` gained `onOpen`, `hasMore`, `isLoadingMore`, `onLoadMore` | dropdowns fetch only when opened, and the patient, price list and diagnosis dropdowns page on scroll instead of stopping at the first page | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `PrintIcon`, `formatAmount`, `telHref`, `Table` column `align`, `DatePicker` `formatValue` | the reports page shows a print icon, amounts with a smaller currency, phone links, right-aligned money and the weekday in the day picker | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `SegmentedControl` is as wide as its tabs and re-measures its highlight when a tab resizes | the border ran to the page edge on the Reminders page, and the highlight kept a width measured before the web font loaded | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `AppLayout` nav scrolls sideways inside the header and keeps the active link in view | a fifth vet link, Reports, made the page scroll sideways at about 800 px | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `widgets/reports/` layer added | the reports join patients, their exams and the price list's charges, which no feature may do | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `shared/lib/mockStore.ts`, `mockApi.ts`, `validation.ts` | six mock stores repeated the same local-storage plumbing and checks | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `Page<T>` and `mapPage` in `shared/domain/page.ts`; `shared/lib/listParams.ts` | seven page interfaces and three URL-param parsers were the same code | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `shared/domain/catalog.ts` | diagnoses and the price list share the status, filters and query shape of a retirable list | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `PagedTable`, `FormDialog`, `Details` (`DetailSection`, `FieldGrid`, `Field`) and `RetireRestore` in `shared/ui` | tables, dialogs, detail sections and retire/restore were rebuilt per feature | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `SlidePanel` takes `title`, `subtitle`, `badge`; the `warn` header tone is gone | ten panels drew their own title, and nothing used `warn` | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `layout.module.css` and `field.module.css` in `shared/ui`, exported as `layout` and `fieldStyles` | the same layout and input-label rules were copied into up to fourteen modules | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `apiErrorMessage` in `apiClient`; `textRule` in `shared/lib/formRules.ts`; `plural` in `shared/lib/text.ts` | six error-message helpers and many form rules were copies | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `clinicTime` gained `WEEKDAYS`, `MONDAY_FIRST_WEEKDAYS`, `clinicWeekday`, `weekdayName` | three places computed weekday names their own way | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `shared/ui` exports components only, plus `layout` and `fieldStyles`; `Spinner` removed | no caller used the props types or the spinner | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `widgets/patientCard/` layer added; `usePartyFields` in `widgets/visit` | the patient card needs four features, and both appointment pages built the same pickers | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `Select` content capped at the available height; `Combobox` popover is `modal` | the Radix scroll lock cancelled the wheel on long Select lists and on Combobox lists inside dialogs | [dropdown wheel scroll](2026-10-06-dropdown-wheel-scroll.md) |
+| `PatientDetailPanel` gained `microchipSection` | the page composes the microchips and vaccinations features into it | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `ExaminationFields` takes `costSection`, `ExaminationEditPanel` takes `costSlot`, `VisitHistory` takes `renderCharges`; the Cost field and `parseCost` are gone | the examinations feature may not import the price list, so pages and widgets fill the slots | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |

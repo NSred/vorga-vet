@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { clinicDateOf, clinicTimeOf } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
+import { formatPrice } from '@/shared/lib/money'
 import { Badge, Button, useToast } from '@/shared/ui'
 import { examinationErrorMessage } from '../api/examinationErrors'
 import { usePayExamination } from '../hooks/useExaminationMutations'
@@ -11,6 +12,7 @@ import styles from './ExaminationCard.module.css'
 export interface ExaminationCardProps {
   examination: Examination
   onEdit?: (examination: Examination) => void
+  charges?: ReactNode
 }
 
 const CLAMP_AT = 180
@@ -35,7 +37,7 @@ function ClinicalField({ label, value }: { label: string; value?: string }) {
   )
 }
 
-export function ExaminationCard({ examination, onEdit }: ExaminationCardProps) {
+export function ExaminationCard({ examination, onEdit, charges }: ExaminationCardProps) {
   const { showToast } = useToast()
   const pay = usePayExamination()
 
@@ -77,9 +79,11 @@ export function ExaminationCard({ examination, onEdit }: ExaminationCardProps) {
 
       <AttachmentStrip examinationId={examination.id} attachments={examination.attachments} />
 
+      {charges}
+
       <footer className={styles.footer}>
         <span className={styles.cost}>
-          {hasCost ? `${examination.cost?.toFixed(2)}` : 'No cost recorded'}
+          {examination.cost !== undefined ? formatPrice(examination.cost) : 'No cost recorded'}
         </span>
         <div className={styles.actions}>
           {canPay && (

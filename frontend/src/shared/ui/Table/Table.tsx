@@ -6,6 +6,7 @@ export interface TableColumn<T> {
   key: string
   header: string
   sortable?: boolean
+  align?: 'left' | 'right'
   render: (row: T) => ReactNode
 }
 
@@ -45,6 +46,7 @@ export function Table<T>({
               <th
                 key={column.key}
                 className={column.sortable ? styles.sortable : undefined}
+                style={column.align === 'right' ? { textAlign: 'right' } : undefined}
                 onClick={column.sortable ? () => onSortChange?.(column.key) : undefined}
               >
                 {column.header}
@@ -76,7 +78,12 @@ export function Table<T>({
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
               >
                 {columns.map((column) => (
-                  <td key={column.key}>{column.render(row)}</td>
+                  <td
+                    key={column.key}
+                    style={column.align === 'right' ? { textAlign: 'right' } : undefined}
+                  >
+                    {column.render(row)}
+                  </td>
                 ))}
               </tr>
             ))}

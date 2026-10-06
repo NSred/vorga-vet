@@ -60,10 +60,14 @@ describe('DayView', () => {
     expect(screen.getByText('Free')).toBeInTheDocument()
   })
 
-  it('marks the slots a long appointment continues into', () => {
+  it('stretches a long appointment over the slots it covers, with its length', () => {
     renderDay([{ ...appointment, durationMinutes: 60, endsAt: '2026-09-17T06:00:00Z' }], slots)
 
-    expect(screen.getByText('↳ continues')).toBeInTheDocument()
+    const block = screen.getByRole('button', { name: /Luna/ })
+    expect(block.style.gridRow).toBe('1 / span 2')
+    expect(block).toHaveTextContent('1h')
+    expect(screen.queryByText('Free')).not.toBeInTheDocument()
+    expect(screen.getByText('07:30')).toHaveClass(/labelBusy/)
   })
 
   it('says the clinic is closed when there are no slots', () => {

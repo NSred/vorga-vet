@@ -1,6 +1,8 @@
+import { Fragment } from 'react'
 import { EmptyState, Skeleton } from '@/shared/ui'
+import { AppointmentBlock } from './AppointmentBlock'
 import { AppointmentChip } from './AppointmentChip'
-import { appointmentsOutsideSlots, buildDayRows } from '../lib/daySlots'
+import { appointmentsOutsideSlots, layoutDay } from '../lib/daySlots'
 import type { Appointment, AvailabilitySlot } from '../types'
 import styles from './DayView.module.css'
 
@@ -26,7 +28,7 @@ export function DayView({
     return <Skeleton height="20rem" />
   }
 
-  const rows = buildDayRows(appointments, slots)
+  const { rows, blocks, laneCount } = layoutDay(appointments, slots)
   const outside = appointmentsOutsideSlots(appointments, slots)
 
   if (hasSlotData && slots.length === 0 && outside.length === 0) {
@@ -40,7 +42,7 @@ export function DayView({
           <span className={styles.outsideLabel}>
             {hasSlotData ? 'Outside opening hours' : 'Opening hours unavailable'}
           </span>
-          <div className={styles.slotChips}>
+          <div className={styles.outsideChips}>
             {outside.map((appointment) => (
               <AppointmentChip
                 key={appointment.id}
@@ -52,34 +54,56 @@ export function DayView({
         </div>
       )}
 
-      {rows.map((row) => (
-        <div key={row.startsAt} className={styles.slotRow}>
-          <span className={styles.slotLabel}>{row.label}</span>
-          <div className={styles.slotChips}>
-            {row.starting.map((appointment) => (
-              <AppointmentChip
-                key={appointment.id}
-                appointment={appointment}
-                onClick={() => onAppointmentClick(appointment)}
-              />
-            ))}
-            {row.continuing.length > 0 && <span className={styles.continues}>↳ continues</span>}
-            {row.isFree &&
-              (onSlotClick ? (
-                <button
-                  type="button"
-                  className={styles.freeButton}
-                  onClick={() => onSlotClick(row.startsAt)}
-                  aria-label={`Book ${row.label}`}
+      {rows.length > 0 && (
+        <div
+          className={styles.grid}
+          style={{
+            gridTemplateColumns: `3.5rem repeat(${laneCount}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${rows.length}, var(--day-slot-height))`,
+          }}
+        >
+          {rows.map((row, index) => {
+            const place = { gridRow: index + 1 }
+            return (
+              <Fragment key={row.startsAt}>
+                <span
+                  className={row.isBusy ? styles.labelBusy : styles.label}
+                  style={{ ...place, gridColumn: 1 }}
                 >
-                  Free
-                </button>
-              ) : (
-                <span className={styles.free}>Free</span>
-              ))}
-          </div>
+                  {row.label}
+                </span>
+                {row.isFree && onSlotClick ? (
+                  <button
+                    type="button"
+                    className={styles.freeCell}
+                    style={{ ...place, gridColumn: '2 / -1' }}
+                    onClick={() => onSlotClick(row.startsAt)}
+                    aria-label={`Book ${row.label}`}
+                  >
+                    <span className={styles.free}>Free</span>
+                  </button>
+                ) : (
+                  <div className={styles.cell} style={{ ...place, gridColumn: '2 / -1' }}>
+                    {row.isFree && <span className={styles.free}>Free</span>}
+                  </div>
+                )}
+              </Fragment>
+            )
+          })}
+
+          {blocks.map((block) => (
+            <AppointmentBlock
+              key={block.appointment.id}
+              appointment={block.appointment}
+              onClick={() => onAppointmentClick(block.appointment)}
+              style={{
+                gridRow: `${block.row + 1} / span ${block.span}`,
+                gridColumn: block.lane + 2,
+              }}
+            />
+          ))}
         </div>
-      ))}
+      )}
     </div>
   )
 }

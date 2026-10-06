@@ -19,16 +19,9 @@ export function UnresolvedPanel({ open, onOpenChange, onSelect }: UnresolvedPane
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
+      title="Needs closing"
       ariaLabel="Appointments that need closing"
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>Needs closing</div>
-          <div className={styles.subtitle}>
-            Scheduled appointments whose time has passed. Open one to mark it.
-          </div>
-        </div>
-      }
+      subtitle="Scheduled appointments whose time has passed. Open one to mark it."
     >
       {isPending && <Skeleton height="6rem" />}
       {data && data.length === 0 && <EmptyState message="Everything is closed out." />}

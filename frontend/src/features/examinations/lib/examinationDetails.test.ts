@@ -2,44 +2,43 @@ import { describe, expect, it } from 'vitest'
 import {
   emptyExaminationValues,
   examinationValuesOf,
-  parseCost,
   toExaminationDetails,
 } from './examinationDetails'
 
 describe('toExaminationDetails', () => {
-  it('trims text and drops empty optionals', () => {
+  it('trims text, drops empty optionals and takes the cost from the charges', () => {
     expect(
-      toExaminationDetails({
-        performedByFirstName: ' Mira ',
-        performedByLastName: 'Vet',
-        anamnesis: '  ',
-        diagnosis: ' otitis ',
-        therapy: '',
-        cost: '',
-      }),
+      toExaminationDetails(
+        {
+          performedByFirstName: ' Mira ',
+          performedByLastName: 'Vet',
+          anamnesis: '  ',
+          diagnosis: ' otitis ',
+          therapy: '',
+        },
+        3200,
+      ),
     ).toEqual({
       performedByFirstName: 'Mira',
       performedByLastName: 'Vet',
       anamnesis: undefined,
       diagnosis: 'otitis',
       therapy: undefined,
-      cost: undefined,
+      cost: 3200,
     })
   })
 
-  it('parses the cost with a comma or a dot', () => {
-    expect(parseCost('45,50')).toBe(45.5)
-    expect(parseCost('45.50')).toBe(45.5)
-    expect(parseCost('0')).toBe(0)
-    expect(parseCost('abc')).toBeUndefined()
-    expect(parseCost('')).toBeUndefined()
+  it('sends no cost when there are no charges', () => {
+    expect(toExaminationDetails(emptyExaminationValues('Mira', 'Vet')).cost).toBeUndefined()
   })
 
   it('builds empty values with optional performer names', () => {
-    expect(emptyExaminationValues('Mira', 'Vet')).toMatchObject({
+    expect(emptyExaminationValues('Mira', 'Vet')).toEqual({
       performedByFirstName: 'Mira',
       performedByLastName: 'Vet',
-      cost: '',
+      anamnesis: '',
+      diagnosis: '',
+      therapy: '',
     })
   })
 })
@@ -65,23 +64,6 @@ describe('examinationValuesOf', () => {
       anamnesis: '',
       diagnosis: 'otitis',
       therapy: '',
-      cost: '45.5',
     })
-  })
-
-  it('leaves the cost empty when none was recorded', () => {
-    const values = examinationValuesOf({
-      id: 'e1',
-      patientId: 'p1',
-      performedByFirstName: 'Mira',
-      performedByLastName: 'Vet',
-      startedAt: '2026-09-17T07:00:00Z',
-      isPaid: false,
-      createdAt: '2026-09-17T07:30:00Z',
-      attachments: [],
-    })
-
-    expect(values.cost).toBe('')
-    expect(values.diagnosis).toBe('')
   })
 })

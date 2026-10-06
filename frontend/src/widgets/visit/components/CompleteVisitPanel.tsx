@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, SlidePanel } from '@/shared/ui'
+import { Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import {
   appointmentErrorMessage,
   appointmentErrors,
@@ -12,11 +12,13 @@ import { useCurrentUser } from '@/features/auth'
 import {
   emptyExaminationValues,
   ExaminationFields,
+  getExamination,
   examinationErrors,
   toExaminationDetails,
   type ExaminationFormValues,
 } from '@/features/examinations'
 import { generatePatientCardNumber } from '@/features/patients'
+import { DiagnosisPicker } from '@/features/diagnoses'
 import { useCompleteAppointment } from '../hooks/useVisitMutations'
 import {
   emptyResolution,
@@ -28,6 +30,7 @@ import {
   type ResolutionErrors,
   type ResolutionValues,
 } from '../lib/resolution'
+import { useVisitCharges } from '../hooks/useVisitCharges'
 import { PaidStep } from './PaidStep'
 import { PartyResolutionFields } from './PartyResolutionFields'
 import styles from './VisitPanel.module.css'
@@ -59,6 +62,8 @@ export function CompleteVisitPanel({
 }: CompleteVisitPanelProps) {
   const needs = needsFor(appointment)
   const complete = useCompleteAppointment()
+  const charges = useVisitCharges({ open })
+  const { showToast } = useToast()
   const profile = useCurrentUser()
   const [step, setStep] = useState<Step>({ kind: 'form' })
   const [resolution, setResolution] = useState<ResolutionValues>(emptyResolution)
@@ -71,6 +76,7 @@ export function CompleteVisitPanel({
     handleSubmit,
     reset,
     getValues,
+    control,
     formState: { errors, dirtyFields, isSubmitting },
   } = useForm<ExaminationFormValues>({
     defaultValues: emptyExaminationValues(profile.data?.firstName, profile.data?.lastName),
@@ -143,12 +149,20 @@ export function CompleteVisitPanel({
   }
 
   const send = (current: ResolutionValues, values: ExaminationFormValues) => {
-    const examination = toExaminationDetails(values)
+    const examination = toExaminationDetails(values, charges.total)
 
     complete.mutate(
       { id: appointment.id, request: { ...toResolution(current, needs), examination } },
       {
         onSuccess: (examinationId) => {
+          getExamination(examinationId)
+            .then((saved) => charges.commit(saved))
+            .catch(() =>
+              showToast({
+                tone: 'error',
+                title: 'The visit was recorded, but its charge lines could not be kept',
+              }),
+            )
           setStep({ kind: 'recorded', examinationId, cost: examination.cost })
           onRecorded(examinationId)
         },
@@ -157,7 +171,7 @@ export function CompleteVisitPanel({
     )
   }
 
-  const submit = handleSubmit((values) => {
+  const submitForm = handleSubmit((values) => {
     const validation = validateResolution(resolution, needs)
     setResolutionErrors(validation)
     setSubmitError(undefined)
@@ -166,6 +180,15 @@ export function CompleteVisitPanel({
     send(resolution, values)
   })
 
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    if (!charges.validate()) {
+      event.preventDefault()
+      void handleSubmit(() => undefined)(event)
+      return
+    }
+    void submitForm(event)
+  }
+
   const title = `Complete visit · ${partyLabel(appointment)}`
   const isPending = isSubmitting || complete.isPending
 
@@ -173,17 +196,11 @@ export function CompleteVisitPanel({
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel={title}
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>{title}</div>
-          <div className={styles.subtitle}>
-            {step.kind === 'form'
-              ? 'Record what happened at the visit. This closes the appointment.'
-              : 'The visit is recorded.'}
-          </div>
-        </div>
+      title={title}
+      subtitle={
+        step.kind === 'form'
+          ? 'Record what happened at the visit. This closes the appointment.'
+          : 'The visit is recorded.'
       }
       footer={
         step.kind === 'form' ? (
@@ -203,7 +220,7 @@ export function CompleteVisitPanel({
       }
     >
       {step.kind === 'form' ? (
-        <form id="complete-visit-form" onSubmit={submit} className={styles.body}>
+        <form id="complete-visit-form" onSubmit={submit} className={layout.page}>
           {needsAnything(needs) && (
             <PartyResolutionFields
               needs={needs}
@@ -213,12 +230,14 @@ export function CompleteVisitPanel({
             />
           )}
           <h3 className={styles.sectionTitle}>Examination</h3>
-          <ExaminationFields register={register} errors={errors} />
-          {submitError && (
-            <p role="alert" className={styles.submitError}>
-              {submitError}
-            </p>
-          )}
+          <ExaminationFields
+            register={register}
+            control={control}
+            errors={errors}
+            renderDiagnosis={(field) => <DiagnosisPicker {...field} />}
+            costSection={charges.section}
+          />
+          <FormError message={submitError} />
         </form>
       ) : (
         <PaidStep examinationId={step.examinationId} cost={step.cost} onPaid={onPaid} />

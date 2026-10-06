@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { SPECIES_OPTIONS } from '@/shared/domain/species'
 import { ApiError, isApiErrorCode } from '@/shared/lib/apiClient'
 import { todayIso } from '@/shared/lib/dateOnly'
 import {
   Button,
   ConfirmDialog,
   DatePicker,
+  FormError,
+  layout,
   Select,
   SlidePanel,
-  TextField,
   Textarea,
+  TextField,
 } from '@/shared/ui'
 import { patientErrors } from '../api/patientErrors'
 import { useCreatePatient, useUpdatePatient } from '../hooks/usePatientMutations'
@@ -214,18 +217,8 @@ export function PatientFormPanel({
     <SlidePanel
       open={open}
       onOpenChange={(next) => !next && requestClose()}
-      ariaLabel={isEdit ? `Edit ${patient?.name ?? 'patient'}` : 'New patient'}
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>
-            {isEdit ? `Edit ${patient?.name ?? 'patient'}` : 'New patient'}
-          </div>
-          <div className={styles.subtitle}>
-            {isEdit ? 'Update the details and save.' : 'Fill in the details and save.'}
-          </div>
-        </div>
-      }
+      title={isEdit ? `Edit ${patient?.name ?? 'patient'}` : 'New patient'}
+      subtitle={isEdit ? 'Update the details and save.' : 'Fill in the details and save.'}
       footer={
         <>
           <Button variant="outline" type="button" onClick={requestClose}>
@@ -242,8 +235,8 @@ export function PatientFormPanel({
         </>
       }
     >
-      <form id="patient-form" onSubmit={submit} className={styles.form}>
-        <div className={styles.row}>
+      <form id="patient-form" onSubmit={submit} className={layout.stack}>
+        <div className={layout.formRow}>
           <TextField
             id="cardNumber"
             label="No. *"
@@ -278,7 +271,7 @@ export function PatientFormPanel({
           )}
         />
 
-        <div className={styles.row}>
+        <div className={layout.formRow}>
           <Controller
             name="species"
             control={control}
@@ -288,12 +281,7 @@ export function PatientFormPanel({
                 label="Species"
                 value={field.value}
                 onChange={(value) => field.onChange(value as Species)}
-                options={[
-                  { value: 'dog', label: 'Dog' },
-                  { value: 'cat', label: 'Cat' },
-                  { value: 'bird', label: 'Bird' },
-                  { value: 'other', label: 'Other' },
-                ]}
+                options={SPECIES_OPTIONS}
               />
             )}
           />
@@ -312,7 +300,7 @@ export function PatientFormPanel({
           />
         </div>
 
-        <div className={styles.row}>
+        <div className={layout.formRow}>
           <Controller
             name="sex"
             control={control}
@@ -349,7 +337,7 @@ export function PatientFormPanel({
           />
         </div>
 
-        <div className={styles.row}>
+        <div className={layout.formRow}>
           <TextField
             id="weightKg"
             label="Weight (kg)"
@@ -388,11 +376,7 @@ export function PatientFormPanel({
           className={styles.fullWidth}
         />
 
-        {submitError && (
-          <p role="alert" className={styles.submitError}>
-            {submitError}
-          </p>
-        )}
+        <FormError message={submitError} />
       </form>
 
       <ConfirmDialog

@@ -15,6 +15,7 @@ import {
 } from 'date-fns'
 import { useState } from 'react'
 import { formatDateOnly, formatDisplayDate, parseDateOnly } from '@/shared/lib/dateOnly'
+import fieldStyles from '../field.module.css'
 import styles from './DatePicker.module.css'
 
 export interface DatePickerProps {
@@ -28,6 +29,7 @@ export interface DatePickerProps {
   className?: string
   minDate?: string
   maxDate?: string
+  formatValue?: (value: string) => string
 }
 
 const WEEKDAY_HEADERS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
@@ -56,6 +58,7 @@ export function DatePicker({
   className,
   minDate,
   maxDate,
+  formatValue = formatDisplayDate,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState<'days' | 'months' | 'years'>('days')
@@ -111,9 +114,9 @@ export function DatePicker({
   const gridDays = buildDayGrid(displayDate)
 
   return (
-    <div className={`${styles.field} ${className ?? ''}`}>
+    <div className={`${fieldStyles.field} ${className ?? ''}`}>
       {!hideLabel && (
-        <label htmlFor={id} className={styles.label}>
+        <label htmlFor={id} className={fieldStyles.label}>
           {label}
         </label>
       )}
@@ -131,7 +134,7 @@ export function DatePicker({
             <path d="M6.5 2.5v3M13.5 2.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           <span className={value ? styles.value : styles.placeholder}>
-            {value ? formatDisplayDate(value) : placeholder}
+            {value ? formatValue(value) : placeholder}
           </span>
         </Popover.Trigger>
 
@@ -321,7 +324,7 @@ export function DatePicker({
         </Popover.Portal>
       </Popover.Root>
       {error && (
-        <p className={styles.error} role="alert">
+        <p className={fieldStyles.error} role="alert">
           {error}
         </p>
       )}

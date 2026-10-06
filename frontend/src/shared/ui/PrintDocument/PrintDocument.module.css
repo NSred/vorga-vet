@@ -1,0 +1,117 @@
+.page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 180mm;
+  margin: 0 auto;
+  color: black;
+  background: white;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 11pt;
+  line-height: 1.35;
+}
+
+.header {
+  padding-bottom: 6mm;
+  margin-bottom: 6mm;
+  border-bottom: 1.5pt solid black;
+  text-align: center;
+}
+
+.issuer {
+  font-size: 10pt;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 3mm 0 2mm;
+  font-size: 16pt;
+  text-transform: uppercase;
+}
+
+.reference {
+  font-size: 12pt;
+  font-weight: 700;
+}
+
+.section {
+  margin-bottom: 5mm;
+}
+
+.sectionTitle {
+  margin: 0 0 2mm;
+  font-size: 11pt;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5mm 8mm;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  gap: 2mm;
+  border-bottom: 0.5pt dotted gray;
+}
+
+.label {
+  flex: 0 0 auto;
+  color: dimgray;
+}
+
+.value {
+  margin: 0;
+  font-weight: 700;
+}
+
+.footer {
+  display: flex;
+  margin-top: 10mm;
+}
+
+.footer_inline {
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10mm;
+}
+
+.footer_stacked {
+  flex-direction: column;
+  gap: 12mm;
+}
+
+.footLine {
+  margin: 0 0 1.5mm;
+}
+
+.signatures {
+  display: flex;
+}
+
+.footer_inline .signatures {
+  gap: 12mm;
+}
+
+.footer_stacked .signatures {
+  justify-content: space-between;
+  gap: 6mm;
+}
+
+.signature {
+  padding-top: 2mm;
+  border-top: 0.75pt solid black;
+  text-align: center;
+  font-size: 9pt;
+}
+
+.footer_inline .signature {
+  width: 45mm;
+}
+
+.footer_stacked .signature {
+  width: 38mm;
+}

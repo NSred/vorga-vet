@@ -1,6 +1,8 @@
 .segmented {
   position: relative;
   display: flex;
+  width: fit-content;
+  max-width: 100%;
   gap: 0.15rem;
   padding: 0.2rem;
   border: 1px solid var(--border-strong);

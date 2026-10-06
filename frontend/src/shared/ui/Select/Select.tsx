@@ -1,4 +1,5 @@
 import * as RadixSelect from '@radix-ui/react-select'
+import fieldStyles from '../field.module.css'
 import styles from './Select.module.css'
 
 export interface SelectOption {
@@ -17,6 +18,7 @@ export interface SelectProps {
   hideLabel?: boolean
   placeholder?: string
   error?: string
+  disabled?: boolean
 }
 
 export function Select({
@@ -29,17 +31,25 @@ export function Select({
   hideLabel,
   placeholder,
   error,
+  disabled,
 }: SelectProps) {
   const selectedLabel = options.find((option) => option.value === value)?.label
 
   return (
-    <div className={`${styles.field} ${className ?? ''}`}>
+    <div className={`${fieldStyles.field} ${className ?? ''}`}>
       {!hideLabel && (
-        <label htmlFor={id} className={styles.label}>
+        <label htmlFor={id} className={fieldStyles.label}>
           {label}
         </label>
       )}
-      <RadixSelect.Root value={value} onValueChange={onChange}>
+      <RadixSelect.Root
+        value={value}
+        onValueChange={(next) => {
+          if (next === '' && !options.some((option) => option.value === '')) return
+          onChange(next)
+        }}
+        disabled={disabled}
+      >
         <RadixSelect.Trigger
           id={id}
           className={styles.trigger}

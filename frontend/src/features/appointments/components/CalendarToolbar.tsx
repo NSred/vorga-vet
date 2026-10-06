@@ -1,4 +1,4 @@
-import { Button, DatePicker, SegmentedControl } from '@/shared/ui'
+import { Button, Checkbox, DatePicker, SegmentedControl } from '@/shared/ui'
 import type { CalendarView } from '../types'
 import styles from './CalendarToolbar.module.css'
 
@@ -65,14 +65,9 @@ export function CalendarToolbar({
         className={styles.datePicker}
       />
 
-      <label className={styles.toggle}>
-        <input
-          type="checkbox"
-          checked={showCancelled}
-          onChange={(event) => onShowCancelledChange(event.target.checked)}
-        />
+      <Checkbox checked={showCancelled} onChange={onShowCancelledChange} className={styles.toggle}>
         Show cancelled
-      </label>
+      </Checkbox>
 
       {onNewAppointment && (
         <Button variant="primary" type="button" onClick={onNewAppointment}>

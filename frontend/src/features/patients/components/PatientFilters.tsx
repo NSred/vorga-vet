@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Button, Select, SearchInput, SegmentedControl } from '@/shared/ui'
-import { useDebouncedValue } from '@/shared/lib/useDebouncedValue'
+import { SPECIES_OPTIONS } from '@/shared/domain/species'
+import { Button, layout, SearchInput, SegmentedControl, Select } from '@/shared/ui'
+import { useSearchDraft } from '@/shared/lib/useSearchDraft'
 import type { PatientFilters as PatientFiltersType } from '../types'
 import { AllergenFilter } from './AllergenFilter'
-import styles from './PatientFilters.module.css'
 
 export interface PatientFiltersProps {
   filters: PatientFiltersType
@@ -20,18 +19,13 @@ const STATUS_OPTIONS = [
 
 export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
   const status = filters.status ?? 'active'
-  const committedSearch = filters.search ?? ''
-  const [searchDraft, setSearchDraft] = useState(committedSearch)
-  const debouncedSearch = useDebouncedValue(searchDraft, 300)
-
-  useEffect(() => {
-    if (debouncedSearch === committedSearch) return
-    onChange({ ...filters, search: debouncedSearch || undefined })
-  }, [debouncedSearch, committedSearch, filters, onChange])
+  const [searchDraft, setSearchDraft] = useSearchDraft(filters.search ?? '', (search) =>
+    onChange({ ...filters, search: search || undefined }),
+  )
 
   return (
-    <div className={styles.bar}>
-      <div className={styles.leftGroup}>
+    <div className={layout.toolbar}>
+      <div className={layout.toolbarGroup}>
         <SearchInput value={searchDraft} onChange={setSearchDraft} placeholder="Search" />
 
         <Select
@@ -44,13 +38,7 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
               species: species === 'all' ? undefined : (species as PatientFiltersType['species']),
             })
           }
-          options={[
-            { value: 'all', label: 'All' },
-            { value: 'dog', label: 'Dog' },
-            { value: 'cat', label: 'Cat' },
-            { value: 'bird', label: 'Bird' },
-            { value: 'other', label: 'Other' },
-          ]}
+          options={[{ value: 'all', label: 'All' }, ...SPECIES_OPTIONS]}
         />
 
         <Select
@@ -89,7 +77,7 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
         />
       </div>
 
-      <div className={styles.rightGroup}>
+      <div className={layout.toolbarGroup}>
         <SegmentedControl
           value={status}
           onChange={(value) => onChange({ ...filters, status: value })}

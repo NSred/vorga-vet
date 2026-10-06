@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, apiFetch, apiFetchBlob, isApiErrorCode } from './apiClient'
+import { ApiError, apiErrorMessage, apiFetch, apiFetchBlob, isApiErrorCode } from './apiClient'
 import { accessTokenStore } from './accessTokenStore'
 import { tokenStorage } from './tokenStorage'
 
@@ -157,5 +157,26 @@ describe('apiFetchBlob', () => {
 
     expect(error).toBeInstanceOf(ApiError)
     expect(error.code).toBe('Attachments.ContentMissing')
+  })
+})
+
+describe('apiErrorMessage', () => {
+  const messages = { 'Things.Taken': 'That thing is taken.' }
+
+  it('prefers the sentence for a known code', () => {
+    const error = new ApiError(409, 'detail', 'Things.Taken', ['ignored'])
+
+    expect(apiErrorMessage(error, 'fallback', messages)).toBe('That thing is taken.')
+  })
+
+  it('joins validation messages when the code is not known', () => {
+    const error = new ApiError(400, 'detail', 'Validation.General', ['A.', 'B.'])
+
+    expect(apiErrorMessage(error, 'fallback', messages)).toBe('A. B.')
+  })
+
+  it('falls back for other api errors and for anything that is not an api error', () => {
+    expect(apiErrorMessage(new ApiError(500, 'detail'), 'fallback')).toBe('fallback')
+    expect(apiErrorMessage(new Error('boom'), 'fallback')).toBe('fallback')
   })
 })

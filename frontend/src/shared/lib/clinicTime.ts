@@ -78,3 +78,24 @@ export function addClinicWeeks(dateIso: string, amount: number): string {
 export function addClinicMonths(dateIso: string, amount: number): string {
   return dateIsoOf(addMonths(clinicMidnight(dateIso), amount))
 }
+
+export const WEEKDAYS = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+]
+
+export const MONDAY_FIRST_WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+export function clinicWeekday(dateIso: string): number {
+  const [year, month, day] = dateIso.split('-').map(Number)
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay()
+}
+
+export function weekdayName(dateIso: string): string {
+  return WEEKDAYS[clinicWeekday(dateIso)]
+}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Badge, Button } from '@/shared/ui'
+import { formatPrice } from '@/shared/lib/money'
+import { Badge, Button, FormError, layout } from '@/shared/ui'
 import {
   examinationErrorMessage,
   examinationErrors,
@@ -39,7 +40,7 @@ export function PaidStep({ examinationId, cost, onPaid }: PaidStepProps) {
   }
 
   return (
-    <div className={styles.body}>
+    <div className={layout.page}>
       <div className={styles.summary}>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Status</span>
@@ -49,7 +50,7 @@ export function PaidStep({ examinationId, cost, onPaid }: PaidStepProps) {
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Cost</span>
-          <span className={styles.fieldValue}>{cost === undefined ? '—' : cost.toFixed(2)}</span>
+          <span className={styles.fieldValue}>{cost === undefined ? '—' : formatPrice(cost)}</span>
         </div>
       </div>
 
@@ -58,16 +59,12 @@ export function PaidStep({ examinationId, cost, onPaid }: PaidStepProps) {
           Mark as paid
         </Button>
       )}
-      {state === 'paid' && <p className={styles.notice}>Marked as paid.</p>}
-      {state === 'already_paid' && <p className={styles.notice}>Already marked as paid.</p>}
+      {state === 'paid' && <p className={layout.note}>Marked as paid.</p>}
+      {state === 'already_paid' && <p className={layout.note}>Already marked as paid.</p>}
       {cost === undefined && (
-        <p className={styles.notice}>No cost was entered, so there is nothing to mark as paid.</p>
+        <p className={layout.note}>No cost was entered, so there is nothing to mark as paid.</p>
       )}
-      {error && (
-        <p role="alert" className={styles.submitError}>
-          {error}
-        </p>
-      )}
+      <FormError message={error} />
     </div>
   )
 }

@@ -5,22 +5,17 @@ function trimmed(value: string): string | undefined {
   return text ? text : undefined
 }
 
-export function parseCost(value: string): number | undefined {
-  const text = value.trim().replace(',', '.')
-  if (!text) return undefined
-
-  const cost = Number(text)
-  return Number.isFinite(cost) ? cost : undefined
-}
-
-export function toExaminationDetails(values: ExaminationFormValues): ExaminationDetails {
+export function toExaminationDetails(
+  values: ExaminationFormValues,
+  cost?: number,
+): ExaminationDetails {
   return {
     performedByFirstName: values.performedByFirstName.trim(),
     performedByLastName: values.performedByLastName.trim(),
     anamnesis: trimmed(values.anamnesis),
     diagnosis: trimmed(values.diagnosis),
     therapy: trimmed(values.therapy),
-    cost: parseCost(values.cost),
+    cost,
   }
 }
 
@@ -34,7 +29,6 @@ export function emptyExaminationValues(
     anamnesis: '',
     diagnosis: '',
     therapy: '',
-    cost: '',
   }
 }
 
@@ -45,6 +39,5 @@ export function examinationValuesOf(examination: Examination): ExaminationFormVa
     anamnesis: examination.anamnesis ?? '',
     diagnosis: examination.diagnosis ?? '',
     therapy: examination.therapy ?? '',
-    cost: examination.cost === undefined ? '' : String(examination.cost),
   }
 }

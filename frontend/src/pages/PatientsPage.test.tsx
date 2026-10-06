@@ -16,6 +16,9 @@ const auth = vi.hoisted(() => ({ role: 'veterinarian' as 'veterinarian' | 'clien
 
 vi.mock('@/features/auth', () => ({
   useAuth: () => ({ user: { userId: 'u1', email: 'user@example.com', role: auth.role } }),
+  useCurrentUser: () => ({
+    data: { id: 'u1', firstName: 'Mira', lastName: 'Vet', email: 'v@x.com' },
+  }),
 }))
 
 const patient: PatientListItem = {

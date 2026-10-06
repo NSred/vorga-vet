@@ -1,27 +1,3 @@
-.title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.subtitle {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 0.15rem;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -50,11 +26,45 @@
   color: var(--text);
 }
 
-.submitError {
+.lockedField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.lockedValue {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.lockedHint {
   margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.noSlots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
   padding: 0.6rem 0.75rem;
-  border: 1px solid var(--danger);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--danger);
-  font-size: 0.8rem;
+  background: var(--surface-2);
+}
+
+.noSlotsText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.noSlotsButton {
+  white-space: nowrap;
 }

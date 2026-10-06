@@ -1,4 +1,4 @@
-import { ApiError } from '@/shared/lib/apiClient'
+import { apiErrorMessage } from '@/shared/lib/apiClient'
 
 export const appointmentErrors = {
   notFound: 'Appointments.NotFound',
@@ -28,12 +28,5 @@ const MESSAGES: Partial<Record<string, string>> = {
 }
 
 export function appointmentErrorMessage(error: unknown, fallback: string): string {
-  if (!(error instanceof ApiError)) return fallback
-
-  const known = error.code ? MESSAGES[error.code] : undefined
-  if (known) return known
-
-  if (error.validationMessages) return error.validationMessages.join(' ')
-
-  return fallback
+  return apiErrorMessage(error, fallback, MESSAGES)
 }

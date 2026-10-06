@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { appointmentsOutsideSlots, buildDayRows } from './daySlots'
+import { appointmentsOutsideSlots, durationLabel, layoutDay } from './daySlots'
 import type { Appointment, AvailabilitySlot } from '../types'
 
 function slot(startsAt: string, endsAt: string, isAvailable = true): AvailabilitySlot {
@@ -28,43 +28,49 @@ const slots = [
   slot('2026-09-17T05:00:00Z', '2026-09-17T05:30:00Z', false),
   slot('2026-09-17T05:30:00Z', '2026-09-17T06:00:00Z', false),
   slot('2026-09-17T06:00:00Z', '2026-09-17T06:30:00Z'),
+  slot('2026-09-17T06:30:00Z', '2026-09-17T07:00:00Z'),
 ]
 
-describe('buildDayRows', () => {
+describe('layoutDay', () => {
   it('labels rows with the clinic time', () => {
-    const rows = buildDayRows([], slots)
-
-    expect(rows.map((row) => row.label)).toEqual(['07:00', '07:30', '08:00'])
+    expect(layoutDay([], slots).rows.map((row) => row.label)).toEqual([
+      '07:00',
+      '07:30',
+      '08:00',
+      '08:30',
+    ])
   })
 
-  it('places an appointment in the slot it starts in', () => {
-    const rows = buildDayRows(
-      [appointment('a1', '2026-09-17T05:00:00Z', '2026-09-17T05:30:00Z')],
-      slots,
-    )
-
-    expect(rows[0].starting.map((item) => item.id)).toEqual(['a1'])
-    expect(rows[1].starting).toHaveLength(0)
-  })
-
-  it('marks later slots of a long appointment as continuing', () => {
+  it('stretches a block over every slot the appointment covers', () => {
     const surgery = appointment('s1', '2026-09-17T05:00:00Z', '2026-09-17T06:00:00Z', 60)
-    const rows = buildDayRows([surgery], slots)
+    const { blocks, rows } = layoutDay([surgery], slots)
 
-    expect(rows[0].starting.map((item) => item.id)).toEqual(['s1'])
-    expect(rows[1].continuing.map((item) => item.id)).toEqual(['s1'])
-    expect(rows[2].continuing).toHaveLength(0)
+    expect(blocks).toEqual([{ appointment: surgery, row: 0, span: 2, lane: 0 }])
+    expect(rows.map((row) => row.isBusy)).toEqual([true, true, false, false])
   })
 
-  it('marks a slot free only when it is available and nothing starts there', () => {
-    const rows = buildDayRows(
+  it('puts overlapping appointments side by side and reuses a lane once it is free', () => {
+    const long = appointment('a', '2026-09-17T05:00:00Z', '2026-09-17T06:00:00Z', 60)
+    const overlap = appointment('b', '2026-09-17T05:30:00Z', '2026-09-17T06:00:00Z')
+    const later = appointment('c', '2026-09-17T06:00:00Z', '2026-09-17T06:30:00Z')
+    const { blocks, laneCount } = layoutDay([later, overlap, long], slots)
+
+    expect(blocks.map((block) => [block.appointment.id, block.row, block.lane])).toEqual([
+      ['a', 0, 0],
+      ['b', 1, 1],
+      ['c', 2, 0],
+    ])
+    expect(laneCount).toBe(2)
+  })
+
+  it('marks a slot free only when it is available and nothing covers it', () => {
+    const { rows } = layoutDay(
       [appointment('a1', '2026-09-17T06:00:00Z', '2026-09-17T06:30:00Z')],
       slots,
     )
 
-    expect(rows[0].isFree).toBe(false)
-    expect(rows[2].isFree).toBe(false)
-    expect(buildDayRows([], slots)[2].isFree).toBe(true)
+    expect(rows.map((row) => row.isFree)).toEqual([false, false, false, true])
+    expect(layoutDay([], slots).laneCount).toBe(1)
   })
 })
 
@@ -74,5 +80,14 @@ describe('appointmentsOutsideSlots', () => {
     const inside = appointment('i1', '2026-09-17T06:00:00Z', '2026-09-17T06:30:00Z')
 
     expect(appointmentsOutsideSlots([early, inside], slots).map((item) => item.id)).toEqual(['e1'])
+  })
+})
+
+describe('durationLabel', () => {
+  it('reads minutes, hours or both', () => {
+    expect(durationLabel(30)).toBe('30m')
+    expect(durationLabel(60)).toBe('1h')
+    expect(durationLabel(90)).toBe('1h 30m')
+    expect(durationLabel(120)).toBe('2h')
   })
 })

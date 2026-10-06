@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, SlidePanel } from '@/shared/ui'
+import { Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import { useCurrentUser } from '@/features/auth'
 import {
   emptyExaminationValues,
   ExaminationFields,
+  getExamination,
   examinationErrorMessage,
   examinationErrors,
   toExaminationDetails,
@@ -14,6 +15,8 @@ import {
   type ExaminationFormValues,
 } from '@/features/examinations'
 import { PatientPicker, type PatientListItem } from '@/features/patients'
+import { DiagnosisPicker } from '@/features/diagnoses'
+import { useVisitCharges } from '../hooks/useVisitCharges'
 import { PaidStep } from './PaidStep'
 import styles from './VisitPanel.module.css'
 
@@ -28,6 +31,8 @@ type Step = { kind: 'form' } | { kind: 'recorded'; examinationId: string; cost?:
 
 export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPanelProps) {
   const create = useCreateExamination()
+  const charges = useVisitCharges({ open })
+  const { showToast } = useToast()
   const profile = useCurrentUser()
   const [step, setStep] = useState<Step>({ kind: 'form' })
   const [patient, setPatient] = useState<PatientListItem | null>(null)
@@ -39,6 +44,7 @@ export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPa
     handleSubmit,
     reset,
     getValues,
+    control,
     formState: { errors, dirtyFields, isSubmitting },
   } = useForm<ExaminationFormValues>({
     defaultValues: emptyExaminationValues(profile.data?.firstName, profile.data?.lastName),
@@ -67,7 +73,7 @@ export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPa
     }
   }, [profile.data, dirtyFields, getValues, reset])
 
-  const submit = handleSubmit((values) => {
+  const submitForm = handleSubmit((values) => {
     setSubmitError(undefined)
 
     if (!patient) {
@@ -76,12 +82,20 @@ export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPa
     }
     setPatientError(undefined)
 
-    const examination = toExaminationDetails(values)
+    const examination = toExaminationDetails(values, charges.total)
 
     create.mutate(
       { patientId: patient.id, examination },
       {
         onSuccess: (examinationId) => {
+          getExamination(examinationId)
+            .then((saved) => charges.commit(saved))
+            .catch(() =>
+              showToast({
+                tone: 'error',
+                title: 'The visit was recorded, but its charge lines could not be kept',
+              }),
+            )
           setStep({ kind: 'recorded', examinationId, cost: examination.cost })
           onRecorded(examinationId)
         },
@@ -97,23 +111,28 @@ export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPa
     )
   })
 
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    const chargesAreValid = charges.validate()
+    if (!patient) setPatientError('Pick the patient')
+    if (!chargesAreValid) {
+      event.preventDefault()
+      void handleSubmit(() => undefined)(event)
+      return
+    }
+    void submitForm(event)
+  }
+
   const isPending = isSubmitting || create.isPending
 
   return (
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel="Walk-in visit"
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>Walk-in visit</div>
-          <div className={styles.subtitle}>
-            {step.kind === 'form'
-              ? 'An examination without an appointment behind it.'
-              : 'The visit is recorded.'}
-          </div>
-        </div>
+      title="Walk-in visit"
+      subtitle={
+        step.kind === 'form'
+          ? 'An examination without an appointment behind it.'
+          : 'The visit is recorded.'
       }
       footer={
         step.kind === 'form' ? (
@@ -133,19 +152,21 @@ export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPa
       }
     >
       {step.kind === 'form' ? (
-        <form id="walk-in-form" onSubmit={submit} className={styles.body}>
+        <form id="walk-in-form" onSubmit={submit} className={layout.page}>
           <PatientPicker value={patient} onChange={setPatient} error={patientError} />
-          <p className={styles.notice}>
+          <p className={layout.note}>
             The animal needs a card first. If it is not found, create it in{' '}
             <Link to="/patients">Patient Records</Link> and come back.
           </p>
           <h3 className={styles.sectionTitle}>Examination</h3>
-          <ExaminationFields register={register} errors={errors} />
-          {submitError && (
-            <p role="alert" className={styles.submitError}>
-              {submitError}
-            </p>
-          )}
+          <ExaminationFields
+            register={register}
+            control={control}
+            errors={errors}
+            renderDiagnosis={(field) => <DiagnosisPicker {...field} />}
+            costSection={charges.section}
+          />
+          <FormError message={submitError} />
         </form>
       ) : (
         <PaidStep examinationId={step.examinationId} cost={step.cost} onPaid={onPaid} />

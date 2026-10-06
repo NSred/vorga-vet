@@ -1,65 +1,105 @@
-.week {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
-}
-
-.dayCell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.scroller {
+  overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.5rem;
-  min-height: 8rem;
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
-.today {
-  background: var(--accent-soft);
+.week {
+  --week-slot-height: 1.9rem;
+
+  display: grid;
+  grid-template-columns: 3.5rem repeat(7, minmax(7rem, 1fr));
+  min-width: 52rem;
+}
+
+.corner,
+.dayHeader {
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--surface-2);
 }
 
 .dayHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 0.72rem;
+  gap: 0.35rem;
+  padding: 0.55rem 0.6rem;
+  border-top: none;
+  border-right: none;
+  border-left: 1px solid var(--border);
   color: var(--text-muted);
-}
-
-.dayNumber {
-  font-weight: 700;
-  color: var(--text);
-}
-
-.countBadge {
-  border-radius: 999px;
-  background: var(--surface-3);
-  color: var(--text-muted);
-  font-size: 0.65rem;
-  padding: 0.05rem 0.4rem;
-}
-
-.chips {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.overflow {
-  border: none;
-  background: transparent;
-  color: var(--accent);
-  font-size: 0.7rem;
+  font: inherit;
+  font-size: 0.75rem;
   text-align: left;
-  padding: 0;
   cursor: pointer;
 }
 
-.overflow:hover {
-  text-decoration: underline;
+.dayHeader:hover,
+.dayHeader:focus-visible {
+  outline: none;
+  background: var(--surface-3);
+}
+
+.todayHeader {
+  background: var(--accent-soft);
+}
+
+.dayNumber {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .closed {
   font-size: 0.68rem;
   color: var(--text-faint);
+}
+
+.countBadge {
+  margin-left: auto;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.times,
+.dayColumn {
+  display: grid;
+}
+
+.time,
+.timeBusy {
+  padding: 0.35rem 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.time {
+  color: var(--text-faint);
+}
+
+.timeBusy {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dayColumn {
+  border-left: 1px solid var(--border);
+}
+
+.todayColumn {
+  background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+}
+
+.cell,
+.cellClosed {
+  border-bottom: 1px solid var(--border);
+}
+
+.cellClosed {
+  background: var(--surface-2);
 }

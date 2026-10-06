@@ -8,6 +8,15 @@ import * as examinationsApi from '@/features/examinations/api/examinationsApi'
 import * as ownersApi from '@/features/patients/api/ownersApi'
 import * as patientsApi from '@/features/patients/api/patientsApi'
 import type { Appointment } from '@/features/appointments'
+import { resetChargesStore, getCharges } from '@/features/priceList/api/mockChargesStore'
+import { resetPriceListStore } from '@/features/priceList/api/mockPriceListStore'
+import {
+  listPatientVaccinations,
+  resetVaccinationsStore,
+} from '@/features/vaccinations/api/mockVaccinationsStore'
+import { addClinicDays, clinicToday } from '@/shared/lib/clinicTime'
+import { typeDiagnosis } from '@/test/diagnosisPicking'
+import { pickFromPriceList } from '@/test/priceListPicking'
 import { CompleteVisitPanel } from './CompleteVisitPanel'
 
 const profile = vi.hoisted(() => ({
@@ -51,6 +60,19 @@ function renderPanel(appointment: Appointment) {
 let completeSpy: ReturnType<typeof vi.spyOn>
 
 beforeEach(() => {
+  resetPriceListStore()
+  resetChargesStore()
+  resetVaccinationsStore()
+  vi.spyOn(examinationsApi, 'getExamination').mockResolvedValue({
+    id: 'e1',
+    patientId: 'p1',
+    performedByFirstName: 'Mira',
+    performedByLastName: 'Vet',
+    startedAt: new Date().toISOString(),
+    isPaid: false,
+    createdAt: new Date().toISOString(),
+    attachments: [],
+  })
   completeSpy = vi.spyOn(appointmentsApi, 'completeAppointment').mockResolvedValue('e1')
   vi.spyOn(ownersApi, 'searchOwners').mockResolvedValue([])
   vi.spyOn(patientsApi, 'getPatients').mockResolvedValue({
@@ -81,15 +103,19 @@ afterEach(() => {
 })
 
 describe('CompleteVisitPanel', () => {
-  it('prefills the performer from the profile and records the examination', async () => {
+  it('prefills the performer, records the charges total as the cost and keeps the lines', async () => {
     const user = userEvent.setup()
     const props = renderPanel(full)
 
     expect((screen.getByLabelText('Performed by, first name *') as HTMLInputElement).value).toBe(
       'Mira',
     )
-    await user.type(screen.getByLabelText('Diagnosis'), 'otitis')
-    await user.type(screen.getByLabelText('Cost'), '45,50')
+    await typeDiagnosis(user, 'otitis')
+    await pickFromPriceList(user, 'Add service', 'Klinički pregled')
+    await pickFromPriceList(user, 'Add medication', 'Synulox')
+    await user.clear(screen.getByLabelText('Quantity of Synulox'))
+    await user.type(screen.getByLabelText('Quantity of Synulox'), '2')
+    expect(screen.getByTestId('charges-total')).toHaveTextContent('1.800,00 RSD')
     await user.click(screen.getByRole('button', { name: 'Record visit' }))
 
     await waitFor(() =>
@@ -100,11 +126,17 @@ describe('CompleteVisitPanel', () => {
           anamnesis: undefined,
           diagnosis: 'otitis',
           therapy: undefined,
-          cost: 45.5,
+          cost: 1800,
         },
       }),
     )
     expect(props.onRecorded).toHaveBeenCalledWith('e1')
+    await waitFor(() =>
+      expect(getCharges('e1').lines.map((line) => [line.name, line.quantity])).toEqual([
+        ['Klinički pregled', 1],
+        ['Synulox', 2],
+      ]),
+    )
     expect(await screen.findByRole('button', { name: 'Mark as paid' })).toBeInTheDocument()
   })
 
@@ -125,7 +157,7 @@ describe('CompleteVisitPanel', () => {
     const user = userEvent.setup()
     const props = renderPanel(full)
 
-    await user.type(screen.getByLabelText('Cost'), '10')
+    await pickFromPriceList(user, 'Add service', 'Obrada rane')
     await user.click(screen.getByRole('button', { name: 'Record visit' }))
     await user.click(await screen.findByRole('button', { name: 'Mark as paid' }))
 
@@ -167,5 +199,28 @@ describe('CompleteVisitPanel', () => {
     renderPanel(full)
 
     expect((screen.getByLabelText('Performed by, first name *') as HTMLInputElement).value).toBe('')
+  })
+
+  it('records a vaccine line as a vaccination due when the vaccine says', async () => {
+    const user = userEvent.setup()
+    renderPanel(full)
+
+    await pickFromPriceList(user, 'Add medication', 'Nobivac Rabies')
+    await user.type(screen.getByLabelText('Batch of Nobivac Rabies'), 'A3KZ')
+    await user.click(screen.getByRole('button', { name: 'Record visit' }))
+
+    await waitFor(() =>
+      expect(listPatientVaccinations('p1')).toEqual([
+        expect.objectContaining({
+          vaccineName: 'Nobivac Rabies',
+          isRabies: true,
+          batch: 'A3KZ',
+          givenOn: clinicToday(),
+          dueOn: addClinicDays(clinicToday(), 365),
+          examinationId: 'e1',
+          source: 'exam',
+        }),
+      ]),
+    )
   })
 })

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, ConfirmDialog, SlidePanel } from '@/shared/ui'
+import { Button, ConfirmDialog, FormError, layout, SlidePanel } from '@/shared/ui'
 import {
   appointmentErrorMessage,
   appointmentErrors,
@@ -21,7 +21,6 @@ import {
   type ResolutionValues,
 } from '../lib/resolution'
 import { PartyResolutionFields } from './PartyResolutionFields'
-import styles from './VisitPanel.module.css'
 
 export interface CheckInPanelProps {
   appointment: Appointment
@@ -120,11 +119,7 @@ export function CheckInPanel({
         isPending={checkIn.isPending}
         onConfirm={() => submit(values)}
       >
-        {submitError && (
-          <p role="alert" className={styles.submitError}>
-            {submitError}
-          </p>
-        )}
+        <FormError message={submitError} />
       </ConfirmDialog>
     )
   }
@@ -133,14 +128,8 @@ export function CheckInPanel({
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel={`Check in ${partyLabel(appointment)}`}
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>Check in {partyLabel(appointment)}</div>
-          <div className={styles.subtitle}>Fill in what the booking is missing, then check in.</div>
-        </div>
-      }
+      title={`Check in ${partyLabel(appointment)}`}
+      subtitle="Fill in what the booking is missing, then check in."
       footer={
         <>
           <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
@@ -157,13 +146,9 @@ export function CheckInPanel({
         </>
       }
     >
-      <div className={styles.body}>
+      <div className={layout.page}>
         <PartyResolutionFields needs={needs} value={values} onChange={setValues} errors={errors} />
-        {submitError && (
-          <p role="alert" className={styles.submitError}>
-            {submitError}
-          </p>
-        )}
+        <FormError message={submitError} />
       </div>
     </SlidePanel>
   )

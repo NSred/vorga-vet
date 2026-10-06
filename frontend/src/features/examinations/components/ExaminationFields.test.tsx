@@ -3,8 +3,21 @@ import userEvent from '@testing-library/user-event'
 import { useForm } from 'react-hook-form'
 import { describe, expect, it, vi } from 'vitest'
 import { emptyExaminationValues } from '../lib/examinationDetails'
-import type { ExaminationFormValues } from '../types'
+import type { DiagnosisFieldProps, ExaminationFormValues } from '../types'
 import { ExaminationFields } from './ExaminationFields'
+
+function fakeDiagnosis({ value, onChange, error }: DiagnosisFieldProps) {
+  return (
+    <>
+      <input
+        aria-label="Diagnosis"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {error && <p>{error}</p>}
+    </>
+  )
+}
 
 function Harness({
   defaults,
@@ -16,12 +29,19 @@ function Harness({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<ExaminationFormValues>({ defaultValues: defaults })
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <ExaminationFields register={register} errors={errors} />
+      <ExaminationFields
+        register={register}
+        control={control}
+        errors={errors}
+        renderDiagnosis={fakeDiagnosis}
+        costSection={<p>charges go here</p>}
+      />
       <button type="submit">Save</button>
     </form>
   )
@@ -56,14 +76,10 @@ describe('ExaminationFields', () => {
     )
   })
 
-  it('rejects a negative or non-numeric cost', async () => {
-    const onSubmit = vi.fn()
-    render(<Harness defaults={emptyExaminationValues('Mira', 'Vet')} onSubmit={onSubmit} />)
+  it('renders the cost section in place of a cost field', () => {
+    render(<Harness defaults={emptyExaminationValues('Mira', 'Vet')} onSubmit={vi.fn()} />)
 
-    await userEvent.type(screen.getByLabelText('Cost'), '-5')
-    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    expect(await screen.findByText('Enter an amount of 0 or more')).toBeInTheDocument()
-    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText('charges go here')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Cost')).not.toBeInTheDocument()
   })
 })

@@ -35,4 +35,44 @@ describe('AppLayout navigation', () => {
 
     expect(screen.getByRole('link', { name: 'Appointments' })).toBeInTheDocument()
   })
+
+  it('shows the price list link to a vet only', () => {
+    renderLayout('veterinarian')
+    expect(screen.getByRole('link', { name: 'Price list' })).toHaveAttribute('href', '/price-list')
+  })
+
+  it('hides the price list link from a client', () => {
+    renderLayout('client')
+    expect(screen.queryByRole('link', { name: 'Price list' })).not.toBeInTheDocument()
+  })
+
+  it('shows the lists link to a vet only', () => {
+    renderLayout('veterinarian')
+    expect(screen.getByRole('link', { name: 'Lists' })).toHaveAttribute('href', '/lists')
+  })
+
+  it('shows the reminders link to a vet only', () => {
+    renderLayout('veterinarian')
+    expect(screen.getByRole('link', { name: 'Reminders' })).toHaveAttribute('href', '/reminders')
+  })
+
+  it('shows the reports link to a vet only', () => {
+    renderLayout('veterinarian')
+    expect(screen.getByRole('link', { name: 'Reports' })).toHaveAttribute('href', '/reports')
+  })
+
+  it('hides the reports link from a client', () => {
+    renderLayout('client')
+    expect(screen.queryByRole('link', { name: 'Reports' })).not.toBeInTheDocument()
+  })
+
+  it('hides the reminders link from a client', () => {
+    renderLayout('client')
+    expect(screen.queryByRole('link', { name: 'Reminders' })).not.toBeInTheDocument()
+  })
+
+  it('hides the lists link from a client', () => {
+    renderLayout('client')
+    expect(screen.queryByRole('link', { name: 'Lists' })).not.toBeInTheDocument()
+  })
 })
