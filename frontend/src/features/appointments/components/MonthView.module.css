@@ -60,3 +60,51 @@
 .otherMonth {
   opacity: 0.55;
 }
+
+.phoneOpen {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  .month {
+    gap: 0.2rem;
+  }
+
+  .dayCell {
+    position: relative;
+    align-items: center;
+    min-height: 3.25rem;
+    padding: 0.3rem 0.15rem;
+  }
+
+  .chips,
+  .closed {
+    display: none;
+  }
+
+  .phoneOpen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 0.35rem;
+    border: none;
+    border-radius: inherit;
+    background: transparent;
+    color: var(--accent-strong);
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .phoneOpen::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    margin: 0 0.2rem 0.2rem 0;
+    border-radius: 999px;
+    background: var(--accent);
+  }
+}

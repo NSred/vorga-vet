@@ -15,6 +15,7 @@ export interface DeletedCardsProps {
 const COLUMNS: TableColumn<PatientListItem>[] = [
   {
     key: 'patient',
+    mobile: 'title',
     header: 'Patient',
     render: (patient) => (
       <span className={styles.stack}>
@@ -25,6 +26,7 @@ const COLUMNS: TableColumn<PatientListItem>[] = [
   },
   {
     key: 'animal',
+    mobile: 'detail',
     header: 'Species & breed',
     render: (patient) => (
       <span className={styles.stack}>

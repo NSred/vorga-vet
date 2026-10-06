@@ -6,6 +6,7 @@ import {
   clinicToday,
   MONDAY_FIRST_WEEKDAYS,
 } from '@/shared/lib/clinicTime'
+import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { AppointmentChip } from './AppointmentChip'
 import { groupByClinicDate, openDates } from '../lib/calendarDays'
 import type { Appointment, AvailabilitySlot } from '../types'
@@ -63,6 +64,16 @@ export function MonthView({
             }`}
           >
             <span className={styles.dayNumber}>{Number(dayIso.slice(8))}</span>
+            {!isLoading && dayAppointments.length > 0 && (
+              <button
+                type="button"
+                className={styles.phoneOpen}
+                onClick={() => onDateSelect(dayIso)}
+                aria-label={`Open ${formatDisplayDate(dayIso)}, ${dayAppointments.length} ${dayAppointments.length === 1 ? 'appointment' : 'appointments'}`}
+              >
+                {dayAppointments.length}
+              </button>
+            )}
             {isClosed && <span className={styles.closed}>Closed</span>}
             <div className={styles.chips}>
               {isLoading ? (

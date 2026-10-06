@@ -25,9 +25,10 @@ function formatValue(value: string | number | undefined): string {
 }
 
 const columns: TableColumn<PatientListItem>[] = [
-  { key: 'cardNumber', header: 'No.', render: (p) => p.cardNumber },
+  { key: 'cardNumber', header: 'No.', mobile: 'detail', render: (p) => p.cardNumber },
   {
     key: 'name',
+    mobile: 'title',
     header: 'Name',
     render: (p) => (
       <span className={styles.nameCell}>
@@ -35,10 +36,11 @@ const columns: TableColumn<PatientListItem>[] = [
       </span>
     ),
   },
-  { key: 'ownerName', header: 'Owner', render: (p) => p.ownerName },
-  { key: 'breedName', header: 'Breed', render: (p) => p.breedName },
+  { key: 'ownerName', header: 'Owner', mobile: 'detail', render: (p) => p.ownerName },
+  { key: 'breedName', header: 'Breed', mobile: 'detail', render: (p) => p.breedName },
   {
     key: 'sex',
+    mobile: 'detail',
     header: 'Sex',
     render: (p) => (
       <Badge tone={p.sex === 'female' ? 'female' : 'male'}>
@@ -46,10 +48,21 @@ const columns: TableColumn<PatientListItem>[] = [
       </Badge>
     ),
   },
-  { key: 'age', header: 'Age', render: (p) => formatValue(calculateAge(p.birthDate)) },
-  { key: 'phoneNumber', header: 'Phone', render: (p) => formatValue(p.phoneNumber) },
+  {
+    key: 'age',
+    header: 'Age',
+    mobile: 'detail',
+    render: (p) => formatValue(calculateAge(p.birthDate)),
+  },
+  {
+    key: 'phoneNumber',
+    header: 'Phone',
+    mobile: 'detail',
+    render: (p) => formatValue(p.phoneNumber),
+  },
   {
     key: 'allergies',
+    mobile: 'detail',
     header: 'Allergies',
     render: (p) =>
       p.allergies.length === 0 ? (
@@ -62,8 +75,13 @@ const columns: TableColumn<PatientListItem>[] = [
         ))
       ),
   },
-  { key: 'address', header: 'Address', render: (p) => formatValue(p.address) },
-  { key: 'city', header: 'City', render: (p) => <Badge tone="neutral">{p.city}</Badge> },
+  { key: 'address', header: 'Address', mobile: 'hidden', render: (p) => formatValue(p.address) },
+  {
+    key: 'city',
+    header: 'City',
+    mobile: 'hidden',
+    render: (p) => <Badge tone="neutral">{p.city}</Badge>,
+  },
 ]
 
 export function PatientTable({

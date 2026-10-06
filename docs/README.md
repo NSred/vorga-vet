@@ -19,6 +19,7 @@ not implemented yet. **Superseded** — kept for history; the linked document re
 
 | Date | Area | Topic | Document | Status |
 |---|---|---|---|---|
+| 2026-10-06 | FE | Mobile layout: phone navigation strip, table cards, full-screen panels, calendar day view, print hidden on phones | [document](specs/2026-10-06-mobile-layout.md) | Implemented |
 | 2026-10-06 | FE | Dropdowns scroll with the mouse wheel: long Select lists and Combobox lists inside panels | [document](specs/2026-10-06-dropdown-wheel-scroll.md) | Implemented |
 | 2026-10-06 | FE | Frontend consolidation after the legacy-gap features: shared mock engine, paged-list helpers, FormDialog, panel and layout CSS, catalogue screens, appointments and patients cleanups | [document](specs/2026-10-06-frontend-consolidation.md) | Implemented |
 | 2026-10-05 | BE | Backend API proposal for the legacy-gap features: paged lists, create, edit, retire, charges in the exam, reports | [document](specs/2026-10-05-legacy-features-backend-api.md) | Proposed |

@@ -20,3 +20,10 @@
   color: var(--text);
   transform: scale(1.08);
 }
+
+@media (max-width: 40rem) and (pointer: coarse) {
+  .iconButton {
+    width: var(--touch-target);
+    height: var(--touch-target);
+  }
+}

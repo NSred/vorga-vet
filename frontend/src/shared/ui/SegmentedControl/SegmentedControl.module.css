@@ -55,3 +55,15 @@
     transition-duration: 0.01ms;
   }
 }
+
+@media (max-width: 40rem) and (pointer: coarse) {
+  .segment {
+    min-height: calc(var(--touch-target) - 0.5rem);
+  }
+}
+
+@media (max-width: 40rem) {
+  .segment {
+    flex: 1;
+  }
+}

@@ -62,3 +62,9 @@
 .danger:hover:not(:disabled) {
   background: var(--danger-soft);
 }
+
+@media (max-width: 40rem) and (pointer: coarse) {
+  .button {
+    min-height: var(--touch-target);
+  }
+}

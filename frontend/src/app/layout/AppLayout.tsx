@@ -21,11 +21,17 @@ export function AppLayout() {
   const navItems = NAV_ITEMS.filter((item) => !item.vetOnly || isVeterinarian)
 
   useLayoutEffect(() => {
-    const activeLink = navRef.current?.querySelector<HTMLAnchorElement>('[aria-current="page"]')
-    setThumbStyle(
-      activeLink ? { left: activeLink.offsetLeft, width: activeLink.offsetWidth } : null,
-    )
-    activeLink?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+    const measure = () => {
+      const activeLink = navRef.current?.querySelector<HTMLAnchorElement>('[aria-current="page"]')
+      setThumbStyle(
+        activeLink ? { left: activeLink.offsetLeft, width: activeLink.offsetWidth } : null,
+      )
+      return activeLink
+    }
+
+    measure()?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
   }, [pathname])
 
   return (
@@ -33,7 +39,7 @@ export function AppLayout() {
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <span className={styles.brand}>VorgaVet</span>
-          <nav className={styles.nav} ref={navRef}>
+          <nav className={styles.nav} ref={navRef} aria-label="Main">
             {thumbStyle && (
               <span
                 className={styles.navThumb}

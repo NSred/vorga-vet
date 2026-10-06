@@ -20,6 +20,10 @@ describe('parseViewParams', () => {
     })
   })
 
+  it('falls back to the view the caller gives, such as day on a phone', () => {
+    expect(parseViewParams(new URLSearchParams(), '2026-09-17', 'day').view).toBe('day')
+  })
+
   it('ignores an unknown view and a malformed date', () => {
     const params = new URLSearchParams('view=decade&date=yesterday')
 
@@ -36,9 +40,9 @@ describe('toViewParams', () => {
     expect(toViewParams({ view: 'day', date: '2026-09-17', showCancelled: false }).toString()).toBe(
       'view=day&date=2026-09-17',
     )
-    expect(toViewParams({ view: 'month', date: '2026-09-17', showCancelled: true }).toString()).toBe(
-      'view=month&date=2026-09-17&cancelled=1',
-    )
+    expect(
+      toViewParams({ view: 'month', date: '2026-09-17', showCancelled: true }).toString(),
+    ).toBe('view=month&date=2026-09-17&cancelled=1')
   })
 
   it('round-trips through parseViewParams', () => {

@@ -15,12 +15,13 @@ function isCalendarView(value: string | null): value is CalendarView {
 export function parseViewParams(
   params: URLSearchParams,
   fallbackDate: string,
+  fallbackView: CalendarView = 'week',
 ): AppointmentViewState {
   const view = params.get('view')
   const date = params.get('date')
 
   return {
-    view: isCalendarView(view) ? view : 'week',
+    view: isCalendarView(view) ? view : fallbackView,
     date: date && DATE_PATTERN.test(date) ? date : fallbackDate,
     showCancelled: params.get('cancelled') === '1',
   }

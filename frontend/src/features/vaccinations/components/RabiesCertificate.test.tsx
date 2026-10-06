@@ -38,7 +38,20 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
+
+function emulatePhone() {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  )
+}
 
 function addRabies(name = 'Nobivac Rabies') {
   return addManualVaccination('p1', {
@@ -69,6 +82,24 @@ describe('rabies certificate', () => {
 
     const list = await screen.findByRole('list', { name: 'Vaccinations' })
     expect(within(list).getAllByRole('button', { name: 'Certificate' })).toHaveLength(1)
+  })
+
+  it('issues without printing on a phone and keeps the reprint for later', async () => {
+    emulatePhone()
+    addRabies()
+    const user = userEvent.setup()
+    renderSection()
+
+    await user.click(await screen.findByRole('button', { name: 'Certificate' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Rabies vaccination certificate' })
+    expect(
+      within(dialog).queryByRole('button', { name: 'Issue and print' }),
+    ).not.toBeInTheDocument()
+    await user.type(within(dialog).getByLabelText('Certificate number *'), 'P3989553')
+    await user.click(within(dialog).getByRole('button', { name: 'Issue certificate' }))
+
+    expect(await screen.findByRole('button', { name: 'Print certificate' })).toBeInTheDocument()
+    expect(window.print).not.toHaveBeenCalled()
   })
 
   it('prefills the form and asks for the form number', async () => {

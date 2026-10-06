@@ -1,5 +1,6 @@
 .page {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .header {
@@ -110,4 +111,69 @@
 
 .main {
   padding: 1.5rem;
+}
+
+@media (max-width: 40rem) {
+  .main {
+    overflow-x: clip;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 40rem) {
+  .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand user'
+      'nav nav';
+    row-gap: 0.6rem;
+    padding: 0.75rem 1rem 0.6rem;
+  }
+
+  .headerLeft {
+    display: contents;
+  }
+
+  .brand {
+    grid-area: brand;
+  }
+
+  .userArea {
+    grid-area: user;
+    min-width: 0;
+  }
+
+  .userEmail {
+    display: none;
+  }
+
+  .nav {
+    grid-area: nav;
+    margin: 0 -1rem;
+    padding: 0.1rem 1.5rem 0.1rem 1rem;
+    scroll-padding-inline: 1.5rem;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 1rem,
+      #000 calc(100% - 1.5rem),
+      transparent
+    );
+  }
+
+  .navThumb {
+    top: 0.1rem;
+    bottom: 0.1rem;
+  }
+}
+
+@media (max-width: 40rem) and (pointer: coarse) {
+  .navLink {
+    padding-block: 0.65rem;
+  }
+
+  .logoutButton {
+    min-height: var(--touch-target);
+  }
 }

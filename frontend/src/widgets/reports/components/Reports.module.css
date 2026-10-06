@@ -181,3 +181,12 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+@media (max-width: 40rem) {
+  .tableCard:has(table[data-cards]) {
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: none;
+  }
+}

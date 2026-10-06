@@ -49,6 +49,7 @@ export function DailyReport({
   const columns: TableColumn<ReportRow>[] = [
     {
       key: 'time',
+      mobile: 'detail',
       header: 'Time',
       render: (row) => (
         <span className={styles.strongNumeric}>{clinicTimeOf(row.examination.startedAt)}</span>
@@ -56,6 +57,7 @@ export function DailyReport({
     },
     {
       key: 'patient',
+      mobile: 'title',
       header: 'Patient',
       render: (row) => (
         <span className={styles.stack}>
@@ -67,7 +69,7 @@ export function DailyReport({
         </span>
       ),
     },
-    { key: 'vet', header: 'Vet', render: (row) => vetOf(row.examination) || '—' },
+    { key: 'vet', header: 'Vet', mobile: 'detail', render: (row) => vetOf(row.examination) || '—' },
     {
       key: 'diagnosis',
       header: 'Diagnosis & services',

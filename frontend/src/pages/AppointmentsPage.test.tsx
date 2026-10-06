@@ -90,7 +90,20 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
+
+function emulatePhone() {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  )
+}
 
 describe('AppointmentsPage', () => {
   it('requests the day range when the day view is open', async () => {
@@ -111,6 +124,44 @@ describe('AppointmentsPage', () => {
       expect(getAppointmentsSpy).toHaveBeenCalledWith({
         from: '2026-09-13T22:00:00.000Z',
         to: '2026-09-20T22:00:00.000Z',
+      }),
+    )
+  })
+
+  it('requests the day range by default on a phone', async () => {
+    emulatePhone()
+    renderAt('/appointments?date=2026-09-17')
+
+    await waitFor(() =>
+      expect(getAppointmentsSpy).toHaveBeenCalledWith({
+        from: '2026-09-16T22:00:00.000Z',
+        to: '2026-09-17T22:00:00.000Z',
+      }),
+    )
+  })
+
+  it('keeps a week view asked for in the address on a phone', async () => {
+    emulatePhone()
+    renderAt('/appointments?view=week&date=2026-09-17')
+
+    await waitFor(() =>
+      expect(getAppointmentsSpy).toHaveBeenCalledWith({
+        from: '2026-09-13T22:00:00.000Z',
+        to: '2026-09-20T22:00:00.000Z',
+      }),
+    )
+  })
+
+  it('opens the day that was picked from the week view', async () => {
+    const user = userEvent.setup()
+    renderAt('/appointments?view=week&date=2026-09-17')
+
+    await user.click(await screen.findByRole('button', { name: 'Open Fri 18' }))
+
+    await waitFor(() =>
+      expect(getAppointmentsSpy).toHaveBeenLastCalledWith({
+        from: '2026-09-17T22:00:00.000Z',
+        to: '2026-09-18T22:00:00.000Z',
       }),
     )
   })

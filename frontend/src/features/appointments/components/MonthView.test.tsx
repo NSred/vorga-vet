@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { MonthView } from './MonthView'
 import type { Appointment, AvailabilitySlot } from '../types'
@@ -25,14 +26,14 @@ const openSlot: AvailabilitySlot = {
   isMine: false,
 }
 
-function renderMonth(appointments: Appointment[]) {
+function renderMonth(appointments: Appointment[], onDateSelect = vi.fn()) {
   render(
     <MonthView
       date="2026-09-17"
       appointments={appointments}
       slots={[openSlot]}
       onAppointmentClick={vi.fn()}
-      onDateSelect={vi.fn()}
+      onDateSelect={onDateSelect}
       isLoading={false}
       hasSlotData
     />,
@@ -57,5 +58,26 @@ describe('MonthView', () => {
 
     expect(screen.getByTestId('month-day-2026-09-18')).toHaveTextContent('Closed')
     expect(screen.getByTestId('month-day-2026-09-17')).not.toHaveTextContent('Closed')
+  })
+
+  it('offers a phone shortcut that opens a day with appointments', async () => {
+    const onDateSelect = vi.fn()
+    renderMonth(
+      [
+        appointment('a1', '2026-09-17T05:00:00Z', 'Luna'),
+        appointment('a2', '2026-09-17T06:00:00Z', 'Rex'),
+      ],
+      onDateSelect,
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: /^Open .*, 2 appointments$/ }))
+
+    expect(onDateSelect).toHaveBeenCalledWith('2026-09-17')
+  })
+
+  it('offers no shortcut for an empty day', () => {
+    renderMonth([])
+
+    expect(screen.queryByRole('button', { name: /^Open / })).not.toBeInTheDocument()
   })
 })

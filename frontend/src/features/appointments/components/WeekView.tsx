@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Skeleton } from '@/shared/ui'
 import {
   addClinicDays,
@@ -30,26 +31,42 @@ export function WeekView({
   isLoading,
   hasSlotData,
 }: WeekViewProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const weekStart = clinicDateOf(clinicWeekRange(date).from)
+  const today = clinicToday()
+
+  useEffect(() => {
+    const scroller = scrollerRef.current
+    if (!scroller || scroller.scrollWidth <= scroller.clientWidth) return
+    const todayHeader = scroller.querySelector<HTMLElement>('[data-today]')
+    const corner = scroller.querySelector<HTMLElement>('[data-corner]')
+    if (!todayHeader) return
+    const offset =
+      todayHeader.getBoundingClientRect().left -
+      scroller.getBoundingClientRect().left -
+      (corner?.getBoundingClientRect().width ?? 0)
+    scroller.scrollLeft += offset
+  }, [weekStart, today, isLoading])
+
   if (isLoading) {
     return <Skeleton height="20rem" />
   }
 
-  const weekStart = clinicDateOf(clinicWeekRange(date).from)
   const dates = Array.from({ length: 7 }, (_, index) => addClinicDays(weekStart, index))
   const { rows, days } = layoutWeek(dates, appointments, slots, hasSlotData)
-  const today = clinicToday()
   const rowTemplate = `repeat(${rows.length}, var(--week-slot-height))`
 
   return (
-    <div className={styles.scroller}>
+    <div className={styles.scroller} ref={scrollerRef}>
       <div className={styles.week}>
-        <div className={styles.corner} />
+        <div className={styles.corner} data-corner />
         {days.map((day, index) => (
           <button
             key={day.date}
             type="button"
             className={`${styles.dayHeader} ${day.date === today ? styles.todayHeader : ''}`}
             onClick={() => onDateSelect(day.date)}
+            data-today={day.date === today ? '' : undefined}
             aria-label={`Open ${MONDAY_FIRST_WEEKDAYS[index]} ${Number(day.date.slice(8))}`}
           >
             <span>{MONDAY_FIRST_WEEKDAYS[index]}</span>

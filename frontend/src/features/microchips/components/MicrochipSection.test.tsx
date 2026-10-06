@@ -36,7 +36,20 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
+
+function emulatePhone() {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  )
+}
 
 function renderSection(withSubject: RegistrationSubject = subject) {
   render(
@@ -61,6 +74,22 @@ describe('MicrochipSection', () => {
 
     expect(await screen.findByText(/No chip number on this card yet/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Register microchip' })).not.toBeInTheDocument()
+  })
+
+  it('registers without printing or asking for a JMBG on a phone', async () => {
+    emulatePhone()
+    const user = userEvent.setup()
+    renderSection()
+
+    await user.click(await screen.findByRole('button', { name: 'Register microchip' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Register microchip' })
+    expect(within(dialog).queryByLabelText('Owner’s JMBG *')).not.toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Register' }))
+
+    expect(
+      await screen.findByRole('button', { name: 'Print registration sheet' }),
+    ).toBeInTheDocument()
+    expect(window.print).not.toHaveBeenCalled()
   })
 
   it('prefills the form and checks the JMBG', async () => {

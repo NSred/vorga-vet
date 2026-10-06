@@ -53,3 +53,25 @@
   opacity: 0.4;
   cursor: default;
 }
+
+@media (max-width: 40rem) {
+  .pagination {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.6rem;
+  }
+
+  .pages,
+  .pageSize {
+    grid-column: 1;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 40rem) and (pointer: coarse) {
+  .pageButton,
+  .arrow {
+    min-width: 2rem;
+    height: var(--touch-target);
+  }
+}

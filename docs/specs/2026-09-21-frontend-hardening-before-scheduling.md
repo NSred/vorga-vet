@@ -111,7 +111,8 @@ frontend/
 This pass was the dedicated clean-up, but four later sub-projects each changed shared code too.
 Together with the list above, this is the whole set of app-wide changes in the appointments arc.
 The rows from the nav-label row to the `widgets/reports/` row come from the legacy-gap work that
-started on 2026-10-04, and the rows after them from the consolidation of 2026-10-06.
+started on 2026-10-04, the rows from `shared/lib/mockStore.ts` onward from the consolidation of
+2026-10-06, and the rows from `useMediaQuery` onward from the mobile layout of the same day.
 
 | Change | Why | Where it is explained |
 |---|---|---|
@@ -150,3 +151,8 @@ started on 2026-10-04, and the rows after them from the consolidation of 2026-10
 | `Select` content capped at the available height; `Combobox` popover is `modal` | the Radix scroll lock cancelled the wheel on long Select lists and on Combobox lists inside dialogs | [dropdown wheel scroll](2026-10-06-dropdown-wheel-scroll.md) |
 | `PatientDetailPanel` gained `microchipSection` | the page composes the microchips and vaccinations features into it | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
 | `ExaminationFields` takes `costSection`, `ExaminationEditPanel` takes `costSlot`, `VisitHistory` takes `renderCharges`; the Cost field and `parseCost` are gone | the examinations feature may not import the price list, so pages and widgets fill the slots | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `useMediaQuery` and `PHONE_QUERY` in `shared/lib` | the calendar opens in day view on a phone, which CSS alone cannot choose | [mobile layout](2026-10-06-mobile-layout.md) |
+| `Table` wraps itself in a scroller, and columns take `mobile: title, detail or hidden` | wide tables pushed the whole page sideways on phones; declared columns turn rows into cards there | [mobile layout](2026-10-06-mobile-layout.md) |
+| `SlidePanel`, `Modal`, `Toast`, `Pagination`, `SearchInput`, `SegmentedControl`, `RecordList`, `Button`, `IconButton` gained phone rules; `tokens.css` gained `--touch-target` | panels fill a phone screen and controls reach 44px on touch phones, with desktop unchanged | [mobile layout](2026-10-06-mobile-layout.md) |
+| `layout.module.css` gained `hideOnPhone`, phone toolbars and a one-column `formRow` under 22.5rem | print buttons are desktop-only, and filters and forms fit a narrow screen | [mobile layout](2026-10-06-mobile-layout.md) |
+| `AppLayout` header becomes two rows on phones, and its nav has `aria-label="Main"` | all tabs stay reachable in a swipeable strip under the brand | [mobile layout](2026-10-06-mobile-layout.md) |

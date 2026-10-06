@@ -42,3 +42,23 @@
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+
+@media (max-width: 40rem) {
+  .hideOnPhone {
+    display: none !important;
+  }
+
+  .toolbarGroup {
+    flex: 1 1 100%;
+  }
+
+  .toolbarGroup > * {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 22.5rem) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}

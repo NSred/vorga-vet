@@ -16,6 +16,7 @@ export interface IssueCertificateDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onIssued: (certificate: RabiesCertificate) => void
+  print?: boolean
 }
 
 interface Values {
@@ -51,6 +52,7 @@ export function IssueCertificateDialog({
   open,
   onOpenChange,
   onIssued,
+  print = true,
 }: IssueCertificateDialogProps) {
   const issue = useIssueCertificate()
   const lastIssuer = useLastIssuer(open)
@@ -136,7 +138,7 @@ export function IssueCertificateDialog({
       title="Rabies vaccination certificate"
       description={`${subject.animal.name} · ${vaccination.vaccineName}, given ${formatDisplayDate(vaccination.givenOn)}${vaccination.batch ? `, batch ${vaccination.batch}` : ''} · owner ${subject.owner.name}`}
       formId="issue-certificate-form"
-      submitLabel="Issue and print"
+      submitLabel={print ? 'Issue and print' : 'Issue certificate'}
       isPending={issue.isPending}
       onSubmit={submit}
       onOpen={() => reset(blank(defaultVetName))}

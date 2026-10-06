@@ -135,3 +135,13 @@
   gap: 0.2rem;
   min-width: 10rem;
 }
+
+@media (max-width: 40rem) {
+  .charges {
+    padding: 0.8rem;
+  }
+
+  .adders {
+    grid-template-columns: 1fr;
+  }
+}

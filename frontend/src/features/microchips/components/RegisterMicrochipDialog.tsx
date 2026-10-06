@@ -30,6 +30,7 @@ export interface RegisterMicrochipDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onRegistered: (registration: MicrochipRegistration, jmbg: string) => void
+  print?: boolean
 }
 
 interface Values {
@@ -67,6 +68,7 @@ export function RegisterMicrochipDialog({
   open,
   onOpenChange,
   onRegistered,
+  print = true,
 }: RegisterMicrochipDialogProps) {
   const registration = useRegisterMicrochip()
   const remembered = useLastClinic(open)
@@ -120,7 +122,7 @@ export function RegisterMicrochipDialog({
       title="Register microchip"
       description={`${subject.animal.name} · chip ${chipNumber} · owner ${subject.owner.name}`}
       formId="register-microchip-form"
-      submitLabel="Register and print"
+      submitLabel={print ? 'Register and print' : 'Register'}
       isPending={registration.isPending}
       onSubmit={submit}
       onOpen={() => reset(blank(defaultVetName))}
@@ -185,15 +187,19 @@ export function RegisterMicrochipDialog({
           error={errors.vetName?.message}
         />
       </div>
-      <TextField
-        id="chip-jmbg"
-        label="Owner’s JMBG *"
-        inputMode="numeric"
-        autoComplete="off"
-        {...register('jmbg', { validate: (value) => jmbgError(value) ?? true })}
-        error={errors.jmbg?.message}
-      />
-      <p className={layout.note}>The JMBG is printed on the sheet and never saved.</p>
+      {print && (
+        <>
+          <TextField
+            id="chip-jmbg"
+            label="Owner’s JMBG *"
+            inputMode="numeric"
+            autoComplete="off"
+            {...register('jmbg', { validate: (value) => jmbgError(value) ?? true })}
+            error={errors.jmbg?.message}
+          />
+          <p className={layout.note}>The JMBG is printed on the sheet and never saved.</p>
+        </>
+      )}
       <FormError message={errors.root?.message} />
     </FormDialog>
   )

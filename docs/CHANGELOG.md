@@ -3,6 +3,25 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-06 — Mobile layout
+
+Frontend only. 129 test files, 733 tests, typecheck and lint clean. Desktop screenshots are
+pixel-identical before and after; the phone layout was checked against the real API at 390×844
+and 360×740 as a vet and as a client.
+
+- The page no longer scrolls sideways on a phone; side panels fill the screen as sheets with
+  their title and actions fixed.
+- The header becomes two rows with all tabs in a swipeable strip; the active tab stays in view.
+- The patients and report tables turn into cards on phones, through a new `mobile` option on
+  `Table` columns.
+- The calendar opens in day view on a phone, jumps to today in the week view and shows a tappable
+  count per day in the month view.
+- Controls reach 44px on touch phones. Print buttons are hidden on phones; issuing a rabies
+  certificate or registering a microchip there saves the record without printing.
+- Fixed: picking a day from the week or month view opened the previously shown date instead.
+
+Details: [document](specs/2026-10-06-mobile-layout.md)
+
 ## 2026-10-06 — Dropdowns scroll with the mouse wheel
 
 Frontend only. 127 test files, 716 tests, typecheck and lint clean, production build passes.

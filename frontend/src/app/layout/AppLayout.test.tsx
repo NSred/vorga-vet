@@ -24,6 +24,12 @@ function renderLayout(role: 'veterinarian' | 'client') {
 }
 
 describe('AppLayout navigation', () => {
+  it('labels the navigation strip', () => {
+    renderLayout('veterinarian')
+
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
+  })
+
   it('shows the appointments link to a vet', () => {
     renderLayout('veterinarian')
 

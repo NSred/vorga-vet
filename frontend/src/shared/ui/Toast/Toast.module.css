@@ -81,3 +81,12 @@
     opacity: 0;
   }
 }
+
+@media (max-width: 40rem) {
+  .viewport {
+    left: 1rem;
+    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    width: auto;
+  }
+}

@@ -36,3 +36,40 @@
   font-size: 0.78rem;
   color: var(--text-muted);
 }
+
+@media (max-width: 40rem) and (pointer: coarse) {
+  .arrow {
+    min-width: 2.25rem;
+    height: var(--touch-target);
+  }
+}
+
+.group,
+.actions {
+  display: contents;
+}
+
+@media (max-width: 40rem) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .group,
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  .datePicker {
+    flex: 1;
+  }
+
+  .actions > * {
+    flex: 1 1 auto;
+  }
+}

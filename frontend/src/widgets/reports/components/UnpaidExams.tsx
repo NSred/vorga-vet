@@ -55,6 +55,7 @@ export function UnpaidExams({ onOpenPatient, printing, onPrinted }: UnpaidExamsP
   const columns: TableColumn<ReportRow>[] = [
     {
       key: 'date',
+      mobile: 'detail',
       header: 'Date',
       render: (row) => (
         <span className={styles.stack}>
@@ -65,6 +66,7 @@ export function UnpaidExams({ onOpenPatient, printing, onPrinted }: UnpaidExamsP
     },
     {
       key: 'patient',
+      mobile: 'title',
       header: 'Patient',
       render: (row) => (
         <span className={styles.stack}>

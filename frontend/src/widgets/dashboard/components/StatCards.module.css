@@ -73,3 +73,27 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+@media (max-width: 40rem) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(6.25rem, 1fr));
+    gap: 0.5rem;
+  }
+
+  .card {
+    gap: 0.15rem;
+    padding: 0.65rem 0.7rem;
+  }
+
+  .label {
+    font-size: 0.6rem;
+  }
+
+  .value {
+    font-size: 1.15rem;
+  }
+
+  .sublabel {
+    display: none;
+  }
+}

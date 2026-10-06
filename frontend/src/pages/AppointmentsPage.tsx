@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { PHONE_QUERY, useMediaQuery } from '@/shared/lib/useMediaQuery'
 import { ConfirmDialog, EmptyState, layout, PageHeader, Textarea, useToast } from '@/shared/ui'
 import {
   addClinicDays,
@@ -75,15 +76,20 @@ export function AppointmentsPage() {
   const { ownerField, patientField, ownerOfPatient } = usePartyFields()
   const cancel = useCancelAppointment()
   const noShow = useMarkNoShow()
+  const defaultView: CalendarView = useMediaQuery(PHONE_QUERY) ? 'day' : 'week'
 
-  const { view, date: currentDate, showCancelled } = parseViewParams(searchParams, clinicToday())
+  const {
+    view,
+    date: currentDate,
+    showCancelled,
+  } = parseViewParams(searchParams, clinicToday(), defaultView)
 
   const writeParams = useCallback(
     (next: Partial<AppointmentViewState>) => {
-      const current = parseViewParams(searchParams, clinicToday())
+      const current = parseViewParams(searchParams, clinicToday(), defaultView)
       setSearchParams(toViewParams({ ...current, ...next }), { replace: true })
     },
-    [searchParams, setSearchParams],
+    [searchParams, setSearchParams, defaultView],
   )
 
   const setView = (next: CalendarView) => writeParams({ view: next })
@@ -125,10 +131,7 @@ export function AppointmentsPage() {
     else setCurrentDate(addClinicMonths(currentDate, 1))
   }
 
-  const openDay = (dateIso: string) => {
-    setCurrentDate(dateIso)
-    setView('day')
-  }
+  const openDay = (dateIso: string) => writeParams({ date: dateIso, view: 'day' })
 
   const closeForm = () => setForm({ mode: 'closed' })
 

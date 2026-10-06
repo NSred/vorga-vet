@@ -24,4 +24,5 @@
   --radius-sm: 7px;
   --surface-glass: rgba(255, 253, 250, 0.6);
   --surface-glass-hover: rgba(255, 253, 250, 0.88);
+  --touch-target: 2.75rem;
 }

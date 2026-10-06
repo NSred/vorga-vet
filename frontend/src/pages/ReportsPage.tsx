@@ -46,7 +46,7 @@ export function ReportsPage() {
           <Button
             variant="outline"
             type="button"
-            className={styles.printButton}
+            className={`${styles.printButton} ${layout.hideOnPhone}`}
             disabled={printing}
             onClick={() => setPrinting(true)}
           >

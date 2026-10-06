@@ -91,3 +91,17 @@
   background: var(--surface-2);
   color: var(--text);
 }
+
+@media (max-width: 40rem) {
+  .box,
+  .box.active {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 40rem) and (pointer: coarse) {
+  .box {
+    height: var(--touch-target);
+  }
+}

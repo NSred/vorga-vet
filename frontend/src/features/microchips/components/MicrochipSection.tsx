@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
+import { PHONE_QUERY, useMediaQuery } from '@/shared/lib/useMediaQuery'
 import {
   Button,
   layout,
@@ -39,6 +40,7 @@ export function MicrochipSection({
   const [registering, setRegistering] = useState(false)
   const [reprinting, setReprinting] = useState<MicrochipRegistration | null>(null)
   const [printJob, setPrintJob] = useState<PrintJob | null>(null)
+  const canPrint = !useMediaQuery(PHONE_QUERY)
 
   const chipNumber = subject.chipNumber?.trim()
   const registration = data?.find((item) => item.chipNumber === chipNumber) ?? data?.[0]
@@ -54,7 +56,12 @@ export function MicrochipSection({
             title={`Chip ${registration.chipNumber}`}
             meta={`Implanted ${formatDisplayDate(registration.implantedOn)} · registered by ${registration.vetName}, ${registration.clinic}`}
             actions={
-              <Button variant="outline" type="button" onClick={() => setReprinting(registration)}>
+              <Button
+                variant="outline"
+                type="button"
+                className={layout.hideOnPhone}
+                onClick={() => setReprinting(registration)}
+              >
                 Print registration sheet
               </Button>
             }
@@ -91,10 +98,11 @@ export function MicrochipSection({
           defaultVetName={vetName}
           open
           onOpenChange={setRegistering}
+          print={canPrint}
           onRegistered={(saved, jmbg) => {
             setRegistering(false)
             showToast({ tone: 'success', title: `Chip ${saved.chipNumber} was registered` })
-            setPrintJob({ registration: saved, jmbg })
+            if (canPrint) setPrintJob({ registration: saved, jmbg })
           }}
         />
       )}

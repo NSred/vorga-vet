@@ -37,47 +37,59 @@ export function CalendarToolbar({
 }: CalendarToolbarProps) {
   return (
     <div className={styles.toolbar}>
-      <SegmentedControl value={view} onChange={onViewChange} options={VIEW_OPTIONS} />
+      <div className={styles.group}>
+        <SegmentedControl value={view} onChange={onViewChange} options={VIEW_OPTIONS} />
 
-      <div className={styles.nav}>
-        <button
-          type="button"
-          className={styles.arrow}
-          onClick={onPrev}
-          aria-label="Previous period"
-        >
-          ‹
-        </button>
-        <Button variant="outline" type="button" onClick={onToday}>
-          Today
-        </Button>
-        <button type="button" className={styles.arrow} onClick={onNext} aria-label="Next period">
-          ›
-        </button>
+        <div className={styles.nav}>
+          <button
+            type="button"
+            className={styles.arrow}
+            onClick={onPrev}
+            aria-label="Previous period"
+          >
+            ‹
+          </button>
+          <Button variant="outline" type="button" onClick={onToday}>
+            Today
+          </Button>
+          <button type="button" className={styles.arrow} onClick={onNext} aria-label="Next period">
+            ›
+          </button>
+        </div>
       </div>
 
-      <DatePicker
-        id="calendar-date"
-        label="Select date"
-        hideLabel
-        value={currentDate}
-        onChange={(next) => next && onDateChange(next)}
-        className={styles.datePicker}
-      />
+      <div className={styles.group}>
+        <DatePicker
+          id="calendar-date"
+          label="Select date"
+          hideLabel
+          value={currentDate}
+          onChange={(next) => next && onDateChange(next)}
+          className={styles.datePicker}
+        />
 
-      <Checkbox checked={showCancelled} onChange={onShowCancelledChange} className={styles.toggle}>
-        Show cancelled
-      </Checkbox>
+        <Checkbox
+          checked={showCancelled}
+          onChange={onShowCancelledChange}
+          className={styles.toggle}
+        >
+          Show cancelled
+        </Checkbox>
+      </div>
 
-      {onNewAppointment && (
-        <Button variant="primary" type="button" onClick={onNewAppointment}>
-          ＋ New appointment
-        </Button>
-      )}
-      {onWalkIn && (
-        <Button variant="outline" type="button" onClick={onWalkIn}>
-          Walk-in
-        </Button>
+      {(onNewAppointment || onWalkIn) && (
+        <div className={styles.actions}>
+          {onNewAppointment && (
+            <Button variant="primary" type="button" onClick={onNewAppointment}>
+              ＋ New appointment
+            </Button>
+          )}
+          {onWalkIn && (
+            <Button variant="outline" type="button" onClick={onWalkIn}>
+              Walk-in
+            </Button>
+          )}
+        </div>
       )}
     </div>
   )

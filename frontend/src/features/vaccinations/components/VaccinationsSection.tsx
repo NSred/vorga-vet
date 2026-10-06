@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { clinicToday } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
+import { PHONE_QUERY, useMediaQuery } from '@/shared/lib/useMediaQuery'
 import {
   Badge,
   Button,
@@ -41,6 +42,7 @@ export function VaccinationsSection({
   const [removing, setRemoving] = useState<Vaccination | null>(null)
   const [issuing, setIssuing] = useState<Vaccination | null>(null)
   const [printing, setPrinting] = useState<RabiesCertificate | null>(null)
+  const canPrint = !useMediaQuery(PHONE_QUERY)
   const certificates = usePatientCertificates(patientId)
   const certificateFor = (vaccinationId: string) =>
     certificates.data?.find((certificate) => certificate.vaccinationId === vaccinationId)
@@ -88,6 +90,7 @@ export function VaccinationsSection({
                     <Button
                       variant="outline"
                       type="button"
+                      className={layout.hideOnPhone}
                       onClick={() => setPrinting(certificateFor(vaccination.id) ?? null)}
                     >
                       Print certificate
@@ -133,10 +136,11 @@ export function VaccinationsSection({
           defaultVetName={vetName}
           open
           onOpenChange={(open) => !open && setIssuing(null)}
+          print={canPrint}
           onIssued={(certificate) => {
             setIssuing(null)
             showToast({ tone: 'success', title: `Certificate ${certificate.number} was issued` })
-            setPrinting(certificate)
+            if (canPrint) setPrinting(certificate)
           }}
         />
       )}
