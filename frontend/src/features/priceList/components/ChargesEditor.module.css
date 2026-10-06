@@ -80,14 +80,6 @@
   flex: 1 1 10rem;
 }
 
-.fieldLabel {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
 .lineTotal {
   margin-left: auto;
   padding-bottom: 0.4rem;

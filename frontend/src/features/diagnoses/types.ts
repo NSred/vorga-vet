@@ -1,4 +1,6 @@
-export type DiagnosisStatus = 'active' | 'all' | 'retired'
+import type { CatalogFilters, CatalogQueryDto, CatalogStatus } from '@/shared/domain/catalog'
+import type { Page } from '@/shared/domain/page'
+export type DiagnosisStatus = CatalogStatus
 
 export interface DiagnosisDto {
   id: string
@@ -8,19 +10,9 @@ export interface DiagnosisDto {
   createdAt: string
 }
 
-export interface DiagnosisPageDto {
-  items: DiagnosisDto[]
-  totalCount: number
-  page: number
-  pageSize: number
-}
+export type DiagnosisPageDto = Page<DiagnosisDto>
 
-export interface DiagnosisQueryDto {
-  search?: string
-  status: number
-  page: number
-  pageSize: number
-}
+export type DiagnosisQueryDto = CatalogQueryDto
 
 export interface DiagnosisWriteRequest {
   name: string
@@ -39,17 +31,9 @@ export interface Diagnosis {
   isActive: boolean
 }
 
-export interface DiagnosisPage {
-  items: Diagnosis[]
-  totalCount: number
-  page: number
-  pageSize: number
-}
+export type DiagnosisPage = Page<Diagnosis>
 
-export interface DiagnosisFilters {
-  search?: string
-  status: DiagnosisStatus
-}
+export type DiagnosisFilters = CatalogFilters
 
 export interface DiagnosisFormValues {
   name: string

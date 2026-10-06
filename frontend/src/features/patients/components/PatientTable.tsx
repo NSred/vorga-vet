@@ -1,4 +1,4 @@
-import { Badge, EmptyState, Pagination, Table, type TableColumn } from '@/shared/ui'
+import { Badge, PagedTable, type TableColumn } from '@/shared/ui'
 import { calculateAge } from '../lib/patientAge'
 import type { PatientListItem } from '../types'
 import { SPECIES_EMOJI } from '@/shared/domain/species'
@@ -78,29 +78,20 @@ export function PatientTable({
   onRowClick,
   emptyMessage = 'No patients yet.',
 }: PatientTableProps) {
-  if (!isLoading && patients.length === 0) {
-    return (
-      <EmptyState message={hasFilters ? 'No patients match your filters.' : emptyMessage} />
-    )
-  }
-
   return (
-    <div>
-      <Table
-        columns={columns}
-        rows={patients}
-        getRowId={(p) => p.id}
-        onRowClick={onRowClick}
-        rowClassName={(p) => (p.isDeleted ? styles.deletedRow : undefined)}
-        isLoading={isLoading}
-      />
-      <Pagination
-        page={page}
-        pageCount={Math.max(1, Math.ceil(totalCount / pageSize))}
-        pageSize={pageSize}
-        onPageChange={onPageChange}
-        onPageSizeChange={onPageSizeChange}
-      />
-    </div>
+    <PagedTable
+      columns={columns}
+      rows={patients}
+      getRowId={(p) => p.id}
+      isLoading={isLoading}
+      page={page}
+      pageSize={pageSize}
+      totalCount={totalCount}
+      emptyMessage={hasFilters ? 'No patients match your filters.' : emptyMessage}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      onRowClick={onRowClick}
+      rowClassName={(p) => (p.isDeleted ? styles.deletedRow : undefined)}
+    />
   )
 }

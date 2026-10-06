@@ -110,7 +110,8 @@ frontend/
 
 This pass was the dedicated clean-up, but four later sub-projects each changed shared code too.
 Together with the list above, this is the whole set of app-wide changes in the appointments arc.
-The last fourteen rows come from the legacy-gap work that started on 2026-10-04.
+The rows from the nav-label row to the `widgets/reports/` row come from the legacy-gap work that
+started on 2026-10-04, and the rows after them from the consolidation of 2026-10-06.
 
 | Change | Why | Where it is explained |
 |---|---|---|
@@ -136,5 +137,15 @@ The last fourteen rows come from the legacy-gap work that started on 2026-10-04.
 | `SegmentedControl` is as wide as its tabs and re-measures its highlight when a tab resizes | the border ran to the page edge on the Reminders page, and the highlight kept a width measured before the web font loaded | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
 | `AppLayout` nav scrolls sideways inside the header and keeps the active link in view | a fifth vet link, Reports, made the page scroll sideways at about 800 px | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
 | `widgets/reports/` layer added | the reports join patients, their exams and the price list's charges, which no feature may do | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
+| `shared/lib/mockStore.ts`, `mockApi.ts`, `validation.ts` | six mock stores repeated the same local-storage plumbing and checks | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `Page<T>` and `mapPage` in `shared/domain/page.ts`; `shared/lib/listParams.ts` | seven page interfaces and three URL-param parsers were the same code | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `shared/domain/catalog.ts` | diagnoses and the price list share the status, filters and query shape of a retirable list | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `PagedTable`, `FormDialog`, `Details` (`DetailSection`, `FieldGrid`, `Field`) and `RetireRestore` in `shared/ui` | tables, dialogs, detail sections and retire/restore were rebuilt per feature | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `SlidePanel` takes `title`, `subtitle`, `badge`; the `warn` header tone is gone | ten panels drew their own title, and nothing used `warn` | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `layout.module.css` and `field.module.css` in `shared/ui`, exported as `layout` and `fieldStyles` | the same layout and input-label rules were copied into up to fourteen modules | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `apiErrorMessage` in `apiClient`; `textRule` in `shared/lib/formRules.ts`; `plural` in `shared/lib/text.ts` | six error-message helpers and many form rules were copies | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `clinicTime` gained `WEEKDAYS`, `MONDAY_FIRST_WEEKDAYS`, `clinicWeekday`, `weekdayName` | three places computed weekday names their own way | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `shared/ui` exports components only, plus `layout` and `fieldStyles`; `Spinner` removed | no caller used the props types or the spinner | [consolidation](2026-10-06-frontend-consolidation.md) |
+| `widgets/patientCard/` layer added; `usePartyFields` in `widgets/visit` | the patient card needs four features, and both appointment pages built the same pickers | [consolidation](2026-10-06-frontend-consolidation.md) |
 | `PatientDetailPanel` gained `microchipSection` | the page composes the microchips and vaccinations features into it | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |
 | `ExaminationFields` takes `costSection`, `ExaminationEditPanel` takes `costSlot`, `VisitHistory` takes `renderCharges`; the Cost field and `parseCost` are gone | the examinations feature may not import the price list, so pages and widgets fill the slots | [legacy-gap features](2026-10-05-legacy-features-frontend.md) |

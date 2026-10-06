@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { DatePicker, SegmentedControl, Select, TextField, Textarea } from '@/shared/ui'
+import { DatePicker, layout, SegmentedControl, Select, Textarea, TextField } from '@/shared/ui'
 import { SPECIES_OPTIONS } from '@/shared/domain/species'
 import { todayIso } from '@/shared/lib/dateOnly'
 import {
@@ -58,11 +58,11 @@ export function PartyResolutionFields({
   }
 
   return (
-    <div className={styles.sections}>
+    <div className={layout.page}>
       {needs.owner && (
         <section className={styles.section}>
           <h3 className={styles.title}>Owner</h3>
-          <p className={styles.hint}>
+          <p className={layout.note}>
             This booking has no owner yet. Pick one or create a new one.
           </p>
           <OwnerPicker
@@ -76,7 +76,7 @@ export function PartyResolutionFields({
       {needs.patient && (
         <section className={styles.section}>
           <h3 className={styles.title}>Patient</h3>
-          <p className={styles.hint}>This booking has no patient card yet.</p>
+          <p className={layout.note}>This booking has no patient card yet.</p>
           <SegmentedControl
             value={value.patientMode}
             onChange={(patientMode: PatientMode) => patch({ patientMode })}

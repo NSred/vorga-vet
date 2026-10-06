@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
 import { usePanelState } from '@/shared/lib/usePanelState'
-import { Button, ConfirmDialog, PageHeader, useToast } from '@/shared/ui'
-import { useAuth, useCurrentUser } from '@/features/auth'
-import { ExaminationEditPanel, VisitHistory } from '@/features/examinations'
+import { Button, ConfirmDialog, layout, PageHeader, useToast } from '@/shared/ui'
+import { useAuth } from '@/features/auth'
+import { ExaminationEditPanel } from '@/features/examinations'
 import type { Examination } from '@/features/examinations'
 import {
   PeakHoursPanel,
@@ -15,11 +15,10 @@ import {
   TotalPatientsTile,
 } from '@/widgets/dashboard'
 import {
-  getPatient,
   parseFilterParams,
+  patientDetailQuery,
   patientErrors,
   patientKeys,
-  PatientDetailPanel,
   PatientFilters,
   PatientFormPanel,
   PatientTable,
@@ -29,72 +28,18 @@ import {
   usePatientsQuery,
 } from '@/features/patients'
 import { DiagnosisPicker } from '@/features/diagnoses'
-import { ChargesSummary } from '@/features/priceList'
-import { MicrochipSection } from '@/features/microchips'
-import {
-  RemindersSection,
-  useLatestRabiesVaccination,
-  VaccinationsSection,
-  type CertificateSubject,
-} from '@/features/vaccinations'
+import { PatientCardPanel } from '@/widgets/patientCard'
 import { useVisitCharges } from '@/widgets/visit'
-import type {
-  PatientDetail,
-  PatientFiltersType,
-  PatientListItem,
-  PatientPage,
-} from '@/features/patients'
-import styles from './PatientsPage.module.css'
+import type { PatientDetail, PatientFiltersType } from '@/features/patients'
 
 type PanelState =
   | { mode: 'create' }
   | { mode: 'view'; patient: PatientDetail }
   | { mode: 'edit'; patient: PatientDetail }
 
-function certificateSubjectOf(patient: PatientDetail): CertificateSubject {
-  return {
-    animal: {
-      name: patient.name,
-      species: patient.species,
-      breed: patient.breedName,
-      sex: patient.sex,
-      birthDate: patient.birthDate,
-      color: patient.color,
-      chipNumber: patient.chipNumber,
-    },
-    owner: {
-      name: patient.ownerName,
-      address: patient.address,
-      city: patient.city,
-      phone: patient.phoneNumber,
-    },
-  }
-}
-
-function PatientMicrochip({ patient, vetName }: { patient: PatientDetail; vetName: string }) {
-  const latestRabies = useLatestRabiesVaccination(patient.id)
-
-  return (
-    <MicrochipSection
-      patientId={patient.id}
-      subject={{ chipNumber: patient.chipNumber, ...certificateSubjectOf(patient) }}
-      lastRabies={
-        latestRabies
-          ? { vaccineName: latestRabies.vaccineName, givenOn: latestRabies.givenOn }
-          : undefined
-      }
-      vetName={vetName}
-    />
-  )
-}
-
-const EMPTY_PAGE: PatientPage = { items: [], totalCount: 0, page: 1, pageSize: 10 }
-
 export function PatientsPage() {
   const { showToast } = useToast()
   const { user } = useAuth()
-  const profile = useCurrentUser()
-  const vetName = profile.data ? `${profile.data.firstName} ${profile.data.lastName}`.trim() : ''
   const isVeterinarian = user?.role === 'veterinarian'
   const [searchParams, setSearchParams] = useSearchParams()
   const { filters, allergenName, page, pageSize } = parseFilterParams(searchParams)
@@ -114,13 +59,20 @@ export function PatientsPage() {
   const activeFilters: PatientFiltersType = { ...filters, allergen }
 
   const patientsQuery = usePatientsQuery(activeFilters, page, pageSize, !isAllergenPending)
-  const patientPage = patientsQuery.data ?? EMPTY_PAGE
 
   const writeParams = useCallback(
     (nextFilters: PatientFiltersType, nextPage: number, nextPageSize: number) => {
       setSearchParams(toFilterParams(nextFilters, nextPage, nextPageSize), { replace: true })
     },
     [setSearchParams],
+  )
+
+  const openPatient = useCallback(
+    (patientId: string) =>
+      queryClient
+        .query(patientDetailQuery(patientId))
+        .then((patient) => setPanel({ mode: 'view', patient })),
+    [queryClient, setPanel],
   )
 
   useEffect(() => {
@@ -136,32 +88,19 @@ export function PatientsPage() {
       { replace: true },
     )
 
-    queryClient
-      .query({
-        queryKey: patientKeys.detail(patientId),
-        queryFn: () => getPatient(patientId),
-      })
-      .then((patient) => setPanel({ mode: 'view', patient }))
-      .catch(() => undefined)
-  }, [searchParams, setSearchParams, queryClient, setPanel])
+    openPatient(patientId).catch(() => undefined)
+  }, [searchParams, setSearchParams, openPatient])
 
   const afterWrite = (title: string) => {
     closePanel()
     showToast({ tone: 'success', title })
   }
 
-  const openPatient = (patient: PatientListItem) => {
-    queryClient
-      .query({
-        queryKey: patientKeys.detail(patient.id),
-        queryFn: () => getPatient(patient.id),
-      })
-      .then((detail) => setPanel({ mode: 'view', patient: detail }))
-      .catch(() => {
-        showToast({ tone: 'error', title: 'Could not open that patient' })
-        queryClient.invalidateQueries({ queryKey: patientKeys.all })
-      })
-  }
+  const openRow = (patientId: string) =>
+    openPatient(patientId).catch(() => {
+      showToast({ tone: 'error', title: 'Could not open that patient' })
+      void queryClient.invalidateQueries({ queryKey: patientKeys.all })
+    })
 
   const handleDelete = (patientId: string) => {
     remove.mutate(patientId, {
@@ -181,7 +120,7 @@ export function PatientsPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={layout.page}>
       <PageHeader
         title="Patient Records"
         subtitle="Overview and entry of animals, owners, and basic medical information."
@@ -203,17 +142,17 @@ export function PatientsPage() {
       <PatientFilters filters={activeFilters} onChange={(next) => writeParams(next, 1, pageSize)} />
 
       <PatientTable
-        patients={patientPage.items}
+        patients={patientsQuery.data?.items ?? []}
         isLoading={patientsQuery.isLoading || isAllergenPending}
         page={page}
         pageSize={pageSize}
-        totalCount={patientPage.totalCount}
+        totalCount={patientsQuery.data?.totalCount ?? 0}
         hasFilters={Boolean(
           filters.search || filters.species || filters.sex || filters.city || allergenName,
         )}
         onPageChange={(next) => writeParams(activeFilters, next, pageSize)}
         onPageSizeChange={(next) => writeParams(activeFilters, 1, next)}
-        onRowClick={openPatient}
+        onRowClick={(patient) => void openRow(patient.id)}
         emptyMessage={
           isVeterinarian
             ? undefined
@@ -222,42 +161,13 @@ export function PatientsPage() {
       />
 
       {displayPanel.mode === 'view' && (
-        <PatientDetailPanel
+        <PatientCardPanel
           patient={displayPanel.patient}
           open={panel.mode === 'view'}
           onOpenChange={(open) => !open && closePanel()}
-          onEdit={
-            isVeterinarian
-              ? () => setPanel({ mode: 'edit', patient: displayPanel.patient })
-              : undefined
-          }
-          onDelete={isVeterinarian ? () => setConfirmDeleteId(displayPanel.patient.id) : undefined}
-          vaccinationsSection={
-            isVeterinarian ? (
-              <VaccinationsSection
-                patientId={displayPanel.patient.id}
-                certificateSubject={certificateSubjectOf(displayPanel.patient)}
-                vetName={vetName}
-              />
-            ) : undefined
-          }
-          microchipSection={
-            isVeterinarian ? (
-              <PatientMicrochip patient={displayPanel.patient} vetName={vetName} />
-            ) : undefined
-          }
-          remindersSection={
-            isVeterinarian ? <RemindersSection patientId={displayPanel.patient.id} /> : undefined
-          }
-          visitsSection={
-            isVeterinarian ? (
-              <VisitHistory
-                patientId={displayPanel.patient.id}
-                onEdit={setEditingVisit}
-                renderCharges={(examination) => <ChargesSummary examinationId={examination.id} />}
-              />
-            ) : undefined
-          }
+          onEdit={() => setPanel({ mode: 'edit', patient: displayPanel.patient })}
+          onDelete={() => setConfirmDeleteId(displayPanel.patient.id)}
+          onEditVisit={setEditingVisit}
         />
       )}
 

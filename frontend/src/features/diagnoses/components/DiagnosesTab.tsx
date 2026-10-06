@@ -2,7 +2,17 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { usePanelState } from '@/shared/lib/usePanelState'
 import { useSearchDraft } from '@/shared/lib/useSearchDraft'
-import { Button, ConfirmDialog, SearchInput, SegmentedControl, useToast } from '@/shared/ui'
+import { plural } from '@/shared/lib/text'
+import {
+  Button,
+  CATALOG_STATUS_OPTIONS,
+  ConfirmDialog,
+  layout,
+  SearchInput,
+  SegmentedControl,
+  useRetireRestore,
+  useToast,
+} from '@/shared/ui'
 import { useDiagnosesQuery } from '../hooks/useDiagnosesQuery'
 import { useRestoreDiagnosis, useRetireDiagnosis } from '../hooks/useDiagnosisMutations'
 import {
@@ -10,25 +20,12 @@ import {
   writeDiagnosisParams,
   type ParsedDiagnosisParams,
 } from '../lib/diagnosisParams'
-import type { Diagnosis, DiagnosisPage } from '../types'
+import type { Diagnosis } from '../types'
 import { DiagnosisPanel } from './DiagnosisPanel'
 import { DiagnosisTable } from './DiagnosisTable'
 import { ImportDiagnosesDialog } from './ImportDiagnosesDialog'
-import styles from './DiagnosesTab.module.css'
 
 type PanelState = { mode: 'create' } | { mode: 'edit'; diagnosis: Diagnosis }
-
-const STATUS_OPTIONS = [
-  { value: 'active', label: 'Active' },
-  { value: 'all', label: 'All' },
-  { value: 'retired', label: 'Retired' },
-] as const
-
-const EMPTY_PAGE: DiagnosisPage = { items: [], totalCount: 0, page: 1, pageSize: 25 }
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`
-}
 
 export function DiagnosesTab() {
   const { showToast } = useToast()
@@ -37,13 +34,23 @@ export function DiagnosesTab() {
   const { filters, page, pageSize } = view
 
   const { panel, displayPanel, setPanel, closePanel } = usePanelState<PanelState>()
-  const [confirmRetire, setConfirmRetire] = useState<Diagnosis | null>(null)
   const [importOpen, setImportOpen] = useState(false)
 
   const listQuery = useDiagnosesQuery(filters, page, pageSize)
-  const listPage = listQuery.data ?? EMPTY_PAGE
   const retire = useRetireDiagnosis()
   const restore = useRestoreDiagnosis()
+
+  const afterWrite = (title: string) => {
+    closePanel()
+    showToast({ tone: 'success', title })
+  }
+
+  const status = useRetireRestore<Diagnosis>({
+    retire: (diagnosis) => retire.mutateAsync(diagnosis.id),
+    restore: (diagnosis) => restore.mutateAsync(diagnosis.id),
+    nameOf: (diagnosis) => diagnosis.name,
+    onDone: afterWrite,
+  })
 
   const writeView = (next: ParsedDiagnosisParams) =>
     setSearchParams((prev) => writeDiagnosisParams(prev, next), { replace: true })
@@ -52,35 +59,10 @@ export function DiagnosesTab() {
     writeView({ filters: { ...filters, search: search || undefined }, page: 1, pageSize }),
   )
 
-  const afterWrite = (title: string) => {
-    closePanel()
-    showToast({ tone: 'success', title })
-  }
-
-  const handleRetire = (diagnosis: Diagnosis) => {
-    retire.mutate(diagnosis.id, {
-      onSuccess: () => {
-        setConfirmRetire(null)
-        afterWrite(`${diagnosis.name} was retired`)
-      },
-      onError: () => {
-        setConfirmRetire(null)
-        showToast({ tone: 'error', title: `Could not retire ${diagnosis.name}` })
-      },
-    })
-  }
-
-  const handleRestore = (diagnosis: Diagnosis) => {
-    restore.mutate(diagnosis.id, {
-      onSuccess: () => afterWrite(`${diagnosis.name} was restored`),
-      onError: () => showToast({ tone: 'error', title: `Could not restore ${diagnosis.name}` }),
-    })
-  }
-
   return (
-    <div className={styles.tab}>
-      <div className={styles.bar}>
-        <div className={styles.group}>
+    <div className={layout.stack}>
+      <div className={layout.toolbar}>
+        <div className={layout.toolbarGroup}>
           <SearchInput
             value={searchDraft}
             onChange={setSearchDraft}
@@ -88,11 +70,13 @@ export function DiagnosesTab() {
           />
           <SegmentedControl
             value={filters.status}
-            onChange={(status) => writeView({ filters: { ...filters, status }, page: 1, pageSize })}
-            options={STATUS_OPTIONS}
+            onChange={(next) =>
+              writeView({ filters: { ...filters, status: next }, page: 1, pageSize })
+            }
+            options={CATALOG_STATUS_OPTIONS}
           />
         </div>
-        <div className={styles.group}>
+        <div className={layout.toolbarGroup}>
           <Button variant="outline" type="button" onClick={() => setImportOpen(true)}>
             Paste a list
           </Button>
@@ -103,11 +87,11 @@ export function DiagnosesTab() {
       </div>
 
       <DiagnosisTable
-        diagnoses={listPage.items}
+        diagnoses={listQuery.data?.items ?? []}
         isLoading={listQuery.isLoading}
         page={page}
         pageSize={pageSize}
-        totalCount={listPage.totalCount}
+        totalCount={listQuery.data?.totalCount ?? 0}
         hasSearch={Boolean(filters.search)}
         onPageChange={(nextPage) => writeView({ ...view, page: nextPage })}
         onPageSizeChange={(nextSize) => writeView({ ...view, page: 1, pageSize: nextSize })}
@@ -133,21 +117,21 @@ export function DiagnosesTab() {
           onOpenChange={(open) => !open && closePanel()}
           onSaved={(name) => afterWrite(`${name} was saved`)}
           onMissing={() => afterWrite('That diagnosis no longer exists')}
-          onRetire={() => setConfirmRetire(displayPanel.diagnosis)}
-          onRestore={() => handleRestore(displayPanel.diagnosis)}
-          isStatusPending={retire.isPending || restore.isPending}
+          onRetire={() => status.askRetire(displayPanel.diagnosis)}
+          onRestore={() => status.restore(displayPanel.diagnosis)}
+          isStatusPending={status.isPending}
         />
       )}
 
       <ConfirmDialog
-        open={confirmRetire !== null}
-        onOpenChange={(open) => !open && setConfirmRetire(null)}
-        title={`Retire ${confirmRetire?.name ?? 'this diagnosis'}?`}
+        open={status.confirming !== null}
+        onOpenChange={(open) => !open && status.cancelRetire()}
+        title={`Retire ${status.confirming?.name ?? 'this diagnosis'}?`}
         description="It will no longer be offered on exams. Exams that already use it keep their text, and it can be restored at any time."
         confirmLabel="Retire"
         tone="danger"
-        isPending={retire.isPending}
-        onConfirm={() => confirmRetire && handleRetire(confirmRetire)}
+        isPending={status.isPending}
+        onConfirm={status.confirmRetire}
       />
 
       <ImportDiagnosesDialog

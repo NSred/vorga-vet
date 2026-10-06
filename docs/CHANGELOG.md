@@ -3,6 +3,27 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-06 — Frontend consolidation
+
+Frontend only. 127 test files, 715 tests, typecheck and lint clean, production build passes.
+
+- The six mock stores run on one shared local-storage engine; each keeps only its own rules and
+  message wording, and demo data already saved in a browser still loads.
+- Paged lists share `Page<T>`, one URL-param reader and writer, and `PagedTable`; diagnoses and
+  the price list share their catalogue types, retire/restore hook and button.
+- All eleven dialogs use `FormDialog` and react-hook-form; error messages come from one
+  `apiErrorMessage`.
+- Panels take `title` and `subtitle`; repeated layout and input-label CSS lives in two shared
+  modules, and twelve stylesheets were deleted.
+- The calendar's lane packing, the weekday helpers, the booking pickers and the patient card are
+  each written once; `widgets/patientCard` takes the detail sections out of the patients page.
+- Production TypeScript went from 18,667 to 18,127 lines and CSS from 4,978 to 4,273.
+- Fixed: a client's visit lists failed to load when their window crossed the end of daylight
+  saving, because 62 clinic days came out one hour over the API's 62-day limit. The windows are
+  now 61 days.
+
+Details: [document](specs/2026-10-06-frontend-consolidation.md)
+
 ## 2026-10-05 — Calendar day and week as timelines
 
 Frontend only. 121 test files, 691 tests, typecheck and lint clean.

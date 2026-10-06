@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, FormError, SlidePanel, useToast } from '@/shared/ui'
+import { Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import {
   appointmentErrorMessage,
   appointmentErrors,
@@ -196,17 +196,11 @@ export function CompleteVisitPanel({
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel={title}
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>{title}</div>
-          <div className={styles.subtitle}>
-            {step.kind === 'form'
-              ? 'Record what happened at the visit. This closes the appointment.'
-              : 'The visit is recorded.'}
-          </div>
-        </div>
+      title={title}
+      subtitle={
+        step.kind === 'form'
+          ? 'Record what happened at the visit. This closes the appointment.'
+          : 'The visit is recorded.'
       }
       footer={
         step.kind === 'form' ? (
@@ -226,7 +220,7 @@ export function CompleteVisitPanel({
       }
     >
       {step.kind === 'form' ? (
-        <form id="complete-visit-form" onSubmit={submit} className={styles.body}>
+        <form id="complete-visit-form" onSubmit={submit} className={layout.page}>
           {needsAnything(needs) && (
             <PartyResolutionFields
               needs={needs}

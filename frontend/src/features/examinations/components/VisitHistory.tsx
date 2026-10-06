@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { EmptyState, Skeleton } from '@/shared/ui'
+import { EmptyState, layout, Skeleton } from '@/shared/ui'
 import { usePatientExaminationsQuery } from '../hooks/usePatientExaminationsQuery'
 import type { Examination } from '../types'
 import { ExaminationCard } from './ExaminationCard'
@@ -27,7 +27,7 @@ export function VisitHistory({ patientId, onEdit, renderCharges }: VisitHistoryP
   }
 
   return (
-    <div className={styles.list}>
+    <div className={layout.stackTight}>
       {data.map((examination) => (
         <ExaminationCard
           key={examination.id}

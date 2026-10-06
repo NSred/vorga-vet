@@ -1,4 +1,5 @@
 import { forwardRef, type TextareaHTMLAttributes } from 'react'
+import fieldStyles from '../field.module.css'
 import styles from './Textarea.module.css'
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -12,8 +13,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   ref,
 ) {
   return (
-    <div className={`${styles.field} ${className ?? ''}`}>
-      <label htmlFor={id} className={styles.label}>
+    <div className={`${fieldStyles.field} ${className ?? ''}`}>
+      <label htmlFor={id} className={fieldStyles.label}>
         {label}
       </label>
       <textarea
@@ -25,7 +26,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         {...rest}
       />
       {error && (
-        <p className={styles.error} role="alert">
+        <p className={fieldStyles.error} role="alert">
           {error}
         </p>
       )}

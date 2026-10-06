@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useCallback, useState } from 'react'
+import type { Page } from '@/shared/domain/page'
 import { useDebouncedValue } from './useDebouncedValue'
 
 export interface EntitySearchState<T> {
@@ -9,13 +10,6 @@ export interface EntitySearchState<T> {
   isLoading: boolean
   errorMessage?: string
   activate: () => void
-}
-
-export interface SearchPage<T> {
-  items: T[]
-  totalCount: number
-  page: number
-  pageSize: number
 }
 
 export interface PagedEntitySearchState<T> extends EntitySearchState<T> {
@@ -56,7 +50,7 @@ export function useEntitySearch<T>(
 
 export function usePagedEntitySearch<T>(
   queryKeyPrefix: readonly unknown[],
-  fetchPage: (search: string, page: number) => Promise<SearchPage<T>>,
+  fetchPage: (search: string, page: number) => Promise<Page<T>>,
 ): PagedEntitySearchState<T> {
   const { query, setQuery, debouncedQuery, active, activate } = useSearchInput()
 

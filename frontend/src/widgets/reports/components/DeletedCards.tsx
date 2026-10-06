@@ -2,7 +2,7 @@ import type { PatientListItem } from '@/features/patients'
 import { speciesSr } from '@/shared/domain/printLabels'
 import { SPECIES_LABELS } from '@/shared/domain/species'
 import { telHref } from '@/shared/lib/phone'
-import { EmptyState, PrintPortal, Skeleton, Table, type TableColumn } from '@/shared/ui'
+import { EmptyState, layout, PrintPortal, Skeleton, Table, type TableColumn } from '@/shared/ui'
 import { useDeletedPatients } from '../hooks/useReportQueries'
 import { ReportPrint } from './ReportPrint'
 import styles from './Reports.module.css'
@@ -57,7 +57,7 @@ export function DeletedCards({ printing, onPrinted }: DeletedCardsProps) {
   if (isError) return <p className={styles.mutedNote}>Could not load the deleted cards.</p>
 
   return (
-    <section className={styles.view} aria-label="Deleted cards">
+    <section className={layout.stack} aria-label="Deleted cards">
       <div className={styles.summaryCard} aria-label="Deleted totals">
         <div>
           <p className={styles.tileLabel}>Deleted cards</p>

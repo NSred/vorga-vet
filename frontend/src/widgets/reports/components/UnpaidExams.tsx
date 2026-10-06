@@ -3,9 +3,11 @@ import { clinicDateOf, clinicToday } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { formatPrice } from '@/shared/lib/money'
 import { telHref } from '@/shared/lib/phone'
+import { plural } from '@/shared/lib/text'
 import {
   Button,
   EmptyState,
+  layout,
   PrintPortal,
   Skeleton,
   Table,
@@ -29,10 +31,6 @@ export interface UnpaidExamsProps {
 
 function dayOf(row: ReportRow): string {
   return clinicDateOf(row.examination.startedAt)
-}
-
-function plural(count: number, one: string, many: string): string {
-  return `${count} ${count === 1 ? one : many}`
 }
 
 export function UnpaidExams({ onOpenPatient, printing, onPrinted }: UnpaidExamsProps) {
@@ -125,7 +123,7 @@ export function UnpaidExams({ onOpenPatient, printing, onPrinted }: UnpaidExamsP
   if (isError) return <p className={styles.mutedNote}>Could not load the unpaid exams.</p>
 
   return (
-    <section className={styles.view} aria-label="Unpaid exams">
+    <section className={layout.stack} aria-label="Unpaid exams">
       <div className={styles.summaryCard} aria-label="Unpaid totals">
         <div>
           <p className={`${styles.tileLabel} ${styles.toneWarn}`}>Outstanding</p>

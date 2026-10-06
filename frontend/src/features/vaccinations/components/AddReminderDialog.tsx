@@ -1,9 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { apiErrorMessage } from '@/shared/lib/apiClient'
 import { clinicToday } from '@/shared/lib/clinicTime'
-import { Button, DatePicker, FormError, Modal, TextField } from '@/shared/ui'
-import { vaccinationErrorMessage } from '../api/vaccinationErrors'
+import { textRule } from '@/shared/lib/formRules'
+import { DatePicker, FormDialog, FormError, TextField } from '@/shared/ui'
 import { useAddReminder } from '../hooks/useVaccinationMutations'
-import styles from './VaccinationForms.module.css'
 
 export interface AddReminderDialogProps {
   patientId: string | null
@@ -13,11 +14,12 @@ export interface AddReminderDialogProps {
   patientField?: (error: string | undefined) => ReactNode
 }
 
-interface Errors {
-  reason?: string
-  date?: string
-  submit?: string
+interface Values {
+  date: string
+  reason: string
 }
+
+const BLANK: Values = { date: '', reason: '' }
 
 export function AddReminderDialog({
   patientId,
@@ -27,75 +29,73 @@ export function AddReminderDialog({
   patientField,
 }: AddReminderDialogProps) {
   const add = useAddReminder()
-  const [date, setDate] = useState('')
-  const [reason, setReason] = useState('')
-  const [errors, setErrors] = useState<Errors>({})
   const [showPatientMissing, setShowPatientMissing] = useState(false)
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm<Values>({ defaultValues: BLANK })
 
-  useEffect(() => {
-    if (!open) return
-    setDate('')
-    setReason('')
-    setErrors({})
-    setShowPatientMissing(false)
-  }, [open])
-
-  const submit = () => {
-    const found: Errors = {}
-    if (!reason.trim()) found.reason = 'Say what to remind about'
-    else if (reason.trim().length > 200) found.reason = 'Maximum 200 characters'
-    if (!date) found.date = 'Pick a date'
-    setErrors(found)
-    setShowPatientMissing(!patientId)
-    if (Object.keys(found).length > 0 || !patientId) return
-
+  const save = handleSubmit((values) => {
+    if (!patientId) return
+    const reason = values.reason.trim()
     add.mutate(
-      { patientId, request: { date, reason: reason.trim() } },
+      { patientId, request: { date: values.date, reason } },
       {
-        onSuccess: () => onAdded(reason.trim()),
+        onSuccess: () => onAdded(reason),
         onError: (error) =>
-          setErrors({ submit: vaccinationErrorMessage(error, 'Could not add the reminder.') }),
+          setError('root', { message: apiErrorMessage(error, 'Could not add the reminder.') }),
       },
     )
+  })
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    setShowPatientMissing(!patientId)
+    return save(event)
   }
 
   return (
-    <Modal
+    <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Add a reminder"
       description="It appears on the Reminders page from its date until it is marked done."
-      footer={
-        <>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="button" onClick={submit} disabled={add.isPending}>
-            Add reminder
-          </Button>
-        </>
-      }
+      formId="add-reminder-form"
+      submitLabel="Add reminder"
+      isPending={add.isPending}
+      onSubmit={submit}
+      onOpen={() => {
+        reset(BLANK)
+        setShowPatientMissing(false)
+      }}
     >
-      <div className={styles.form}>
-        {patientField?.(showPatientMissing && !patientId ? 'Pick the patient' : undefined)}
-        <DatePicker
-          id="reminder-date"
-          label="Date *"
-          value={date}
-          minDate={clinicToday()}
-          onChange={setDate}
-          error={errors.date}
-        />
-        <TextField
-          id="reminder-reason"
-          label="Reason *"
-          placeholder="Remind about spaying"
-          value={reason}
-          onChange={(event) => setReason(event.target.value)}
-          error={errors.reason}
-        />
-        <FormError message={errors.submit} />
-      </div>
-    </Modal>
+      {patientField?.(showPatientMissing && !patientId ? 'Pick the patient' : undefined)}
+      <Controller
+        name="date"
+        control={control}
+        rules={{ required: 'Pick a date' }}
+        render={({ field }) => (
+          <DatePicker
+            id="reminder-date"
+            label="Date *"
+            value={field.value}
+            minDate={clinicToday()}
+            onChange={field.onChange}
+            error={errors.date?.message}
+          />
+        )}
+      />
+      <TextField
+        id="reminder-reason"
+        label="Reason *"
+        placeholder="Remind about spaying"
+        {...register('reason', { validate: textRule(200, 'Say what to remind about') })}
+        error={errors.reason?.message}
+      />
+      <FormError message={errors.root?.message} />
+    </FormDialog>
   )
 }

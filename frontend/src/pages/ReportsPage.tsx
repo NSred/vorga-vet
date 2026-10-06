@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Button, PageHeader, PrintIcon, SegmentedControl } from '@/shared/ui'
+import { Button, layout, PageHeader, PrintIcon, SegmentedControl } from '@/shared/ui'
 import { clinicToday } from '@/shared/lib/clinicTime'
+import { oneOf } from '@/shared/lib/listParams'
 import { DailyReport, DeletedCards, type ReportView, UnpaidExams } from '@/widgets/reports'
 import styles from './ReportsPage.module.css'
 
@@ -13,12 +14,7 @@ const VIEW_OPTIONS: { value: ReportView; label: string }[] = [
 const DEFAULT_VIEW: ReportView = 'daily'
 const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
-function viewOf(value: string | null): ReportView {
-  return VIEW_OPTIONS.some((option) => option.value === value)
-    ? (value as ReportView)
-    : DEFAULT_VIEW
-}
-
+const VIEWS = VIEW_OPTIONS.map((option) => option.value)
 function dayOf(value: string | null): string {
   return value !== null && DAY_PATTERN.test(value) ? value : clinicToday()
 }
@@ -27,7 +23,7 @@ export function ReportsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [printing, setPrinting] = useState(false)
-  const view = viewOf(searchParams.get('view'))
+  const view = oneOf(searchParams.get('view'), VIEWS) ?? DEFAULT_VIEW
   const day = dayOf(searchParams.get('day'))
 
   const update = (nextView: ReportView, nextDay: string) => {
@@ -42,7 +38,7 @@ export function ReportsPage() {
   const print = { printing, onPrinted: () => setPrinting(false) }
 
   return (
-    <div className={styles.page}>
+    <div className={layout.page}>
       <PageHeader
         title="Reports"
         subtitle="The day's exams and takings, what is still unpaid, and deleted patient cards."

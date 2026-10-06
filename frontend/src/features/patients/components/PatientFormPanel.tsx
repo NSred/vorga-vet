@@ -8,6 +8,7 @@ import {
   ConfirmDialog,
   DatePicker,
   FormError,
+  layout,
   Select,
   SlidePanel,
   Textarea,
@@ -216,18 +217,8 @@ export function PatientFormPanel({
     <SlidePanel
       open={open}
       onOpenChange={(next) => !next && requestClose()}
-      ariaLabel={isEdit ? `Edit ${patient?.name ?? 'patient'}` : 'New patient'}
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>
-            {isEdit ? `Edit ${patient?.name ?? 'patient'}` : 'New patient'}
-          </div>
-          <div className={styles.subtitle}>
-            {isEdit ? 'Update the details and save.' : 'Fill in the details and save.'}
-          </div>
-        </div>
-      }
+      title={isEdit ? `Edit ${patient?.name ?? 'patient'}` : 'New patient'}
+      subtitle={isEdit ? 'Update the details and save.' : 'Fill in the details and save.'}
       footer={
         <>
           <Button variant="outline" type="button" onClick={requestClose}>
@@ -244,8 +235,8 @@ export function PatientFormPanel({
         </>
       }
     >
-      <form id="patient-form" onSubmit={submit} className={styles.form}>
-        <div className={styles.row}>
+      <form id="patient-form" onSubmit={submit} className={layout.stack}>
+        <div className={layout.formRow}>
           <TextField
             id="cardNumber"
             label="No. *"
@@ -280,7 +271,7 @@ export function PatientFormPanel({
           )}
         />
 
-        <div className={styles.row}>
+        <div className={layout.formRow}>
           <Controller
             name="species"
             control={control}
@@ -309,7 +300,7 @@ export function PatientFormPanel({
           />
         </div>
 
-        <div className={styles.row}>
+        <div className={layout.formRow}>
           <Controller
             name="sex"
             control={control}
@@ -346,7 +337,7 @@ export function PatientFormPanel({
           />
         </div>
 
-        <div className={styles.row}>
+        <div className={layout.formRow}>
           <TextField
             id="weightKg"
             label="Weight (kg)"

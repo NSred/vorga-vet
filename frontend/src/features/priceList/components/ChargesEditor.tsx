@@ -1,6 +1,6 @@
 import { formatPrice } from '@/shared/lib/money'
 import { addClinicDays } from '@/shared/lib/clinicTime'
-import { Button, DatePicker, IconButton, TextField } from '@/shared/ui'
+import { Button, DatePicker, fieldStyles, IconButton, TextField } from '@/shared/ui'
 import {
   chargesError,
   chargesTotal,
@@ -146,7 +146,7 @@ export function ChargesEditor({ drafts, onChange, showErrors, givenOn }: Charges
                         onChange={(dueOn) => updateVaccine(draft, { dueOn })}
                         error={errors.dueOn}
                       />
-                      <span className={styles.fieldLabel}>Next due</span>
+                      <span className={fieldStyles.label}>Next due</span>
                     </div>
                   </div>
                 )}

@@ -1,7 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { ConfirmDialog, EmptyState, PageHeader, Textarea, useToast } from '@/shared/ui'
+import { ConfirmDialog, EmptyState, layout, PageHeader, Textarea, useToast } from '@/shared/ui'
 import {
   addClinicDays,
   addClinicMonths,
@@ -31,24 +30,9 @@ import {
   useMarkNoShow,
   WeekView,
 } from '@/features/appointments'
-import type {
-  Appointment,
-  AppointmentViewState,
-  CalendarView,
-  PartyField,
-  PartyRef,
-} from '@/features/appointments'
-import {
-  getPatient,
-  ownerLabel,
-  OwnerPicker,
-  patientLabel,
-  PatientPicker,
-  patientKeys,
-  PatientSummary,
-} from '@/features/patients'
-import type { OwnerOption, PatientListItem } from '@/features/patients'
-import { CheckInPanel, CompleteVisitPanel, WalkInPanel } from '@/widgets/visit'
+import type { Appointment, AppointmentViewState, CalendarView } from '@/features/appointments'
+import { PatientSummary } from '@/features/patients'
+import { CheckInPanel, CompleteVisitPanel, usePartyFields, WalkInPanel } from '@/widgets/visit'
 import styles from './AppointmentsPage.module.css'
 
 type FormState =
@@ -88,9 +72,7 @@ export function AppointmentsPage() {
   const [unresolvedOpen, setUnresolvedOpen] = useState(false)
   const [visit, setVisit] = useState<VisitState>(null)
   const [walkInOpen, setWalkInOpen] = useState(false)
-  const ownerCache = useRef(new Map<string, OwnerOption>())
-  const patientCache = useRef(new Map<string, PatientListItem>())
-  const queryClient = useQueryClient()
+  const { ownerField, patientField, ownerOfPatient } = usePartyFields()
   const cancel = useCancelAppointment()
   const noShow = useMarkNoShow()
 
@@ -185,40 +167,10 @@ export function AppointmentsPage() {
     }
   }
 
-  const ownerField = (field: PartyField) => (
-    <OwnerPicker
-      value={field.value ? (ownerCache.current.get(field.value.id) ?? null) : null}
-      onChange={(owner) => {
-        ownerCache.current.set(owner.id, owner)
-        field.onChange({ id: owner.id, label: ownerLabel(owner) })
-      }}
-      error={field.error}
-    />
-  )
-
-  const patientField = (field: PartyField) => (
-    <PatientPicker
-      value={field.value ? (patientCache.current.get(field.value.id) ?? null) : null}
-      onChange={(patient) => {
-        if (patient) patientCache.current.set(patient.id, patient)
-        field.onChange(patient ? { id: patient.id, label: patientLabel(patient) } : null)
-      }}
-      error={field.error}
-    />
-  )
-
-  const ownerOfPatient = async (patientId: string): Promise<PartyRef> => {
-    const patient = await queryClient.fetchQuery({
-      queryKey: patientKeys.detail(patientId),
-      queryFn: () => getPatient(patientId),
-    })
-    return { id: patient.ownerId, label: `${patient.ownerName} · ${patient.phoneNumber}` }
-  }
-
   const actionCopy = action ? ACTION_COPY[action.kind] : null
 
   return (
-    <div className={styles.page}>
+    <div className={layout.page}>
       <PageHeader
         title="Appointments"
         subtitle="Appointment calendar — day, week, and month view."

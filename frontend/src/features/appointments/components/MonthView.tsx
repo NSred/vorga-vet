@@ -4,6 +4,7 @@ import {
   clinicDateOf,
   clinicMonthGridRange,
   clinicToday,
+  MONDAY_FIRST_WEEKDAYS,
 } from '@/shared/lib/clinicTime'
 import { AppointmentChip } from './AppointmentChip'
 import { groupByClinicDate, openDates } from '../lib/calendarDays'
@@ -20,7 +21,6 @@ export interface MonthViewProps {
   hasSlotData: boolean
 }
 
-const WEEKDAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const VISIBLE_CHIP_LIMIT = 3
 
 export function MonthView({
@@ -41,7 +41,7 @@ export function MonthView({
 
   return (
     <div className={styles.month}>
-      {WEEKDAY_HEADERS.map((header) => (
+      {MONDAY_FIRST_WEEKDAYS.map((header) => (
         <div key={header} className={styles.weekdayHeader}>
           {header}
         </div>

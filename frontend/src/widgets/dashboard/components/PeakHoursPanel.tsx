@@ -1,4 +1,4 @@
-import { SlidePanel } from '@/shared/ui'
+import { DetailSection, FieldGrid, SlidePanel } from '@/shared/ui'
 import { usePeakHoursBreakdown } from '../hooks/usePeakHoursBreakdown'
 import type { DayBreakdown, HourCount } from '../lib/appointmentStats'
 import styles from './PeakHoursPanel.module.css'
@@ -33,7 +33,15 @@ function HourRow({ entry, max, isPeak }: { entry: HourCount; max: number; isPeak
   )
 }
 
-function DayRow({ entry, max, isBusiest }: { entry: DayBreakdown; max: number; isBusiest: boolean }) {
+function DayRow({
+  entry,
+  max,
+  isBusiest,
+}: {
+  entry: DayBreakdown
+  max: number
+  isBusiest: boolean
+}) {
   const width = max === 0 ? 0 : (entry.total / max) * 100
   return (
     <div className={styles.barRow}>
@@ -61,30 +69,23 @@ export function PeakHoursPanel({ open, onOpenChange }: PeakHoursPanelProps) {
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel="Peak Hours"
-      header={
-        <div>
-          <div className={styles.title}>Peak Hours</div>
-          <div className={styles.subtitle}>Appointment schedule by hour and day of week.</div>
-        </div>
-      }
+      title="Peak Hours"
+      subtitle="Appointment schedule by hour and day of week."
     >
       {!data ? (
         <p className={styles.loading}>Loading…</p>
       ) : (
         <>
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Overview</h3>
-            <div className={styles.overviewGrid}>
+          <DetailSection title="Overview">
+            <FieldGrid>
               <Tile label="Peak hour" value={data.peakHour?.hour ?? '—'} />
               <Tile label="Appointments in that hour" value={String(data.peakHour?.count ?? 0)} />
               <Tile label="Busiest day" value={data.busiestDay?.day ?? '—'} />
               <Tile label="Average per day" value={data.averagePerDay.toFixed(1)} />
-            </div>
-          </section>
+            </FieldGrid>
+          </DetailSection>
 
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>Appointments by hour</h3>
+          <DetailSection title="Appointments by hour">
             {data.byHour.map((entry) => (
               <HourRow
                 key={entry.hour}
@@ -93,10 +94,9 @@ export function PeakHoursPanel({ open, onOpenChange }: PeakHoursPanelProps) {
                 isPeak={data.peakHour?.hour === entry.hour}
               />
             ))}
-          </section>
+          </DetailSection>
 
-          <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>By day of week — total and peak hour</h3>
+          <DetailSection title="By day of week — total and peak hour">
             {data.byDay.map((entry) => (
               <DayRow
                 key={entry.day}
@@ -106,7 +106,7 @@ export function PeakHoursPanel({ open, onOpenChange }: PeakHoursPanelProps) {
               />
             ))}
             <p className={styles.note}>Based on {data.totalAppointments} appointments.</p>
-          </section>
+          </DetailSection>
         </>
       )}
     </SlidePanel>

@@ -1,17 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, FormError, Modal, TextField } from '@/shared/ui'
-import {
-  DUPLICATE_NAME_MESSAGE,
-  nameNotUniqueCode,
-  priceListErrorMessage,
-} from '../api/priceListErrors'
+import { apiErrorMessage, isApiErrorCode } from '@/shared/lib/apiClient'
+import { textRule } from '@/shared/lib/formRules'
+import { FormDialog, FormError, layout, TextField } from '@/shared/ui'
+import { DUPLICATE_NAME_MESSAGE, nameNotUniqueCode } from '../api/priceListErrors'
 import { useCreatePriceListItem } from '../hooks/usePriceListMutations'
 import { priceError } from '../lib/price'
 import { toWriteRequest } from '../lib/priceListMapping'
 import type { PriceItemFormValues, PriceListItem, PriceListKind } from '../types'
-import styles from './CreatePriceItemDialog.module.css'
 import { UnitSelect } from './UnitSelect'
 
 export interface CreatePriceItemDialogProps {
@@ -45,13 +41,6 @@ export function CreatePriceItemDialog({
     formState: { errors, isSubmitting },
   } = useForm<PriceItemFormValues>()
 
-  useEffect(() => {
-    if (open) {
-      reset({ name: initialName, price: '', unit: '' })
-      setSubmitError(undefined)
-    }
-  }, [open, initialName, reset])
-
   const submit = handleSubmit(async (values) => {
     setSubmitError(undefined)
     const request = toWriteRequest(kind, values)
@@ -72,81 +61,51 @@ export function CreatePriceItemDialog({
         setError('name', { message: DUPLICATE_NAME_MESSAGE })
         return
       }
-      setSubmitError(priceListErrorMessage(error, `Could not create the ${COPY[kind].noun}.`))
+      setSubmitError(apiErrorMessage(error, `Could not create the ${COPY[kind].noun}.`))
     }
   })
 
-  const formId = `create-${kind}-form`
-
   return (
-    <Modal
+    <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title={COPY[kind].title}
       description={`The ${COPY[kind].noun} is added to the price list and to this exam.`}
-      footer={
-        <>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form={formId}
-            disabled={isSubmitting || create.isPending}
-          >
-            Add to price list
-          </Button>
-        </>
-      }
+      formId={`create-${kind}-form`}
+      submitLabel="Add to price list"
+      isPending={isSubmitting || create.isPending}
+      onSubmit={submit}
+      onOpen={() => {
+        reset({ name: initialName, price: '', unit: '' })
+        setSubmitError(undefined)
+      }}
     >
-      <form
-        id={formId}
-        className={styles.form}
-        noValidate
-        onSubmit={(event) => {
-          event.stopPropagation()
-          void submit(event)
-        }}
-      >
-        <TextField
-          id={`new-${kind}-name`}
-          label="Name *"
-          {...register('name', {
-            validate: (value) => {
-              const trimmed = value.trim()
-              if (!trimmed) return 'Name is required'
-              if (trimmed.length > 200) return 'Maximum 200 characters'
-              return true
-            },
-          })}
-          error={errors.name?.message}
-        />
-        <div className={kind === 'medication' ? styles.row : undefined}>
-          {kind === 'medication' && (
-            <Controller
-              name="unit"
-              control={control}
-              render={({ field }) => (
-                <UnitSelect
-                  id="new-medication-unit"
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              )}
-            />
-          )}
-          <TextField
-            id={`new-${kind}-price`}
-            label="Price (RSD) *"
-            inputMode="decimal"
-            placeholder="0,00"
-            {...register('price', { validate: (value) => priceError(value) ?? true })}
-            error={errors.price?.message}
+      <TextField
+        id={`new-${kind}-name`}
+        label="Name *"
+        {...register('name', { validate: textRule(200, 'Name is required') })}
+        error={errors.name?.message}
+      />
+      <div className={kind === 'medication' ? layout.formRow : undefined}>
+        {kind === 'medication' && (
+          <Controller
+            name="unit"
+            control={control}
+            render={({ field }) => (
+              <UnitSelect id="new-medication-unit" value={field.value} onChange={field.onChange} />
+            )}
           />
-        </div>
-        <FormError message={submitError} />
-      </form>
-    </Modal>
+        )}
+        <TextField
+          id={`new-${kind}-price`}
+          label="Price (RSD) *"
+          inputMode="decimal"
+          placeholder="0,00"
+          {...register('price', { validate: (value) => priceError(value) ?? true })}
+          error={errors.price?.message}
+        />
+      </div>
+      <FormError message={submitError} />
+    </FormDialog>
   )
 }

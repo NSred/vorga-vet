@@ -2,12 +2,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { SPECIES_OPTIONS } from '@/shared/domain/species'
 import { useDebouncedValue } from '@/shared/lib/useDebouncedValue'
-import { Button, SearchInput, SegmentedControl, useToast } from '@/shared/ui'
+import { Button, layout, SearchInput, SegmentedControl, useToast } from '@/shared/ui'
 import { searchBreeds } from '../../api/breedsApi'
 import type { Species } from '../../types'
 import { CreateBreedDialog } from '../pickers/CreateBreedDialog'
 import { NamedList } from './NamedList'
-import styles from './ListTab.module.css'
 
 const BACKEND_LIMIT = 20
 
@@ -26,9 +25,9 @@ export function BreedsTab() {
   })
 
   return (
-    <div className={styles.tab}>
-      <div className={styles.bar}>
-        <div className={styles.group}>
+    <div className={layout.stack}>
+      <div className={layout.toolbar}>
+        <div className={layout.toolbarGroup}>
           <SegmentedControl value={species} onChange={setSpecies} options={SPECIES_OPTIONS} />
           <SearchInput value={search} onChange={setSearch} placeholder="Search breeds" />
         </div>

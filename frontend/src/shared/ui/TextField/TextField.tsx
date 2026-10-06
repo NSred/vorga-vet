@@ -1,4 +1,5 @@
 import { forwardRef, type InputHTMLAttributes } from 'react'
+import fieldStyles from '../field.module.css'
 import styles from './TextField.module.css'
 
 export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -17,9 +18,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   const isInvalid = Boolean(error) || invalid
 
   return (
-    <div className={`${styles.field} ${compact ? styles.compact : ''} ${className ?? ''}`}>
+    <div className={`${fieldStyles.field} ${compact ? styles.compact : ''} ${className ?? ''}`}>
       {!hideLabel && (
-        <label htmlFor={id} className={styles.label}>
+        <label htmlFor={id} className={fieldStyles.label}>
           {label}
         </label>
       )}
@@ -32,7 +33,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         {...rest}
       />
       {error && (
-        <p className={styles.error} role="alert">
+        <p className={fieldStyles.error} role="alert">
           {error}
         </p>
       )}

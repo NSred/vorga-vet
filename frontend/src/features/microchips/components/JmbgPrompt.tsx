@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Button, Modal, TextField } from '@/shared/ui'
+import { useForm } from 'react-hook-form'
+import { FormDialog, TextField } from '@/shared/ui'
 import { jmbgError } from '../lib/jmbg'
 
 export interface JmbgPromptProps {
@@ -9,47 +9,32 @@ export interface JmbgPromptProps {
 }
 
 export function JmbgPrompt({ open, onOpenChange, onConfirm }: JmbgPromptProps) {
-  const [jmbg, setJmbg] = useState('')
-  const [error, setError] = useState<string | undefined>(undefined)
-
-  useEffect(() => {
-    if (!open) return
-    setJmbg('')
-    setError(undefined)
-  }, [open])
-
-  const confirm = () => {
-    const found = jmbgError(jmbg)
-    setError(found)
-    if (!found) onConfirm(jmbg.trim())
-  }
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<{ jmbg: string }>({ defaultValues: { jmbg: '' } })
 
   return (
-    <Modal
+    <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Print registration sheet"
       description="The owner’s JMBG is printed but never saved, so it is asked for every time."
-      footer={
-        <>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="button" onClick={confirm}>
-            Print
-          </Button>
-        </>
-      }
+      formId="reprint-jmbg-form"
+      submitLabel="Print"
+      onSubmit={handleSubmit(({ jmbg }) => onConfirm(jmbg.trim()))}
+      onOpen={() => reset({ jmbg: '' })}
     >
       <TextField
         id="reprint-jmbg"
         label="Owner’s JMBG *"
         inputMode="numeric"
         autoComplete="off"
-        value={jmbg}
-        onChange={(event) => setJmbg(event.target.value)}
-        error={error}
+        {...register('jmbg', { validate: (value) => jmbgError(value) ?? true })}
+        error={errors.jmbg?.message}
       />
-    </Modal>
+    </FormDialog>
   )
 }

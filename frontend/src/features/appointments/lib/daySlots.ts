@@ -1,5 +1,6 @@
 import { clinicTimeOf } from '@/shared/lib/clinicTime'
 import type { Appointment, AvailabilitySlot } from '../types'
+import { packLanes, type PlacedBlock } from './lanes'
 
 export interface DayRow {
   startsAt: string
@@ -8,10 +9,7 @@ export interface DayRow {
   isBusy: boolean
 }
 
-export interface DayBlock {
-  appointment: Appointment
-  row: number
-  span: number
+export interface DayBlock extends PlacedBlock {
   lane: number
 }
 
@@ -34,10 +32,7 @@ function overlapsSlot(appointment: Appointment, slot: AvailabilitySlot): boolean
   )
 }
 
-function placeBlock(
-  appointment: Appointment,
-  slots: AvailabilitySlot[],
-): Omit<DayBlock, 'lane'> | null {
+function placeBlock(appointment: Appointment, slots: AvailabilitySlot[]): PlacedBlock | null {
   const row = slots.findIndex((slot) => startsInSlot(appointment, slot))
   if (row < 0) return null
 
@@ -48,32 +43,20 @@ function placeBlock(
 }
 
 export function layoutDay(appointments: Appointment[], slots: AvailabilitySlot[]): DayLayout {
-  const placed = appointments
-    .map((appointment) => placeBlock(appointment, slots))
-    .filter((block): block is Omit<DayBlock, 'lane'> => block !== null)
-    .sort((a, b) => a.row - b.row || a.appointment.startsAt.localeCompare(b.appointment.startsAt))
-
-  const laneEnds: number[] = []
-  const blocks = placed.map((block) => {
-    let lane = laneEnds.findIndex((end) => end <= block.row)
-    if (lane < 0) lane = laneEnds.length
-    laneEnds[lane] = block.row + block.span
-    return { ...block, lane }
-  })
-
-  const busy = new Set<number>()
-  for (const block of blocks) {
-    for (let row = block.row; row < block.row + block.span; row += 1) busy.add(row)
-  }
+  const { blocks, laneCount, busyRows } = packLanes(
+    appointments
+      .map((appointment) => placeBlock(appointment, slots))
+      .filter((block): block is PlacedBlock => block !== null),
+  )
 
   const rows = slots.map((slot, index) => ({
     startsAt: slot.startsAt,
     label: clinicTimeOf(slot.startsAt),
-    isFree: slot.isAvailable && !busy.has(index),
-    isBusy: busy.has(index),
+    isFree: slot.isAvailable && !busyRows.has(index),
+    isBusy: busyRows.has(index),
   }))
 
-  return { rows, blocks, laneCount: Math.max(1, laneEnds.length) }
+  return { rows, blocks, laneCount }
 }
 
 export function appointmentsOutsideSlots(

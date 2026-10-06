@@ -1,5 +1,6 @@
 import { clinicDateOf, clinicTimeOf } from '@/shared/lib/clinicTime'
 import type { Appointment, AvailabilitySlot } from '../types'
+import { packLanes, type PlacedBlock } from './lanes'
 
 const ROW_MINUTES = 30
 const FALLBACK_FIRST = 7 * 60
@@ -11,10 +12,7 @@ export interface WeekRow {
   isBusy: boolean
 }
 
-export interface WeekBlock {
-  appointment: Appointment
-  row: number
-  span: number
+export interface WeekBlock extends PlacedBlock {
   lane: number
 }
 
@@ -73,17 +71,8 @@ function layoutColumn(appointments: Appointment[], minutes: number[]) {
       return { appointment, row, span }
     })
     .filter((block) => block.row >= 0)
-    .sort((a, b) => a.row - b.row || a.appointment.startsAt.localeCompare(b.appointment.startsAt))
 
-  const laneEnds: number[] = []
-  const blocks = placed.map((block) => {
-    let lane = laneEnds.findIndex((end) => end <= block.row)
-    if (lane < 0) lane = laneEnds.length
-    laneEnds[lane] = block.row + block.span
-    return { ...block, lane }
-  })
-
-  return { blocks, laneCount: Math.max(1, laneEnds.length) }
+  return packLanes(placed)
 }
 
 export function layoutWeek(
@@ -98,6 +87,7 @@ export function layoutWeek(
   )
   const minutes = rowMinutes(dateSet, inWeek, slots)
 
+  const busy = new Set<number>()
   const days = dates.map((date) => {
     const daySlots = slots.filter((slot) => clinicDateOf(slot.startsAt) === date)
     const dayAppointments = inWeek.filter(
@@ -106,20 +96,16 @@ export function layoutWeek(
     const openRows = new Set(
       daySlots.map((slot) => minutes.indexOf(rowStart(minutesOf(slot.startsAt)))),
     )
+    const { blocks, laneCount, busyRows } = layoutColumn(dayAppointments, minutes)
+    busyRows.forEach((row) => busy.add(row))
     return {
       date,
-      ...layoutColumn(dayAppointments, minutes),
+      blocks,
+      laneCount,
       openRows,
       isClosed: hasSlotData && daySlots.length === 0,
     }
   })
-
-  const busy = new Set<number>()
-  for (const day of days) {
-    for (const block of day.blocks) {
-      for (let row = block.row; row < block.row + block.span; row += 1) busy.add(row)
-    }
-  }
 
   return {
     rows: minutes.map((value, index) => ({

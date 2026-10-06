@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useRef } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { apiErrorMessage } from '@/shared/lib/apiClient'
 import { addClinicDays, clinicToday } from '@/shared/lib/clinicTime'
-import { Button, Checkbox, DatePicker, FormError, Modal, TextField } from '@/shared/ui'
-import { vaccinationErrorMessage } from '../api/vaccinationErrors'
+import { textRule } from '@/shared/lib/formRules'
+import { Checkbox, DatePicker, FormDialog, FormError, layout, TextField } from '@/shared/ui'
 import { useAddVaccination } from '../hooks/useVaccinationMutations'
-import styles from './VaccinationForms.module.css'
 
 export interface AddVaccinationDialogProps {
   patientId: string
@@ -12,15 +13,26 @@ export interface AddVaccinationDialogProps {
   onAdded: (vaccineName: string) => void
 }
 
-interface Errors {
-  vaccineName?: string
-  batch?: string
-  givenOn?: string
-  dueOn?: string
-  submit?: string
+interface Values {
+  vaccineName: string
+  isRabies: boolean
+  batch: string
+  givenOn: string
+  dueOn: string
 }
 
 const DEFAULT_VALIDITY_DAYS = 365
+
+function blank(): Values {
+  const today = clinicToday()
+  return {
+    vaccineName: '',
+    isRabies: false,
+    batch: '',
+    givenOn: today,
+    dueOn: addClinicDays(today, DEFAULT_VALIDITY_DAYS),
+  }
+}
 
 export function AddVaccinationDialog({
   patientId,
@@ -29,121 +41,122 @@ export function AddVaccinationDialog({
   onAdded,
 }: AddVaccinationDialogProps) {
   const add = useAddVaccination()
-  const today = clinicToday()
-  const [vaccineName, setVaccineName] = useState('')
-  const [isRabies, setIsRabies] = useState(false)
-  const [batch, setBatch] = useState('')
-  const [givenOn, setGivenOn] = useState(today)
-  const [dueOn, setDueOn] = useState(addClinicDays(today, DEFAULT_VALIDITY_DAYS))
-  const [dueTouched, setDueTouched] = useState(false)
-  const [errors, setErrors] = useState<Errors>({})
+  const dueTouched = useRef(false)
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<Values>({ defaultValues: blank() })
+  const givenOn = watch('givenOn')
 
-  useEffect(() => {
-    if (!open) return
-    const now = clinicToday()
-    setVaccineName('')
-    setIsRabies(false)
-    setBatch('')
-    setGivenOn(now)
-    setDueOn(addClinicDays(now, DEFAULT_VALIDITY_DAYS))
-    setDueTouched(false)
-    setErrors({})
-  }, [open])
-
-  const changeGivenOn = (next: string) => {
-    setGivenOn(next)
-    if (!dueTouched && next) setDueOn(addClinicDays(next, DEFAULT_VALIDITY_DAYS))
-  }
-
-  const submit = () => {
-    const found: Errors = {}
-    if (!vaccineName.trim()) found.vaccineName = 'Name the vaccine'
-    else if (vaccineName.trim().length > 200) found.vaccineName = 'Maximum 200 characters'
-    if (batch.trim().length > 50) found.batch = 'Maximum 50 characters'
-    if (!givenOn) found.givenOn = 'Pick the date it was given'
-    if (!dueOn) found.dueOn = 'Pick the next due date'
-    else if (givenOn && dueOn <= givenOn) found.dueOn = 'The next dose must come after this one'
-    setErrors(found)
-    if (Object.keys(found).length > 0) return
-
+  const submit = handleSubmit((values) => {
+    const vaccineName = values.vaccineName.trim()
     add.mutate(
       {
         patientId,
         request: {
-          vaccineName: vaccineName.trim(),
-          isRabies,
-          batch: batch.trim() || null,
-          givenOn,
-          dueOn,
+          vaccineName,
+          isRabies: values.isRabies,
+          batch: values.batch.trim() || null,
+          givenOn: values.givenOn,
+          dueOn: values.dueOn,
         },
       },
       {
-        onSuccess: () => onAdded(vaccineName.trim()),
+        onSuccess: () => onAdded(vaccineName),
         onError: (error) =>
-          setErrors({ submit: vaccinationErrorMessage(error, 'Could not add the vaccination.') }),
+          setError('root', { message: apiErrorMessage(error, 'Could not add the vaccination.') }),
       },
     )
-  }
+  })
 
   return (
-    <Modal
+    <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Add a vaccination"
       description="For a vaccine given elsewhere or before VorgaVet. Vaccines given here are recorded from the exam."
-      footer={
-        <>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="button" onClick={submit} disabled={add.isPending}>
-            Add vaccination
-          </Button>
-        </>
-      }
+      formId="add-vaccination-form"
+      submitLabel="Add vaccination"
+      isPending={add.isPending}
+      onSubmit={submit}
+      onOpen={() => {
+        reset(blank())
+        dueTouched.current = false
+      }}
     >
-      <div className={styles.form}>
-        <TextField
-          id="manual-vaccine-name"
-          label="Vaccine *"
-          placeholder="Nobivac Rabies"
-          value={vaccineName}
-          onChange={(event) => setVaccineName(event.target.value)}
-          error={errors.vaccineName}
+      <TextField
+        id="manual-vaccine-name"
+        label="Vaccine *"
+        placeholder="Nobivac Rabies"
+        {...register('vaccineName', { validate: textRule(200, 'Name the vaccine') })}
+        error={errors.vaccineName?.message}
+      />
+      <Controller
+        name="isRabies"
+        control={control}
+        render={({ field }) => (
+          <Checkbox checked={field.value} onChange={field.onChange}>
+            Rabies vaccine
+          </Checkbox>
+        )}
+      />
+      <div className={layout.formRow}>
+        <Controller
+          name="givenOn"
+          control={control}
+          rules={{ required: 'Pick the date it was given' }}
+          render={({ field }) => (
+            <DatePicker
+              id="manual-vaccine-given"
+              label="Given on *"
+              value={field.value}
+              maxDate={clinicToday()}
+              onChange={(next) => {
+                field.onChange(next)
+                if (!dueTouched.current && next) {
+                  setValue('dueOn', addClinicDays(next, DEFAULT_VALIDITY_DAYS))
+                }
+              }}
+              error={errors.givenOn?.message}
+            />
+          )}
         />
-        <Checkbox checked={isRabies} onChange={setIsRabies}>
-          Rabies vaccine
-        </Checkbox>
-        <div className={styles.row}>
-          <DatePicker
-            id="manual-vaccine-given"
-            label="Given on *"
-            value={givenOn}
-            maxDate={today}
-            onChange={changeGivenOn}
-            error={errors.givenOn}
-          />
-          <DatePicker
-            id="manual-vaccine-due"
-            label="Next due *"
-            value={dueOn}
-            minDate={givenOn ? addClinicDays(givenOn, 1) : undefined}
-            onChange={(next) => {
-              setDueTouched(true)
-              setDueOn(next)
-            }}
-            error={errors.dueOn}
-          />
-        </div>
-        <TextField
-          id="manual-vaccine-batch"
-          label="Batch"
-          value={batch}
-          onChange={(event) => setBatch(event.target.value)}
-          error={errors.batch}
+        <Controller
+          name="dueOn"
+          control={control}
+          rules={{
+            required: 'Pick the next due date',
+            validate: (dueOn, values) =>
+              !values.givenOn || dueOn > values.givenOn || 'The next dose must come after this one',
+          }}
+          render={({ field }) => (
+            <DatePicker
+              id="manual-vaccine-due"
+              label="Next due *"
+              value={field.value}
+              minDate={givenOn ? addClinicDays(givenOn, 1) : undefined}
+              onChange={(next) => {
+                dueTouched.current = true
+                field.onChange(next)
+              }}
+              error={errors.dueOn?.message}
+            />
+          )}
         />
-        <FormError message={errors.submit} />
       </div>
-    </Modal>
+      <TextField
+        id="manual-vaccine-batch"
+        label="Batch"
+        {...register('batch', { validate: textRule(50) })}
+        error={errors.batch?.message}
+      />
+      <FormError message={errors.root?.message} />
+    </FormDialog>
   )
 }

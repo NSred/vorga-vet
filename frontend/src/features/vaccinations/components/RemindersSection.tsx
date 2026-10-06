@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { Badge, Button, EmptyState, RecordItem, RecordList, Skeleton, useToast } from '@/shared/ui'
+import {
+  Badge,
+  Button,
+  EmptyState,
+  layout,
+  RecordItem,
+  RecordList,
+  Skeleton,
+  useToast,
+} from '@/shared/ui'
 import { useCompleteReminder } from '../hooks/useVaccinationMutations'
 import { usePatientReminders } from '../hooks/useVaccinationQueries'
 import { AddReminderDialog } from './AddReminderDialog'
@@ -17,7 +26,7 @@ export function RemindersSection({ patientId }: RemindersSectionProps) {
   const [adding, setAdding] = useState(false)
 
   return (
-    <div className={styles.section}>
+    <div className={layout.stackTight}>
       {isPending && <Skeleton height="3rem" />}
       {isError && <p className={styles.muted}>Could not load the reminders.</p>}
       {data && data.length === 0 && <EmptyState message="No reminders." />}

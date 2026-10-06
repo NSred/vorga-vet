@@ -1,6 +1,8 @@
+import type { CatalogFilters, CatalogQueryDto, CatalogStatus } from '@/shared/domain/catalog'
+import type { Page } from '@/shared/domain/page'
 export type PriceListKind = 'service' | 'medication'
 
-export type PriceListStatus = 'active' | 'all' | 'retired'
+export type PriceListStatus = CatalogStatus
 
 export interface PriceListItemDto {
   id: string
@@ -14,19 +16,9 @@ export interface PriceListItemDto {
   createdAt: string
 }
 
-export interface PriceListPageDto {
-  items: PriceListItemDto[]
-  totalCount: number
-  page: number
-  pageSize: number
-}
+export type PriceListPageDto = Page<PriceListItemDto>
 
-export interface PriceListQueryDto {
-  search?: string
-  status: number
-  page: number
-  pageSize: number
-}
+export type PriceListQueryDto = CatalogQueryDto
 
 export interface PriceListWriteRequest {
   name: string
@@ -52,17 +44,9 @@ export interface VaccineInfo {
   validityDays: number
 }
 
-export interface PriceListPage {
-  items: PriceListItem[]
-  totalCount: number
-  page: number
-  pageSize: number
-}
+export type PriceListPage = Page<PriceListItem>
 
-export interface PriceListFilters {
-  search?: string
-  status: PriceListStatus
-}
+export type PriceListFilters = CatalogFilters
 
 export interface PriceItemFormValues {
   name: string

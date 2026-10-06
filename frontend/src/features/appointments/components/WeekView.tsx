@@ -1,5 +1,11 @@
 import { Skeleton } from '@/shared/ui'
-import { addClinicDays, clinicDateOf, clinicToday, clinicWeekRange } from '@/shared/lib/clinicTime'
+import {
+  addClinicDays,
+  clinicDateOf,
+  clinicToday,
+  clinicWeekRange,
+  MONDAY_FIRST_WEEKDAYS,
+} from '@/shared/lib/clinicTime'
 import { AppointmentBlock } from './AppointmentBlock'
 import { layoutWeek } from '../lib/weekGrid'
 import type { Appointment, AvailabilitySlot } from '../types'
@@ -14,8 +20,6 @@ export interface WeekViewProps {
   isLoading?: boolean
   hasSlotData: boolean
 }
-
-const WEEKDAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export function WeekView({
   date,
@@ -46,9 +50,9 @@ export function WeekView({
             type="button"
             className={`${styles.dayHeader} ${day.date === today ? styles.todayHeader : ''}`}
             onClick={() => onDateSelect(day.date)}
-            aria-label={`Open ${WEEKDAY_HEADERS[index]} ${Number(day.date.slice(8))}`}
+            aria-label={`Open ${MONDAY_FIRST_WEEKDAYS[index]} ${Number(day.date.slice(8))}`}
           >
-            <span>{WEEKDAY_HEADERS[index]}</span>
+            <span>{MONDAY_FIRST_WEEKDAYS[index]}</span>
             <span className={styles.dayNumber}>{Number(day.date.slice(8))}</span>
             {day.isClosed && <span className={styles.closed}>Closed</span>}
             {day.blocks.length > 0 && (

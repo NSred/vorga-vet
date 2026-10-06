@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { usePanelState } from '@/shared/lib/usePanelState'
 import { useSearchParams } from 'react-router'
-import { Button, ConfirmDialog, PageHeader, useToast } from '@/shared/ui'
+import { Button, ConfirmDialog, layout, PageHeader, useRetireRestore, useToast } from '@/shared/ui'
 import {
   parsePriceListParams,
   PriceItemPanel,
@@ -12,12 +11,9 @@ import {
   useRestorePriceListItem,
   useRetirePriceListItem,
 } from '@/features/priceList'
-import type { ParsedPriceListParams, PriceListItem, PriceListPage } from '@/features/priceList'
-import styles from './PriceListPage.module.css'
+import type { ParsedPriceListParams, PriceListItem } from '@/features/priceList'
 
 type PanelState = { mode: 'create' } | { mode: 'edit'; item: PriceListItem }
-
-const EMPTY_PAGE: PriceListPage = { items: [], totalCount: 0, page: 1, pageSize: 25 }
 
 export function PriceListPage() {
   const { showToast } = useToast()
@@ -26,10 +22,8 @@ export function PriceListPage() {
   const { kind, filters, page, pageSize } = view
 
   const { panel, displayPanel, setPanel, closePanel } = usePanelState<PanelState>()
-  const [confirmRetire, setConfirmRetire] = useState<PriceListItem | null>(null)
 
   const listQuery = usePriceListQuery(kind, filters, page, pageSize)
-  const listPage = listQuery.data ?? EMPTY_PAGE
   const retire = useRetirePriceListItem()
   const restore = useRestorePriceListItem()
 
@@ -41,36 +35,17 @@ export function PriceListPage() {
     showToast({ tone: 'success', title })
   }
 
-  const handleRetire = (item: PriceListItem) => {
-    retire.mutate(
-      { kind: item.kind, id: item.id },
-      {
-        onSuccess: () => {
-          setConfirmRetire(null)
-          afterWrite(`${item.name} was retired`)
-        },
-        onError: () => {
-          setConfirmRetire(null)
-          showToast({ tone: 'error', title: `Could not retire ${item.name}` })
-        },
-      },
-    )
-  }
-
-  const handleRestore = (item: PriceListItem) => {
-    restore.mutate(
-      { kind: item.kind, id: item.id },
-      {
-        onSuccess: () => afterWrite(`${item.name} was restored`),
-        onError: () => showToast({ tone: 'error', title: `Could not restore ${item.name}` }),
-      },
-    )
-  }
+  const status = useRetireRestore<PriceListItem>({
+    retire: (item) => retire.mutateAsync({ kind: item.kind, id: item.id }),
+    restore: (item) => restore.mutateAsync({ kind: item.kind, id: item.id }),
+    nameOf: (item) => item.name,
+    onDone: afterWrite,
+  })
 
   const isMedication = kind === 'medication'
 
   return (
-    <div className={styles.page}>
+    <div className={layout.page}>
       <PageHeader
         title="Price list"
         subtitle="Services and medications the clinic charges for, with their prices in dinars."
@@ -94,11 +69,11 @@ export function PriceListPage() {
 
       <PriceListTable
         kind={kind}
-        items={listPage.items}
+        items={listQuery.data?.items ?? []}
         isLoading={listQuery.isLoading}
         page={page}
         pageSize={pageSize}
-        totalCount={listPage.totalCount}
+        totalCount={listQuery.data?.totalCount ?? 0}
         hasSearch={Boolean(filters.search)}
         onPageChange={(nextPage) => writeView({ ...view, page: nextPage })}
         onPageSizeChange={(nextSize) => writeView({ ...view, page: 1, pageSize: nextSize })}
@@ -127,21 +102,21 @@ export function PriceListPage() {
           onOpenChange={(open) => !open && closePanel()}
           onSaved={(name) => afterWrite(`${name} was saved`)}
           onMissing={() => afterWrite('That item no longer exists')}
-          onRetire={() => setConfirmRetire(displayPanel.item)}
-          onRestore={() => handleRestore(displayPanel.item)}
-          isStatusPending={retire.isPending || restore.isPending}
+          onRetire={() => status.askRetire(displayPanel.item)}
+          onRestore={() => status.restore(displayPanel.item)}
+          isStatusPending={status.isPending}
         />
       )}
 
       <ConfirmDialog
-        open={confirmRetire !== null}
-        onOpenChange={(open) => !open && setConfirmRetire(null)}
-        title={`Retire ${confirmRetire?.name ?? 'this item'}?`}
+        open={status.confirming !== null}
+        onOpenChange={(open) => !open && status.cancelRetire()}
+        title={`Retire ${status.confirming?.name ?? 'this item'}?`}
         description="It will no longer be offered. It stays under Retired and can be restored at any time."
         confirmLabel="Retire"
         tone="danger"
-        isPending={retire.isPending}
-        onConfirm={() => confirmRetire && handleRetire(confirmRetire)}
+        isPending={status.isPending}
+        onConfirm={status.confirmRetire}
       />
     </div>
   )

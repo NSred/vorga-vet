@@ -1,5 +1,8 @@
 import { ApiError } from '@/shared/lib/apiClient'
 import { clinicToday } from '@/shared/lib/clinicTime'
+import { assertValid } from '@/shared/lib/mockApi'
+import { createMockStore, newId } from '@/shared/lib/mockStore'
+import { isDateOnly, sameText, trimmedLength, trimmedOrNull } from '@/shared/lib/validation'
 import type {
   DueItemDto,
   ExamVaccinationsRequest,
@@ -12,87 +15,18 @@ import { vaccinationErrors } from './vaccinationErrors'
 
 export const VACCINATIONS_STORAGE_KEY = 'vorgavet.mock.vaccinations'
 
-const STORE_VERSION = 1
 const MAX_NAME_LENGTH = 200
 const MAX_BATCH_LENGTH = 50
 const MAX_REASON_LENGTH = 200
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
-interface StoreState {
-  version: number
-  vaccinations: VaccinationDto[]
-  reminders: ReminderDto[]
-}
+const store = createMockStore<{ vaccinations: VaccinationDto[]; reminders: ReminderDto[] }>({
+  key: VACCINATIONS_STORAGE_KEY,
+  version: 1,
+  isValid: (value) => Array.isArray(value.vaccinations) && Array.isArray(value.reminders),
+  initial: () => ({ vaccinations: [], reminders: [] }),
+})
 
-let state: StoreState | null = null
-
-function isStoreState(value: unknown): value is StoreState {
-  if (typeof value !== 'object' || value === null) return false
-  const candidate = value as Partial<StoreState>
-  return (
-    candidate.version === STORE_VERSION &&
-    Array.isArray(candidate.vaccinations) &&
-    Array.isArray(candidate.reminders)
-  )
-}
-
-function readStorage(): StoreState | null {
-  try {
-    const raw = window.localStorage.getItem(VACCINATIONS_STORAGE_KEY)
-    if (!raw) return null
-    const parsed: unknown = JSON.parse(raw)
-    return isStoreState(parsed) ? parsed : null
-  } catch {
-    return null
-  }
-}
-
-function load(): StoreState {
-  state ??= readStorage() ?? { version: STORE_VERSION, vaccinations: [], reminders: [] }
-  return state
-}
-
-function commit(): void {
-  if (!state) return
-  try {
-    window.localStorage.setItem(VACCINATIONS_STORAGE_KEY, JSON.stringify(state))
-  } catch {
-    return
-  }
-}
-
-export function resetVaccinationsStore(): void {
-  state = null
-  try {
-    window.localStorage.removeItem(VACCINATIONS_STORAGE_KEY)
-  } catch {
-    return
-  }
-}
-
-function newId(prefix: string): string {
-  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
-}
-
-function isDate(value: string | undefined): value is string {
-  return typeof value === 'string' && DATE_PATTERN.test(value)
-}
-
-function fail(messages: string[]): never {
-  throw new ApiError(
-    400,
-    'One or more validation errors occurred.',
-    vaccinationErrors.validation,
-    messages,
-  )
-}
-
-function trimmedOrNull(value: string | null | undefined): string | null {
-  const trimmed = value?.trim()
-  return trimmed ? trimmed : null
-}
+export const resetVaccinationsStore = store.reset
 
 function vaccineMessages(
   name: string,
@@ -102,22 +36,23 @@ function vaccineMessages(
   at = '',
 ): string[] {
   const messages: string[] = []
-  const trimmed = name?.trim() ?? ''
-  if (!trimmed) messages.push(`${at}Vaccine is required.`)
-  else if (trimmed.length > MAX_NAME_LENGTH) messages.push(`${at}Vaccine name is too long.`)
-  if ((batch?.trim().length ?? 0) > MAX_BATCH_LENGTH) {
+  const nameLength = trimmedLength(name)
+  if (nameLength === 0) messages.push(`${at}Vaccine is required.`)
+  else if (nameLength > MAX_NAME_LENGTH) messages.push(`${at}Vaccine name is too long.`)
+  if (trimmedLength(batch) > MAX_BATCH_LENGTH) {
     messages.push(`${at}Batch must be at most ${MAX_BATCH_LENGTH} characters.`)
   }
-  if (!isDate(givenOn)) messages.push(`${at}Given on must be a date.`)
+  if (!isDateOnly(givenOn)) messages.push(`${at}Given on must be a date.`)
   else if (givenOn > clinicToday()) messages.push(`${at}Given on cannot be in the future.`)
-  if (!isDate(dueOn)) messages.push(`${at}Due on must be a date.`)
-  else if (isDate(givenOn) && dueOn <= givenOn) messages.push(`${at}Due on must be after given on.`)
+  if (!isDateOnly(dueOn)) messages.push(`${at}Due on must be a date.`)
+  else if (isDateOnly(givenOn) && dueOn <= givenOn)
+    messages.push(`${at}Due on must be after given on.`)
   return messages
 }
 
 function sameVaccine(a: VaccinationDto, b: VaccinationDto): boolean {
   if (a.itemId && b.itemId) return a.itemId === b.itemId
-  return a.vaccineName.trim().toLocaleLowerCase() === b.vaccineName.trim().toLocaleLowerCase()
+  return sameText(a.vaccineName, b.vaccineName)
 }
 
 function isReplaced(vaccination: VaccinationDto, all: VaccinationDto[]): boolean {
@@ -131,26 +66,28 @@ function isReplaced(vaccination: VaccinationDto, all: VaccinationDto[]): boolean
   )
 }
 
+function storedVaccination(id: string): VaccinationDto {
+  const vaccination = store.state().vaccinations.find((candidate) => candidate.id === id)
+  if (!vaccination)
+    throw new ApiError(404, 'The vaccination was not found.', vaccinationErrors.notFound)
+  return vaccination
+}
+
 export function findVaccination(id: string): VaccinationDto | undefined {
-  const vaccination = load().vaccinations.find((candidate) => candidate.id === id)
+  const vaccination = store.state().vaccinations.find((candidate) => candidate.id === id)
   return vaccination ? { ...vaccination } : undefined
 }
 
 export function listPatientVaccinations(patientId: string): VaccinationDto[] {
-  return load()
+  return store
+    .state()
     .vaccinations.filter((vaccination) => vaccination.patientId === patientId)
     .sort((a, b) => b.givenOn.localeCompare(a.givenOn) || b.createdAt.localeCompare(a.createdAt))
     .map((vaccination) => ({ ...vaccination }))
 }
 
 export function addManualVaccination(patientId: string, request: ManualVaccinationRequest): string {
-  const messages = vaccineMessages(
-    request.vaccineName,
-    request.batch,
-    request.givenOn,
-    request.dueOn,
-  )
-  if (messages.length > 0) fail(messages)
+  assertValid(vaccineMessages(request.vaccineName, request.batch, request.givenOn, request.dueOn))
 
   const vaccination: VaccinationDto = {
     id: newId('vaccination'),
@@ -166,42 +103,41 @@ export function addManualVaccination(patientId: string, request: ManualVaccinati
     contactedAt: null,
     createdAt: new Date().toISOString(),
   }
-  load().vaccinations.push(vaccination)
-  commit()
+  store.state().vaccinations.push(vaccination)
+  store.commit()
   return vaccination.id
 }
 
 export function removeVaccination(id: string): void {
-  const current = load()
-  const vaccination = current.vaccinations.find((candidate) => candidate.id === id)
-  if (!vaccination)
-    throw new ApiError(404, 'The vaccination was not found.', vaccinationErrors.notFound)
+  const vaccination = storedVaccination(id)
   if (vaccination.source !== 'manual') {
     throw new ApiError(409, 'Edit the exam to change this vaccination.', vaccinationErrors.fromExam)
   }
-  current.vaccinations = current.vaccinations.filter((candidate) => candidate.id !== id)
-  commit()
+  const state = store.state()
+  state.vaccinations = state.vaccinations.filter((candidate) => candidate.id !== id)
+  store.commit()
 }
 
 export function replaceExamVaccinations(
   examinationId: string,
   request: ExamVaccinationsRequest,
 ): void {
-  const messages = request.lines.flatMap((line, index) =>
-    vaccineMessages(
-      line.vaccineName,
-      line.batch,
-      request.givenOn,
-      line.dueOn,
-      `Line ${index + 1}: `,
+  assertValid(
+    request.lines.flatMap((line, index) =>
+      vaccineMessages(
+        line.vaccineName,
+        line.batch,
+        request.givenOn,
+        line.dueOn,
+        `Line ${index + 1}: `,
+      ),
     ),
   )
-  if (messages.length > 0) fail(messages)
 
-  const current = load()
+  const state = store.state()
   const createdAt = new Date().toISOString()
-  current.vaccinations = [
-    ...current.vaccinations.filter((vaccination) => vaccination.examinationId !== examinationId),
+  state.vaccinations = [
+    ...state.vaccinations.filter((vaccination) => vaccination.examinationId !== examinationId),
     ...request.lines.map((line): VaccinationDto => ({
       id: newId('vaccination'),
       patientId: request.patientId,
@@ -217,20 +153,19 @@ export function replaceExamVaccinations(
       createdAt,
     })),
   ]
-  commit()
+  store.commit()
 }
 
 export function markContacted(id: string): void {
-  const vaccination = load().vaccinations.find((candidate) => candidate.id === id)
-  if (!vaccination)
-    throw new ApiError(404, 'The vaccination was not found.', vaccinationErrors.notFound)
+  const vaccination = storedVaccination(id)
   if (vaccination.contactedAt) return
   vaccination.contactedAt = new Date().toISOString()
-  commit()
+  store.commit()
 }
 
 export function listPatientReminders(patientId: string): ReminderDto[] {
-  return load()
+  return store
+    .state()
     .reminders.filter((reminder) => reminder.patientId === patientId)
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((reminder) => ({ ...reminder }))
@@ -241,9 +176,9 @@ export function addReminder(patientId: string, request: ReminderRequest): string
   const reason = request.reason?.trim() ?? ''
   if (!reason) messages.push('Reason is required.')
   else if (reason.length > MAX_REASON_LENGTH) messages.push('Reason is too long.')
-  if (!isDate(request.date)) messages.push('Date must be a date.')
+  if (!isDateOnly(request.date)) messages.push('Date must be a date.')
   else if (request.date < clinicToday()) messages.push('Date cannot be in the past.')
-  if (messages.length > 0) fail(messages)
+  assertValid(messages)
 
   const reminder: ReminderDto = {
     id: newId('reminder'),
@@ -253,22 +188,22 @@ export function addReminder(patientId: string, request: ReminderRequest): string
     doneAt: null,
     createdAt: new Date().toISOString(),
   }
-  load().reminders.push(reminder)
-  commit()
+  store.state().reminders.push(reminder)
+  store.commit()
   return reminder.id
 }
 
 export function completeReminder(id: string): void {
-  const reminder = load().reminders.find((candidate) => candidate.id === id)
+  const reminder = store.state().reminders.find((candidate) => candidate.id === id)
   if (!reminder)
     throw new ApiError(404, 'The reminder was not found.', vaccinationErrors.reminderNotFound)
   if (reminder.doneAt) return
   reminder.doneAt = new Date().toISOString()
-  commit()
+  store.commit()
 }
 
 export function listDue(until: string): DueItemDto[] {
-  const { vaccinations, reminders } = load()
+  const { vaccinations, reminders } = store.state()
 
   const dueVaccinations = vaccinations
     .filter((vaccination) => vaccination.dueOn <= until && !isReplaced(vaccination, vaccinations))

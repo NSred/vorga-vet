@@ -112,6 +112,31 @@ describe('ClientAppointmentsPage lists', () => {
     expect(ranges.some((range) => range.to === boundary())).toBe(true)
   })
 
+  it('keeps both windows within the API limit when they cross a daylight saving change', async () => {
+    const apiLimitMs = 62 * 24 * 60 * 60 * 1000
+    vi.useFakeTimers({ toFake: ['Date'] })
+    try {
+      for (const now of [
+        '2026-10-06T10:00:00Z',
+        '2026-12-10T10:00:00Z',
+        '2027-03-10T10:00:00Z',
+        '2027-05-10T10:00:00Z',
+      ]) {
+        vi.setSystemTime(new Date(now))
+        getAppointmentsSpy.mockClear()
+        const { unmount } = render(<ClientAppointmentsPage />)
+
+        await waitFor(() => expect(getAppointmentsSpy).toHaveBeenCalledTimes(2))
+        for (const [range] of getAppointmentsSpy.mock.calls as [{ from: string; to: string }][]) {
+          expect(Date.parse(range.to) - Date.parse(range.from)).toBeLessThanOrEqual(apiLimitMs)
+        }
+        unmount()
+      }
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('puts open visits under Upcoming, oldest first', async () => {
     mockWindows([later, scheduled])
 

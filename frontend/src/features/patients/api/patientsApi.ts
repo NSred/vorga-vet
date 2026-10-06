@@ -1,3 +1,4 @@
+import { mapPage } from '@/shared/domain/page'
 import { apiFetch } from '@/shared/lib/apiClient'
 import { sexToApi, speciesToApi, statusToApi } from '../lib/enumMapping'
 import { toPatientDetail, toPatientListItem } from '../lib/patientMapping'
@@ -39,12 +40,7 @@ export async function getPatients(
   const query = buildPatientsQuery(filters, page, pageSize)
   const response = await apiFetch<GetPatientsResponseDto>(`/patients?${query.toString()}`)
 
-  return {
-    items: response.items.map(toPatientListItem),
-    totalCount: response.totalCount,
-    page: response.page,
-    pageSize: response.pageSize,
-  }
+  return mapPage(response, toPatientListItem)
 }
 
 export async function getPatient(id: string): Promise<PatientDetail> {

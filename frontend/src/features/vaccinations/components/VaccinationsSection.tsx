@@ -6,6 +6,7 @@ import {
   Button,
   ConfirmDialog,
   EmptyState,
+  layout,
   PrintPortal,
   RecordItem,
   RecordList,
@@ -48,7 +49,7 @@ export function VaccinationsSection({
   const upcoming = data ? nextDue(data) : undefined
 
   return (
-    <div className={styles.section}>
+    <div className={layout.stackTight}>
       {isPending && <Skeleton height="4rem" />}
       {isError && <p className={styles.muted}>Could not load the vaccinations.</p>}
 

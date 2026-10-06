@@ -1,8 +1,8 @@
 import { useSearchParams } from 'react-router'
-import { PageHeader, SegmentedControl } from '@/shared/ui'
+import { oneOf } from '@/shared/lib/listParams'
+import { layout, PageHeader, SegmentedControl } from '@/shared/ui'
 import { DiagnosesTab } from '@/features/diagnoses'
 import { AllergensTab, BreedsTab } from '@/features/patients'
-import styles from './ListsPage.module.css'
 
 type ListTab = 'diagnoses' | 'breeds' | 'allergens'
 
@@ -18,16 +18,14 @@ const SUBTITLES: Record<ListTab, string> = {
   allergens: 'The allergens the patient form offers.',
 }
 
-function tabOf(value: string | null): ListTab {
-  return value === 'breeds' || value === 'allergens' ? value : 'diagnoses'
-}
+const TABS: ListTab[] = ['diagnoses', 'breeds', 'allergens']
 
 export function ListsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const tab = tabOf(searchParams.get('tab'))
+  const tab = oneOf(searchParams.get('tab'), TABS) ?? 'diagnoses'
 
   return (
-    <div className={styles.page}>
+    <div className={layout.page}>
       <PageHeader title="Lists" subtitle={SUBTITLES[tab]} />
 
       <SegmentedControl

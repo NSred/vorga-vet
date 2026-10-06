@@ -1,18 +1,14 @@
+import { mapPage } from '@/shared/domain/page'
 import type {
   Diagnosis,
   DiagnosisDto,
   DiagnosisFormValues,
   DiagnosisPage,
   DiagnosisPageDto,
-  DiagnosisStatus,
   DiagnosisWriteRequest,
 } from '../types'
 
-const STATUS_TO_API: Record<DiagnosisStatus, number> = { active: 0, all: 1, retired: 2 }
-
-export function statusToApi(status: DiagnosisStatus): number {
-  return STATUS_TO_API[status]
-}
+export { catalogStatusToApi as statusToApi } from '@/shared/domain/catalog'
 
 export function toDiagnosis(dto: DiagnosisDto): Diagnosis {
   const diagnosis: Diagnosis = { id: dto.id, name: dto.name, isActive: dto.isActive }
@@ -21,12 +17,7 @@ export function toDiagnosis(dto: DiagnosisDto): Diagnosis {
 }
 
 export function toDiagnosisPage(dto: DiagnosisPageDto): DiagnosisPage {
-  return {
-    items: dto.items.map(toDiagnosis),
-    totalCount: dto.totalCount,
-    page: dto.page,
-    pageSize: dto.pageSize,
-  }
+  return mapPage(dto, toDiagnosis)
 }
 
 export function emptyDiagnosisValues(name = ''): DiagnosisFormValues {

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Badge, Button, SlidePanel } from '@/shared/ui'
+import { Badge, Button, DetailSection, Field, FieldGrid, SlidePanel } from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { calculateAge } from '../lib/patientAge'
 import type { PatientDetail } from '../types'
@@ -16,22 +16,6 @@ export interface PatientDetailPanelProps {
   vaccinationsSection?: ReactNode
   remindersSection?: ReactNode
   microchipSection?: ReactNode
-}
-
-function formatValue(value: string | number | undefined): string {
-  if (value === undefined || value === '' || (typeof value === 'number' && Number.isNaN(value))) {
-    return '—'
-  }
-  return String(value)
-}
-
-function Field({ label, value }: { label: string; value: string | number | undefined }) {
-  return (
-    <div className={styles.field}>
-      <span className={styles.fieldLabel}>{label}</span>
-      <span className={styles.fieldValue}>{formatValue(value)}</span>
-    </div>
-  )
 }
 
 export function PatientDetailPanel({
@@ -59,32 +43,30 @@ export function PatientDetailPanel({
           <div>
             <div className={styles.name}>{patient.name}</div>
             <div className={styles.subtitle}>
-              {patient.breedName} · {formatValue(age)} yrs
+              {patient.breedName} · {age ?? '—'} yrs
             </div>
           </div>
         </div>
       }
       footer={
-        <>
-          {onDelete && (
-            <Button variant="danger" type="button" onClick={onDelete}>
-              Delete
-            </Button>
-          )}
-          {onEdit && (
-            <Button variant="outline" type="button" onClick={onEdit}>
-              ✎ Edit
-            </Button>
-          )}
-          <Button variant="outline" type="button" disabled>
-            🖨 Print
-          </Button>
-        </>
+        onDelete || onEdit ? (
+          <>
+            {onDelete && (
+              <Button variant="danger" type="button" onClick={onDelete}>
+                Delete
+              </Button>
+            )}
+            {onEdit && (
+              <Button variant="outline" type="button" onClick={onEdit}>
+                ✎ Edit
+              </Button>
+            )}
+          </>
+        ) : undefined
       }
     >
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Basic information</h3>
-        <div className={styles.grid}>
+      <DetailSection title="Basic information">
+        <FieldGrid>
           <Field label="Record no." value={patient.cardNumber} />
           <Field label="Species" value={patient.species} />
           <Field label="Breed" value={patient.breedName} />
@@ -94,65 +76,38 @@ export function PatientDetailPanel({
           <Field label="Color" value={patient.color} />
           <Field label="Chip no." value={patient.chipNumber} />
           <Field label="Record status" value={patient.isDeleted ? 'Deleted' : 'Active'} />
-        </div>
-      </section>
+        </FieldGrid>
+      </DetailSection>
 
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Medical records</h3>
-        <div className={styles.field}>
-          <span className={styles.fieldLabel}>Allergies</span>
-          <span className={styles.fieldValue}>
-            {patient.allergies.length === 0
-              ? '—'
-              : patient.allergies.map((allergen) => (
-                  <Badge key={allergen.id} tone="warn">
-                    {allergen.name}
-                  </Badge>
-                ))}
-          </span>
-        </div>
+      <DetailSection title="Medical records">
+        <Field
+          label="Allergies"
+          value={patient.allergies.map((allergen) => (
+            <Badge key={allergen.id} tone="warn">
+              {allergen.name}
+            </Badge>
+          ))}
+        />
         <Field label="Medical history" value={patient.anamnesis} />
         <Field label="Note" value={patient.note} />
-      </section>
+      </DetailSection>
 
-      <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Owner contact</h3>
-        <div className={styles.grid}>
+      <DetailSection title="Owner contact">
+        <FieldGrid>
           <Field label="Owner" value={patient.ownerName} />
           <Field label="Phone" value={patient.phoneNumber} />
           <Field label="Address" value={patient.address} />
           <Field label="City" value={patient.city} />
           <Field label="Created" value={formatDisplayDate(patient.createdAt)} />
-        </div>
-      </section>
+        </FieldGrid>
+      </DetailSection>
 
       {vaccinationsSection && (
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Vaccinations</h3>
-          {vaccinationsSection}
-        </section>
+        <DetailSection title="Vaccinations">{vaccinationsSection}</DetailSection>
       )}
-
-      {microchipSection && (
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Microchip</h3>
-          {microchipSection}
-        </section>
-      )}
-
-      {remindersSection && (
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Reminders</h3>
-          {remindersSection}
-        </section>
-      )}
-
-      {visitsSection && (
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Visits</h3>
-          {visitsSection}
-        </section>
-      )}
+      {microchipSection && <DetailSection title="Microchip">{microchipSection}</DetailSection>}
+      {remindersSection && <DetailSection title="Reminders">{remindersSection}</DetailSection>}
+      {visitsSection && <DetailSection title="Visits">{visitsSection}</DetailSection>}
     </SlidePanel>
   )
 }

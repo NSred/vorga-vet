@@ -1,62 +1,37 @@
-import type { PriceListFilters, PriceListKind, PriceListStatus } from '../types'
+import {
+  oneOf,
+  parsePagedParams,
+  writePagedParams,
+  type PagedListSpec,
+  type PagedView,
+} from '@/shared/lib/listParams'
+import type { PriceListKind, PriceListStatus } from '../types'
 
-export interface ParsedPriceListParams {
+export interface ParsedPriceListParams extends PagedView<PriceListStatus> {
   kind: PriceListKind
-  filters: PriceListFilters
-  page: number
-  pageSize: number
 }
 
 const KIND_VALUES: PriceListKind[] = ['service', 'medication']
-const STATUS_VALUES: PriceListStatus[] = ['active', 'all', 'retired']
-const PAGE_SIZES = [25, 50, 100]
-
-export const PRICE_LIST_PAGE_SIZES = PAGE_SIZES
-
 const DEFAULT_KIND: PriceListKind = 'service'
-const DEFAULT_STATUS: PriceListStatus = 'active'
-const DEFAULT_PAGE = 1
-const DEFAULT_PAGE_SIZE = 25
 
-function oneOf<T extends string>(value: string | null, allowed: T[]): T | undefined {
-  return value !== null && (allowed as string[]).includes(value) ? (value as T) : undefined
-}
+export const PRICE_LIST_PAGE_SIZES = [25, 50, 100]
 
-function positiveInt(value: string | null, fallback: number): number {
-  const parsed = Number(value)
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
+const SPEC: PagedListSpec<PriceListStatus> = {
+  statuses: ['active', 'all', 'retired'],
+  defaultStatus: 'active',
+  pageSizes: PRICE_LIST_PAGE_SIZES,
+  defaultPageSize: 25,
 }
 
 export function parsePriceListParams(params: URLSearchParams): ParsedPriceListParams {
-  const pageSize = positiveInt(params.get('pageSize'), DEFAULT_PAGE_SIZE)
-  const filters: PriceListFilters = {
-    status: oneOf(params.get('status'), STATUS_VALUES) ?? DEFAULT_STATUS,
-  }
-
-  const search = params.get('search')?.trim()
-  if (search) filters.search = search
-
   return {
     kind: oneOf(params.get('kind'), KIND_VALUES) ?? DEFAULT_KIND,
-    filters,
-    page: positiveInt(params.get('page'), DEFAULT_PAGE),
-    pageSize: PAGE_SIZES.includes(pageSize) ? pageSize : DEFAULT_PAGE_SIZE,
+    ...parsePagedParams(params, SPEC),
   }
 }
 
-export function toPriceListParams({
-  kind,
-  filters,
-  page,
-  pageSize,
-}: ParsedPriceListParams): URLSearchParams {
-  const params = new URLSearchParams()
-
-  if (kind !== DEFAULT_KIND) params.set('kind', kind)
-  if (filters.search) params.set('search', filters.search)
-  if (filters.status !== DEFAULT_STATUS) params.set('status', filters.status)
-  if (page !== DEFAULT_PAGE) params.set('page', String(page))
-  if (pageSize !== DEFAULT_PAGE_SIZE) params.set('pageSize', String(pageSize))
-
-  return params
+export function toPriceListParams({ kind, ...view }: ParsedPriceListParams): URLSearchParams {
+  const base = new URLSearchParams()
+  if (kind !== DEFAULT_KIND) base.set('kind', kind)
+  return writePagedParams(base, view, SPEC)
 }

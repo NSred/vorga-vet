@@ -1,3 +1,4 @@
+import { mapPage } from '@/shared/domain/page'
 import type {
   PriceItemFormValues,
   PriceListItem,
@@ -5,18 +6,13 @@ import type {
   PriceListKind,
   PriceListPage,
   PriceListPageDto,
-  PriceListStatus,
   PriceListWriteRequest,
 } from '../types'
 import { parsePrice } from './price'
 
 export const DEFAULT_VALIDITY_DAYS = 365
 
-const STATUS_TO_API: Record<PriceListStatus, number> = { active: 0, all: 1, retired: 2 }
-
-export function statusToApi(status: PriceListStatus): number {
-  return STATUS_TO_API[status]
-}
+export { catalogStatusToApi as statusToApi } from '@/shared/domain/catalog'
 
 export function toPriceListItem(kind: PriceListKind, dto: PriceListItemDto): PriceListItem {
   const item: PriceListItem = {
@@ -37,12 +33,7 @@ export function toPriceListItem(kind: PriceListKind, dto: PriceListItemDto): Pri
 }
 
 export function toPriceListPage(kind: PriceListKind, dto: PriceListPageDto): PriceListPage {
-  return {
-    items: dto.items.map((item) => toPriceListItem(kind, item)),
-    totalCount: dto.totalCount,
-    page: dto.page,
-    pageSize: dto.pageSize,
-  }
+  return mapPage(dto, (item) => toPriceListItem(kind, item))
 }
 
 export function emptyFormValues(): PriceItemFormValues {

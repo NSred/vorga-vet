@@ -1,71 +1,25 @@
-import { ApiError } from '@/shared/lib/apiClient'
 import { MAX_AMOUNT } from '@/shared/lib/money'
+import { assertValid } from '@/shared/lib/mockApi'
+import { createMockStore } from '@/shared/lib/mockStore'
+import { hasAtMostTwoDecimals, isDateOnly } from '@/shared/lib/validation'
 import type { ChargeLineDto, ExaminationChargesDto } from '../types'
-import { priceListErrors } from './priceListErrors'
 
 export const CHARGES_STORAGE_KEY = 'vorgavet.mock.examinationCharges'
 
-const STORE_VERSION = 1
 const MAX_NAME_LENGTH = 200
 const MAX_DOSE_LENGTH = 100
 const MAX_QUANTITY = 9999
+const MAX_BATCH_LENGTH = 50
 const KINDS = ['service', 'medication', 'extra']
 
-interface StoreState {
-  version: number
-  byExamination: Record<string, ChargeLineDto[]>
-}
+const store = createMockStore<{ byExamination: Record<string, ChargeLineDto[]> }>({
+  key: CHARGES_STORAGE_KEY,
+  version: 1,
+  isValid: (value) => typeof value.byExamination === 'object' && value.byExamination !== null,
+  initial: () => ({ byExamination: {} }),
+})
 
-let state: StoreState | null = null
-
-function isStoreState(value: unknown): value is StoreState {
-  if (typeof value !== 'object' || value === null) return false
-  const candidate = value as Partial<StoreState>
-  return (
-    candidate.version === STORE_VERSION &&
-    typeof candidate.byExamination === 'object' &&
-    candidate.byExamination !== null
-  )
-}
-
-function readStorage(): StoreState | null {
-  try {
-    const raw = window.localStorage.getItem(CHARGES_STORAGE_KEY)
-    if (!raw) return null
-    const parsed: unknown = JSON.parse(raw)
-    return isStoreState(parsed) ? parsed : null
-  } catch {
-    return null
-  }
-}
-
-function load(): StoreState {
-  state ??= readStorage() ?? { version: STORE_VERSION, byExamination: {} }
-  return state
-}
-
-function commit(): void {
-  if (!state) return
-  try {
-    window.localStorage.setItem(CHARGES_STORAGE_KEY, JSON.stringify(state))
-  } catch {
-    return
-  }
-}
-
-export function resetChargesStore(): void {
-  state = null
-  try {
-    window.localStorage.removeItem(CHARGES_STORAGE_KEY)
-  } catch {
-    return
-  }
-}
-
-function hasAtMostTwoDecimals(value: number): boolean {
-  const cents = value * 100
-  return Math.abs(cents - Math.round(cents)) < 1e-6
-}
+export const resetChargesStore = store.reset
 
 function lineMessages(line: ChargeLineDto, index: number): string[] {
   const messages: string[] = []
@@ -96,16 +50,16 @@ function lineMessages(line: ChargeLineDto, index: number): string[] {
   if (line.kind === 'extra' && line.itemId) messages.push(`${at} an additional cost has no item.`)
   if (line.vaccine) {
     if (line.kind !== 'medication') messages.push(`${at} only a medication can be a vaccine.`)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(line.vaccine.dueOn))
-      messages.push(`${at} the next due date is missing.`)
-    if ((line.vaccine.batch?.length ?? 0) > 50) messages.push(`${at} the batch is too long.`)
+    if (!isDateOnly(line.vaccine.dueOn)) messages.push(`${at} the next due date is missing.`)
+    if ((line.vaccine.batch?.length ?? 0) > MAX_BATCH_LENGTH)
+      messages.push(`${at} the batch is too long.`)
   }
 
   return messages
 }
 
 export function getCharges(examinationId: string): ExaminationChargesDto {
-  const lines = load().byExamination[examinationId] ?? []
+  const lines = store.state().byExamination[examinationId] ?? []
   return { lines: lines.map((line) => ({ ...line })) }
 }
 
@@ -113,23 +67,13 @@ export function saveCharges(examinationId: string, lines: ChargeLineDto[]): void
   const messages = lines.flatMap(lineMessages)
   const total = lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0)
   if (total > MAX_AMOUNT) messages.push('The total is too large.')
-  if (messages.length > 0) {
-    throw new ApiError(
-      400,
-      'One or more validation errors occurred.',
-      priceListErrors.validation,
-      messages,
-    )
-  }
+  assertValid(messages)
 
-  const current = load()
+  const { byExamination } = store.state()
   if (lines.length === 0) {
-    delete current.byExamination[examinationId]
+    delete byExamination[examinationId]
   } else {
-    current.byExamination[examinationId] = lines.map((line) => ({
-      ...line,
-      name: line.name.trim(),
-    }))
+    byExamination[examinationId] = lines.map((line) => ({ ...line, name: line.name.trim() }))
   }
-  commit()
+  store.commit()
 }

@@ -1,7 +1,12 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: linear-gradient(125deg, rgba(27, 26, 23, 0.4) 0%, rgba(27, 26, 23, 0.22) 55%, rgba(27, 26, 23, 0.34) 100%);
+  background: linear-gradient(
+    125deg,
+    rgba(27, 26, 23, 0.4) 0%,
+    rgba(27, 26, 23, 0.22) 55%,
+    rgba(27, 26, 23, 0.34) 100%
+  );
   backdrop-filter: blur(2px);
   animation: fadeIn 180ms ease;
   z-index: 100;
@@ -60,13 +65,27 @@
   background: rgba(229, 238, 232, 0.72);
 }
 
-.header_warn {
-  background: rgba(246, 236, 224, 0.72);
-}
-
 .headerBody {
   flex: 1;
   min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.subtitle {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 .body {

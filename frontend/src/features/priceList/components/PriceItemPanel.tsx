@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Badge, Button, FormError, SegmentedControl, SlidePanel, TextField } from '@/shared/ui'
+import { apiErrorMessage, isApiErrorCode } from '@/shared/lib/apiClient'
+import { textRule } from '@/shared/lib/formRules'
 import {
-  DUPLICATE_NAME_MESSAGE,
-  nameNotUniqueCode,
-  notFoundCode,
-  priceListErrorMessage,
-} from '../api/priceListErrors'
+  Badge,
+  Button,
+  FormError,
+  layout,
+  RetireRestoreButton,
+  SegmentedControl,
+  SlidePanel,
+  TextField,
+} from '@/shared/ui'
+import { DUPLICATE_NAME_MESSAGE, nameNotUniqueCode, notFoundCode } from '../api/priceListErrors'
 import { useCreatePriceListItem, useUpdatePriceListItem } from '../hooks/usePriceListMutations'
 import { priceError } from '../lib/price'
 import { emptyFormValues, formValuesOf, toWriteRequest } from '../lib/priceListMapping'
@@ -96,7 +101,7 @@ export function PriceItemPanel(props: PriceItemPanelProps) {
         onMissing()
         return
       }
-      setSubmitError(priceListErrorMessage(error, `Could not save the ${NOUN[kind]}.`))
+      setSubmitError(apiErrorMessage(error, `Could not save the ${NOUN[kind]}.`))
     }
   })
 
@@ -115,38 +120,17 @@ export function PriceItemPanel(props: PriceItemPanelProps) {
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel={title}
-      headerTone="plain"
-      header={
-        <div className={styles.header}>
-          <div className={styles.title}>{title}</div>
-          {item && !item.isActive && <Badge tone="neutral">Retired</Badge>}
-        </div>
-      }
+      title={title}
+      badge={item && !item.isActive && <Badge tone="neutral">Retired</Badge>}
       footer={
         <>
           {props.mode === 'edit' && (
-            <div className={styles.statusAction}>
-              {props.item.isActive ? (
-                <Button
-                  variant="danger"
-                  type="button"
-                  onClick={props.onRetire}
-                  disabled={props.isStatusPending}
-                >
-                  Retire
-                </Button>
-              ) : (
-                <Button
-                  variant="secondary"
-                  type="button"
-                  onClick={props.onRestore}
-                  disabled={props.isStatusPending}
-                >
-                  Restore
-                </Button>
-              )}
-            </div>
+            <RetireRestoreButton
+              isActive={props.item.isActive}
+              onRetire={props.onRetire}
+              onRestore={props.onRestore}
+              disabled={props.isStatusPending}
+            />
           )}
           <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
             Cancel
@@ -157,22 +141,15 @@ export function PriceItemPanel(props: PriceItemPanelProps) {
         </>
       }
     >
-      <form id="price-item-form" onSubmit={submit} className={styles.form} noValidate>
+      <form id="price-item-form" onSubmit={submit} className={layout.stack} noValidate>
         <TextField
           id="price-item-name"
           label="Name *"
-          {...register('name', {
-            validate: (value) => {
-              const trimmed = value.trim()
-              if (!trimmed) return 'Name is required'
-              if (trimmed.length > 200) return 'Maximum 200 characters'
-              return true
-            },
-          })}
+          {...register('name', { validate: textRule(200, 'Name is required') })}
           error={errors.name?.message}
         />
 
-        <div className={kind === 'medication' ? styles.row : undefined}>
+        <div className={kind === 'medication' ? layout.formRow : undefined}>
           {kind === 'medication' && (
             <Controller
               name="unit"
@@ -200,7 +177,7 @@ export function PriceItemPanel(props: PriceItemPanelProps) {
               onChange={chooseVaccineKind}
               options={VACCINE_KINDS}
             />
-            <p className={styles.hint}>{VACCINE_HINTS[vaccineKind]}</p>
+            <p className={layout.note}>{VACCINE_HINTS[vaccineKind]}</p>
             {isVaccine && (
               <TextField
                 id="price-item-validity"

@@ -7,6 +7,7 @@ import {
   Button,
   DatePicker,
   EmptyState,
+  layout,
   PrintPortal,
   Skeleton,
   Table,
@@ -111,7 +112,7 @@ export function DailyReport({
   }
 
   return (
-    <section className={styles.view} aria-label="Daily report">
+    <section className={layout.stack} aria-label="Daily report">
       <div className={styles.dayNav}>
         <Button
           variant="outline"

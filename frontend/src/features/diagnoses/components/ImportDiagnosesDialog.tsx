@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Button, Modal, Textarea } from '@/shared/ui'
-import { diagnosisErrorMessage } from '../api/diagnosisErrors'
+import { useForm } from 'react-hook-form'
+import { apiErrorMessage } from '@/shared/lib/apiClient'
+import { FormDialog, Textarea } from '@/shared/ui'
 import { useImportDiagnoses } from '../hooks/useDiagnosisMutations'
 import { splitPastedNames } from '../lib/diagnosisMapping'
 import type { DiagnosisImportResult } from '../types'
@@ -17,57 +17,47 @@ export function ImportDiagnosesDialog({
   onImported,
 }: ImportDiagnosesDialogProps) {
   const importNames = useImportDiagnoses()
-  const [text, setText] = useState('')
-  const [error, setError] = useState<string | undefined>(undefined)
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    watch,
+    formState: { errors },
+  } = useForm<{ text: string }>({ defaultValues: { text: '' } })
 
-  useEffect(() => {
-    if (open) {
-      setText('')
-      setError(undefined)
-    }
-  }, [open])
+  const count = splitPastedNames(watch('text')).length
 
-  const names = splitPastedNames(text)
-
-  const submit = () => {
-    setError(undefined)
-    if (names.length === 0) {
-      setError('Paste at least one diagnosis')
-      return
-    }
-    importNames.mutate(names, {
+  const submit = handleSubmit(({ text }) =>
+    importNames.mutate(splitPastedNames(text), {
       onSuccess: onImported,
       onError: (failure) =>
-        setError(diagnosisErrorMessage(failure, 'Could not add the diagnoses.')),
-    })
-  }
+        setError('text', { message: apiErrorMessage(failure, 'Could not add the diagnoses.') }),
+    }),
+  )
 
   return (
-    <Modal
+    <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Paste a list of diagnoses"
       description="One diagnosis per line. Names already on the list, retired ones included, are skipped."
-      footer={
-        <>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="button" onClick={submit} disabled={importNames.isPending}>
-            {names.length > 0 ? `Add ${names.length}` : 'Add'}
-          </Button>
-        </>
-      }
+      formId="import-diagnoses-form"
+      submitLabel={count > 0 ? `Add ${count}` : 'Add'}
+      isPending={importNames.isPending}
+      onSubmit={submit}
+      onOpen={() => reset({ text: '' })}
     >
       <Textarea
         id="diagnoses-paste"
         label="Diagnoses"
         placeholder={'Otitis media\nRhinitis acuta\nFractura femoris'}
         rows={10}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        error={error}
+        {...register('text', {
+          validate: (text) => splitPastedNames(text).length > 0 || 'Paste at least one diagnosis',
+        })}
+        error={errors.text?.message}
       />
-    </Modal>
+    </FormDialog>
   )
 }

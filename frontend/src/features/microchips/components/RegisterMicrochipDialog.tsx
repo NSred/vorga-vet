@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react'
-import { isApiErrorCode } from '@/shared/lib/apiClient'
+import { useEffect } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { apiErrorMessage, isApiErrorCode } from '@/shared/lib/apiClient'
 import { clinicToday } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
+import { textRule } from '@/shared/lib/formRules'
 import {
-  Button,
   Checkbox,
   DatePicker,
+  fieldStyles,
+  FormDialog,
   FormError,
-  Modal,
+  layout,
   SegmentedControl,
   TextField,
 } from '@/shared/ui'
-import { microchipErrorMessage, microchipErrors } from '../api/microchipErrors'
+import { microchipErrors } from '../api/microchipErrors'
 import { useLastClinic, useRegisterMicrochip } from '../hooks/useMicrochips'
 import { jmbgError } from '../lib/jmbg'
 import { STERILISED_LABELS } from '../lib/registrationLabels'
@@ -29,12 +32,13 @@ export interface RegisterMicrochipDialogProps {
   onRegistered: (registration: MicrochipRegistration, jmbg: string) => void
 }
 
-interface Errors {
-  implantedOn?: string
-  clinic?: string
-  vetName?: string
-  jmbg?: string
-  submit?: string
+interface Values {
+  implantedOn: string
+  sterilised: Sterilised
+  consent: boolean
+  clinic: string
+  vetName: string
+  jmbg: string
 }
 
 const DEFAULT_CLINIC = 'VorgaVet'
@@ -42,6 +46,17 @@ const STERILISED_OPTIONS = (['yes', 'no', 'unknown'] as const).map((value) => ({
   value,
   label: STERILISED_LABELS[value],
 }))
+
+function blank(vetName: string): Values {
+  return {
+    implantedOn: clinicToday(),
+    sterilised: 'unknown',
+    consent: false,
+    clinic: DEFAULT_CLINIC,
+    vetName,
+    jmbg: '',
+  }
+}
 
 export function RegisterMicrochipDialog({
   patientId,
@@ -53,145 +68,133 @@ export function RegisterMicrochipDialog({
   onOpenChange,
   onRegistered,
 }: RegisterMicrochipDialogProps) {
-  const register = useRegisterMicrochip()
+  const registration = useRegisterMicrochip()
   const remembered = useLastClinic(open)
-  const today = clinicToday()
-  const [implantedOn, setImplantedOn] = useState(today)
-  const [sterilised, setSterilised] = useState<Sterilised>('unknown')
-  const [consent, setConsent] = useState(false)
-  const [clinic, setClinic] = useState(DEFAULT_CLINIC)
-  const [vetName, setVetName] = useState(defaultVetName)
-  const [jmbg, setJmbg] = useState('')
-  const [errors, setErrors] = useState<Errors>({})
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    setValue,
+    formState: { errors },
+  } = useForm<Values>({ defaultValues: blank(defaultVetName) })
 
   useEffect(() => {
-    if (!open) return
-    setImplantedOn(clinicToday())
-    setSterilised('unknown')
-    setConsent(false)
-    setClinic(DEFAULT_CLINIC)
-    setVetName(defaultVetName)
-    setJmbg('')
-    setErrors({})
-  }, [open, defaultVetName])
+    if (open && remembered.data?.clinic) setValue('clinic', remembered.data.clinic)
+  }, [open, remembered.data, setValue])
 
-  useEffect(() => {
-    if (open && remembered.data?.clinic) setClinic(remembered.data.clinic)
-  }, [open, remembered.data])
-
-  const submit = () => {
-    const found: Errors = {}
-    if (!implantedOn) found.implantedOn = 'Pick the implant date'
-    if (!clinic.trim()) found.clinic = 'Name the clinic'
-    else if (clinic.trim().length > 200) found.clinic = 'Maximum 200 characters'
-    if (!vetName.trim()) found.vetName = 'Name the vet'
-    else if (vetName.trim().length > 200) found.vetName = 'Maximum 200 characters'
-    const jmbgProblem = jmbgError(jmbg)
-    if (jmbgProblem) found.jmbg = jmbgProblem
-    setErrors(found)
-    if (Object.keys(found).length > 0) return
-
-    const ownerJmbg = jmbg.trim()
-    register.mutate(
+  const submit = handleSubmit((values) => {
+    const ownerJmbg = values.jmbg.trim()
+    registration.mutate(
       {
         patientId,
         request: {
           chipNumber,
-          implantedOn,
-          sterilised,
-          consentToPublish: consent,
+          implantedOn: values.implantedOn,
+          sterilised: values.sterilised,
+          consentToPublish: values.consent,
           animal: subject.animal,
           owner: subject.owner,
           lastRabies: lastRabies ?? null,
-          clinic: clinic.trim(),
-          vetName: vetName.trim(),
+          clinic: values.clinic.trim(),
+          vetName: values.vetName.trim(),
         },
       },
       {
-        onSuccess: (registration) => onRegistered(registration, ownerJmbg),
+        onSuccess: (saved) => onRegistered(saved, ownerJmbg),
         onError: (error) =>
-          setErrors({
-            submit: isApiErrorCode(error, microchipErrors.alreadyRegistered)
+          setError('root', {
+            message: isApiErrorCode(error, microchipErrors.alreadyRegistered)
               ? 'This chip number is already registered'
-              : microchipErrorMessage(error, 'Could not register the microchip.'),
+              : apiErrorMessage(error, 'Could not register the microchip.'),
           }),
       },
     )
-  }
+  })
 
   return (
-    <Modal
+    <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Register microchip"
       description={`${subject.animal.name} · chip ${chipNumber} · owner ${subject.owner.name}`}
-      footer={
-        <>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="button" onClick={submit} disabled={register.isPending}>
-            Register and print
-          </Button>
-        </>
-      }
+      formId="register-microchip-form"
+      submitLabel="Register and print"
+      isPending={registration.isPending}
+      onSubmit={submit}
+      onOpen={() => reset(blank(defaultVetName))}
     >
-      <div className={styles.form}>
-        <div className={styles.row}>
-          <DatePicker
-            id="chip-implanted-on"
-            label="Implanted on *"
-            value={implantedOn}
-            maxDate={today}
-            onChange={setImplantedOn}
-            error={errors.implantedOn}
-          />
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Sterilised</span>
-            <SegmentedControl
-              value={sterilised}
-              onChange={setSterilised}
-              options={STERILISED_OPTIONS}
+      <div className={styles.row}>
+        <Controller
+          name="implantedOn"
+          control={control}
+          rules={{ required: 'Pick the implant date' }}
+          render={({ field }) => (
+            <DatePicker
+              id="chip-implanted-on"
+              label="Implanted on *"
+              value={field.value}
+              maxDate={clinicToday()}
+              onChange={field.onChange}
+              error={errors.implantedOn?.message}
             />
-          </div>
-        </div>
-        <p className={styles.note}>
-          Last rabies vaccination:{' '}
-          {lastRabies
-            ? `${lastRabies.vaccineName}, ${formatDisplayDate(lastRabies.givenOn)}`
-            : 'none recorded'}
-        </p>
-        <Checkbox checked={consent} onChange={setConsent}>
-          The owner consents to publishing the data online
-        </Checkbox>
-        <div className={styles.row}>
-          <TextField
-            id="chip-clinic"
-            label="Clinic *"
-            value={clinic}
-            onChange={(event) => setClinic(event.target.value)}
-            error={errors.clinic}
-          />
-          <TextField
-            id="chip-vet"
-            label="Vet *"
-            value={vetName}
-            onChange={(event) => setVetName(event.target.value)}
-            error={errors.vetName}
-          />
-        </div>
-        <TextField
-          id="chip-jmbg"
-          label="Owner’s JMBG *"
-          inputMode="numeric"
-          autoComplete="off"
-          value={jmbg}
-          onChange={(event) => setJmbg(event.target.value)}
-          error={errors.jmbg}
+          )}
         />
-        <p className={styles.note}>The JMBG is printed on the sheet and never saved.</p>
-        <FormError message={errors.submit} />
+        <div className={fieldStyles.field}>
+          <span className={fieldStyles.label}>Sterilised</span>
+          <Controller
+            name="sterilised"
+            control={control}
+            render={({ field }) => (
+              <SegmentedControl
+                value={field.value}
+                onChange={field.onChange}
+                options={STERILISED_OPTIONS}
+              />
+            )}
+          />
+        </div>
       </div>
-    </Modal>
+      <p className={layout.note}>
+        Last rabies vaccination:{' '}
+        {lastRabies
+          ? `${lastRabies.vaccineName}, ${formatDisplayDate(lastRabies.givenOn)}`
+          : 'none recorded'}
+      </p>
+      <Controller
+        name="consent"
+        control={control}
+        render={({ field }) => (
+          <Checkbox checked={field.value} onChange={field.onChange}>
+            The owner consents to publishing the data online
+          </Checkbox>
+        )}
+      />
+      <div className={styles.row}>
+        <TextField
+          id="chip-clinic"
+          label="Clinic *"
+          {...register('clinic', { validate: textRule(200, 'Name the clinic') })}
+          error={errors.clinic?.message}
+        />
+        <TextField
+          id="chip-vet"
+          label="Vet *"
+          {...register('vetName', { validate: textRule(200, 'Name the vet') })}
+          error={errors.vetName?.message}
+        />
+      </div>
+      <TextField
+        id="chip-jmbg"
+        label="Owner’s JMBG *"
+        inputMode="numeric"
+        autoComplete="off"
+        {...register('jmbg', { validate: (value) => jmbgError(value) ?? true })}
+        error={errors.jmbg?.message}
+      />
+      <p className={layout.note}>The JMBG is printed on the sheet and never saved.</p>
+      <FormError message={errors.root?.message} />
+    </FormDialog>
   )
 }

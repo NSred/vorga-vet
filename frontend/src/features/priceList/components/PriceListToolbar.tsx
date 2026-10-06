@@ -1,7 +1,6 @@
-import { SearchInput, SegmentedControl } from '@/shared/ui'
+import { CATALOG_STATUS_OPTIONS, layout, SearchInput, SegmentedControl } from '@/shared/ui'
 import { useSearchDraft } from '@/shared/lib/useSearchDraft'
 import type { PriceListFilters, PriceListKind } from '../types'
-import styles from './PriceListToolbar.module.css'
 
 export interface PriceListToolbarProps {
   kind: PriceListKind
@@ -13,12 +12,6 @@ export interface PriceListToolbarProps {
 const KIND_OPTIONS = [
   { value: 'service', label: 'Services' },
   { value: 'medication', label: 'Medications' },
-] as const
-
-const STATUS_OPTIONS = [
-  { value: 'active', label: 'Active' },
-  { value: 'all', label: 'All' },
-  { value: 'retired', label: 'Retired' },
 ] as const
 
 export function PriceListToolbar({
@@ -37,8 +30,8 @@ export function PriceListToolbar({
   }
 
   return (
-    <div className={styles.bar}>
-      <div className={styles.group}>
+    <div className={layout.toolbar}>
+      <div className={layout.toolbarGroup}>
         <SegmentedControl value={kind} onChange={changeKind} options={KIND_OPTIONS} />
         <SearchInput
           value={searchDraft}
@@ -49,7 +42,7 @@ export function PriceListToolbar({
       <SegmentedControl
         value={filters.status}
         onChange={(status) => onFiltersChange({ ...filters, status })}
-        options={STATUS_OPTIONS}
+        options={CATALOG_STATUS_OPTIONS}
       />
     </div>
   )

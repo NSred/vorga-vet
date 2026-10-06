@@ -1,3 +1,4 @@
+import type { Page } from '@/shared/domain/page'
 import type { Sex } from '@/shared/domain/animal'
 import type { Species } from '@/shared/domain/species'
 
@@ -107,12 +108,7 @@ export interface PatientDetailDto extends Omit<PatientListItemDto, 'allergies'> 
   allergies: AllergenOption[]
 }
 
-export interface GetPatientsResponseDto {
-  items: PatientListItemDto[]
-  totalCount: number
-  page: number
-  pageSize: number
-}
+export type GetPatientsResponseDto = Page<PatientListItemDto>
 
 export interface PatientListItem {
   id: string
@@ -142,9 +138,4 @@ export interface PatientDetail extends Omit<PatientListItem, 'allergies'> {
   allergies: AllergenOption[]
 }
 
-export interface PatientPage {
-  items: PatientListItem[]
-  totalCount: number
-  page: number
-  pageSize: number
-}
+export type PatientPage = Page<PatientListItem>

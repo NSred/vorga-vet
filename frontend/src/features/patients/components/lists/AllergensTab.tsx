@@ -1,11 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useDebouncedValue } from '@/shared/lib/useDebouncedValue'
-import { Button, SearchInput, useToast } from '@/shared/ui'
+import { Button, layout, SearchInput, useToast } from '@/shared/ui'
 import { searchAllergens } from '../../api/allergensApi'
 import { CreateAllergenDialog } from '../pickers/CreateAllergenDialog'
 import { NamedList } from './NamedList'
-import styles from './ListTab.module.css'
 
 const BACKEND_LIMIT = 20
 
@@ -23,8 +22,8 @@ export function AllergensTab() {
   })
 
   return (
-    <div className={styles.tab}>
-      <div className={styles.bar}>
+    <div className={layout.stack}>
+      <div className={layout.toolbar}>
         <SearchInput value={search} onChange={setSearch} placeholder="Search allergens" />
         <Button variant="primary" type="button" onClick={() => setDialogOpen(true)}>
           ＋ New allergen

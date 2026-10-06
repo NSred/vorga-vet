@@ -12,10 +12,6 @@
   padding-bottom: 0.25rem;
 }
 
-.blankCell {
-  background: transparent;
-}
-
 .dayCell {
   display: flex;
   flex-direction: column;

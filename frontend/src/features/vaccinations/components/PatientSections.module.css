@@ -1,9 +1,3 @@
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
 .next {
   display: flex;
   flex-wrap: wrap;

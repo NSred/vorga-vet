@@ -1,9 +1,3 @@
-.wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
 .list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
@@ -20,10 +14,4 @@
   background: var(--surface);
   font-weight: 600;
   color: var(--text);
-}
-
-.note {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--text-muted);
 }

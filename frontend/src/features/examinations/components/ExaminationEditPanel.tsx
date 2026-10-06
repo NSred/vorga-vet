@@ -3,13 +3,12 @@ import { useForm } from 'react-hook-form'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
 import { clinicDateOf, clinicTimeOf } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { Button, FormError, SlidePanel, useToast } from '@/shared/ui'
+import { Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import { examinationErrorMessage, examinationErrors } from '../api/examinationErrors'
 import { useUpdateExamination } from '../hooks/useExaminationMutations'
 import { examinationValuesOf, toExaminationDetails } from '../lib/examinationDetails'
 import type { CostSlot, DiagnosisFieldProps, Examination, ExaminationFormValues } from '../types'
 import { ExaminationFields } from './ExaminationFields'
-import styles from './ExaminationEditPanel.module.css'
 
 export interface ExaminationEditPanelProps {
   examination: Examination
@@ -98,16 +97,9 @@ export function ExaminationEditPanel({
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
+      title="Edit visit"
       ariaLabel={`Edit visit of ${formatDisplayDate(dateIso)}`}
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>Edit visit</div>
-          <div className={styles.subtitle}>
-            {formatDisplayDate(dateIso)} · {clinicTimeOf(examination.startedAt)}
-          </div>
-        </div>
-      }
+      subtitle={`${formatDisplayDate(dateIso)} · ${clinicTimeOf(examination.startedAt)}`}
       footer={
         <>
           <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
@@ -119,7 +111,7 @@ export function ExaminationEditPanel({
         </>
       }
     >
-      <form id="examination-edit-form" onSubmit={submit} className={styles.form}>
+      <form id="examination-edit-form" onSubmit={submit} className={layout.stack}>
         <ExaminationFields
           register={register}
           control={control}

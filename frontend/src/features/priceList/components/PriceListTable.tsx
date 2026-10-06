@@ -1,4 +1,4 @@
-import { Badge, EmptyState, Pagination, Table, type TableColumn } from '@/shared/ui'
+import { Badge, PagedTable, type TableColumn } from '@/shared/ui'
 import { formatPrice } from '@/shared/lib/money'
 import { PRICE_LIST_PAGE_SIZES } from '../lib/priceListParams'
 import type { PriceListItem, PriceListKind } from '../types'
@@ -60,31 +60,23 @@ export function PriceListTable({
   onPageSizeChange,
   onRowClick,
 }: PriceListTableProps) {
-  if (!isLoading && items.length === 0) {
-    const what = kind === 'service' ? 'services' : 'medications'
-    return (
-      <EmptyState message={hasSearch ? `No ${what} match your search.` : `No ${what} here yet.`} />
-    )
-  }
+  const what = kind === 'service' ? 'services' : 'medications'
 
   return (
-    <div>
-      <Table
-        columns={COLUMNS[kind]}
-        rows={items}
-        getRowId={(item) => item.id}
-        onRowClick={onRowClick}
-        rowClassName={(item) => (item.isActive ? undefined : styles.retiredRow)}
-        isLoading={isLoading}
-      />
-      <Pagination
-        page={page}
-        pageCount={Math.max(1, Math.ceil(totalCount / pageSize))}
-        pageSize={pageSize}
-        pageSizeOptions={PRICE_LIST_PAGE_SIZES}
-        onPageChange={onPageChange}
-        onPageSizeChange={onPageSizeChange}
-      />
-    </div>
+    <PagedTable
+      columns={COLUMNS[kind]}
+      rows={items}
+      getRowId={(item) => item.id}
+      isLoading={isLoading}
+      page={page}
+      pageSize={pageSize}
+      totalCount={totalCount}
+      pageSizeOptions={PRICE_LIST_PAGE_SIZES}
+      emptyMessage={hasSearch ? `No ${what} match your search.` : `No ${what} here yet.`}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      onRowClick={onRowClick}
+      rowClassName={(item) => (item.isActive ? undefined : styles.retiredRow)}
+    />
   )
 }

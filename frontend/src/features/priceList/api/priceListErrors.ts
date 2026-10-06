@@ -1,4 +1,3 @@
-import { ApiError } from '@/shared/lib/apiClient'
 import type { PriceListKind } from '../types'
 
 export const priceListErrors = {
@@ -6,7 +5,6 @@ export const priceListErrors = {
   serviceNameNotUnique: 'Services.NameNotUnique',
   medicationNotFound: 'Medications.NotFound',
   medicationNameNotUnique: 'Medications.NameNotUnique',
-  validation: 'Validation.General',
 } as const
 
 export const DUPLICATE_NAME_MESSAGE =
@@ -20,10 +18,4 @@ export function nameNotUniqueCode(kind: PriceListKind): string {
   return kind === 'service'
     ? priceListErrors.serviceNameNotUnique
     : priceListErrors.medicationNameNotUnique
-}
-
-export function priceListErrorMessage(error: unknown, fallback: string): string {
-  if (!(error instanceof ApiError)) return fallback
-  if (error.validationMessages) return error.validationMessages.join(' ')
-  return fallback
 }

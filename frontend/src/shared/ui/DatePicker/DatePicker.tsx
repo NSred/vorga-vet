@@ -15,6 +15,7 @@ import {
 } from 'date-fns'
 import { useState } from 'react'
 import { formatDateOnly, formatDisplayDate, parseDateOnly } from '@/shared/lib/dateOnly'
+import fieldStyles from '../field.module.css'
 import styles from './DatePicker.module.css'
 
 export interface DatePickerProps {
@@ -113,9 +114,9 @@ export function DatePicker({
   const gridDays = buildDayGrid(displayDate)
 
   return (
-    <div className={`${styles.field} ${className ?? ''}`}>
+    <div className={`${fieldStyles.field} ${className ?? ''}`}>
       {!hideLabel && (
-        <label htmlFor={id} className={styles.label}>
+        <label htmlFor={id} className={fieldStyles.label}>
           {label}
         </label>
       )}
@@ -323,7 +324,7 @@ export function DatePicker({
         </Popover.Portal>
       </Popover.Root>
       {error && (
-        <p className={styles.error} role="alert">
+        <p className={fieldStyles.error} role="alert">
           {error}
         </p>
       )}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
-import { Button, FormError, Modal, Select } from '@/shared/ui'
+import { Button, FormError, layout, Modal, Select } from '@/shared/ui'
 import { examinationErrorMessage } from '../api/examinationErrors'
 import { useUploadAttachment } from '../hooks/useExaminationMutations'
 import {
@@ -133,7 +133,7 @@ export function AttachmentUploader({
         </>
       }
     >
-      <div className={styles.body}>
+      <div className={layout.stack}>
         <div className={styles.field}>
           <label htmlFor="attachment-file" className={styles.label}>
             Image

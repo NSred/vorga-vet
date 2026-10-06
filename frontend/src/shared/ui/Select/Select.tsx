@@ -1,4 +1,5 @@
 import * as RadixSelect from '@radix-ui/react-select'
+import fieldStyles from '../field.module.css'
 import styles from './Select.module.css'
 
 export interface SelectOption {
@@ -35,9 +36,9 @@ export function Select({
   const selectedLabel = options.find((option) => option.value === value)?.label
 
   return (
-    <div className={`${styles.field} ${className ?? ''}`}>
+    <div className={`${fieldStyles.field} ${className ?? ''}`}>
       {!hideLabel && (
-        <label htmlFor={id} className={styles.label}>
+        <label htmlFor={id} className={fieldStyles.label}>
           {label}
         </label>
       )}

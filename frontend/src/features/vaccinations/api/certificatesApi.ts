@@ -1,3 +1,4 @@
+import { settle } from '@/shared/lib/mockApi'
 import type { CertificateIssuer, IssueCertificateRequest, RabiesCertificate } from '../types'
 import {
   getCertificateForVaccination,
@@ -5,12 +6,6 @@ import {
   lastIssuer,
   listPatientCertificates,
 } from './mockCertificatesStore'
-
-const MOCK_DELAY_MS = import.meta.env.MODE === 'test' ? 0 : 150
-
-function settle(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
-}
 
 export async function getPatientCertificates(patientId: string): Promise<RabiesCertificate[]> {
   await settle()

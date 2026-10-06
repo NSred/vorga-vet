@@ -1,11 +1,6 @@
+import { settle } from '@/shared/lib/mockApi'
 import type { ChargeLine, ChargeLineDto } from '../types'
 import { getCharges, saveCharges } from './mockChargesStore'
-
-const MOCK_DELAY_MS = import.meta.env.MODE === 'test' ? 0 : 150
-
-function settle(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
-}
 
 function toChargeLine(dto: ChargeLineDto): ChargeLine {
   const line: ChargeLine = {

@@ -1,9 +1,8 @@
 import { SPECIES_OPTIONS } from '@/shared/domain/species'
-import { Button, Select, SearchInput, SegmentedControl } from '@/shared/ui'
+import { Button, layout, SearchInput, SegmentedControl, Select } from '@/shared/ui'
 import { useSearchDraft } from '@/shared/lib/useSearchDraft'
 import type { PatientFilters as PatientFiltersType } from '../types'
 import { AllergenFilter } from './AllergenFilter'
-import styles from './PatientFilters.module.css'
 
 export interface PatientFiltersProps {
   filters: PatientFiltersType
@@ -25,8 +24,8 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
   )
 
   return (
-    <div className={styles.bar}>
-      <div className={styles.leftGroup}>
+    <div className={layout.toolbar}>
+      <div className={layout.toolbarGroup}>
         <SearchInput value={searchDraft} onChange={setSearchDraft} placeholder="Search" />
 
         <Select
@@ -78,7 +77,7 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
         />
       </div>
 
-      <div className={styles.rightGroup}>
+      <div className={layout.toolbarGroup}>
         <SegmentedControl
           value={status}
           onChange={(value) => onChange({ ...filters, status: value })}

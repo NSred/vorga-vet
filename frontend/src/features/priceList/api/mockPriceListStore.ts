@@ -1,4 +1,13 @@
 import { ApiError } from '@/shared/lib/apiClient'
+import { MAX_AMOUNT } from '@/shared/lib/money'
+import { assertValid, catalogPage } from '@/shared/lib/mockApi'
+import { createMockStore, newId } from '@/shared/lib/mockStore'
+import {
+  hasAtMostTwoDecimals,
+  sameText,
+  trimmedLength,
+  trimmedOrNull,
+} from '@/shared/lib/validation'
 import type {
   PriceListItemDto,
   PriceListKind,
@@ -6,27 +15,17 @@ import type {
   PriceListQueryDto,
   PriceListWriteRequest,
 } from '../types'
-import { nameNotUniqueCode, notFoundCode, priceListErrors } from './priceListErrors'
+import { nameNotUniqueCode, notFoundCode } from './priceListErrors'
 
 export const PRICE_LIST_STORAGE_KEY = 'vorgavet.mock.priceList'
 
-const STORE_VERSION = 2
 const DEFAULT_VALIDITY_DAYS = 365
 const MAX_VALIDITY_DAYS = 3650
-const DEFAULT_PAGE_SIZE = 25
-const MAX_PAGE_SIZE = 100
 const MAX_NAME_LENGTH = 200
 const MAX_UNIT_LENGTH = 20
-const MAX_PRICE = 99_999_999.99
-const STATUS_ACTIVE = 0
-const STATUS_RETIRED = 2
 const SEEDED_AT = '2026-10-05T08:00:00.000Z'
 
-interface StoreState {
-  version: number
-  service: PriceListItemDto[]
-  medication: PriceListItemDto[]
-}
+type Lists = Record<PriceListKind, PriceListItemDto[]>
 
 type SeedRow = [name: string, price: number, unit?: string, retired?: boolean]
 
@@ -73,8 +72,6 @@ const VACCINES: Record<string, { isRabies: boolean }> = {
   Rabisin: { isRabies: true },
 }
 
-let state: StoreState | null = null
-
 function withSeedVaccineMarks(item: PriceListItemDto): PriceListItemDto {
   const vaccine = item.id.startsWith('seed-medication-') ? VACCINES[item.name] : undefined
   if (!vaccine || item.isVaccine !== undefined) return item
@@ -99,84 +96,24 @@ function seedItems(kind: PriceListKind, rows: SeedRow[]): PriceListItemDto[] {
     .map(withSeedVaccineMarks)
 }
 
-function seed(): StoreState {
-  return {
-    version: STORE_VERSION,
+const store = createMockStore<Lists>({
+  key: PRICE_LIST_STORAGE_KEY,
+  version: 2,
+  isValid: (value) => Array.isArray(value.service) && Array.isArray(value.medication),
+  initial: () => ({
     service: seedItems('service', SERVICE_SEED),
     medication: seedItems('medication', MEDICATION_SEED),
-  }
-}
+  }),
+  upgrade: (value) => {
+    if (value.version !== 1) return null
+    const lists = value as unknown as Lists
+    return { ...lists, medication: lists.medication.map(withSeedVaccineMarks) }
+  },
+})
 
-function hasLists(value: unknown): value is StoreState {
-  if (typeof value !== 'object' || value === null) return false
-  const candidate = value as Partial<StoreState>
-  return Array.isArray(candidate.service) && Array.isArray(candidate.medication)
-}
+export const resetPriceListStore = store.reset
 
-function upgrade(value: unknown): StoreState | null {
-  if (!hasLists(value)) return null
-  if (value.version === STORE_VERSION) return value
-  if (value.version === 1) {
-    return {
-      ...value,
-      version: STORE_VERSION,
-      medication: value.medication.map(withSeedVaccineMarks),
-    }
-  }
-  return null
-}
-
-function readStorage(): StoreState | null {
-  try {
-    const raw = window.localStorage.getItem(PRICE_LIST_STORAGE_KEY)
-    if (!raw) return null
-    const parsed: unknown = JSON.parse(raw)
-    return upgrade(parsed)
-  } catch {
-    return null
-  }
-}
-
-function writeStorage(current: StoreState): void {
-  try {
-    window.localStorage.setItem(PRICE_LIST_STORAGE_KEY, JSON.stringify(current))
-  } catch {
-    return
-  }
-}
-
-function load(): StoreState {
-  state ??= readStorage() ?? seed()
-  return state
-}
-
-function commit(): void {
-  if (state) writeStorage(state)
-}
-
-export function resetPriceListStore(): void {
-  state = null
-  try {
-    window.localStorage.removeItem(PRICE_LIST_STORAGE_KEY)
-  } catch {
-    return
-  }
-}
-
-function copy(item: PriceListItemDto): PriceListItemDto {
-  return { ...item }
-}
-
-function normalizeName(name: string): string {
-  return name.trim().toLocaleLowerCase()
-}
-
-function hasAtMostTwoDecimals(value: number): boolean {
-  const cents = value * 100
-  return Math.abs(cents - Math.round(cents)) < 1e-6
-}
-
-function validate(kind: PriceListKind, request: PriceListWriteRequest): string[] {
+function validate(kind: PriceListKind, request: PriceListWriteRequest): void {
   const messages: string[] = []
   const name = request.name?.trim() ?? ''
 
@@ -188,13 +125,13 @@ function validate(kind: PriceListKind, request: PriceListWriteRequest): string[]
     messages.push('Price is required.')
   } else if (request.price < 0) {
     messages.push('Price must be 0 or more.')
-  } else if (request.price > MAX_PRICE) {
+  } else if (request.price > MAX_AMOUNT) {
     messages.push('Price is too large.')
   } else if (!hasAtMostTwoDecimals(request.price)) {
     messages.push('Price can have at most two decimals.')
   }
 
-  if (kind === 'medication' && (request.unit?.trim().length ?? 0) > MAX_UNIT_LENGTH) {
+  if (kind === 'medication' && trimmedLength(request.unit) > MAX_UNIT_LENGTH) {
     messages.push(`Unit must be at most ${MAX_UNIT_LENGTH} characters.`)
   }
 
@@ -213,26 +150,13 @@ function validate(kind: PriceListKind, request: PriceListWriteRequest): string[]
     }
   }
 
-  return messages
-}
-
-function assertValid(kind: PriceListKind, request: PriceListWriteRequest): void {
-  const messages = validate(kind, request)
-  if (messages.length > 0) {
-    throw new ApiError(
-      400,
-      'One or more validation errors occurred.',
-      priceListErrors.validation,
-      messages,
-    )
-  }
+  assertValid(messages)
 }
 
 function assertUniqueName(kind: PriceListKind, name: string, exceptId?: string): void {
-  const normalized = normalizeName(name)
-  const taken = load()[kind].some(
-    (item) => item.id !== exceptId && normalizeName(item.name) === normalized,
-  )
+  const taken = store
+    .state()
+    [kind].some((item) => item.id !== exceptId && sameText(item.name, name))
   if (taken) {
     throw new ApiError(
       409,
@@ -243,7 +167,7 @@ function assertUniqueName(kind: PriceListKind, name: string, exceptId?: string):
 }
 
 function findItem(kind: PriceListKind, id: string): PriceListItemDto {
-  const item = load()[kind].find((candidate) => candidate.id === id)
+  const item = store.state()[kind].find((candidate) => candidate.id === id)
   if (!item) {
     throw new ApiError(404, 'The price list item was not found.', notFoundCode(kind))
   }
@@ -251,38 +175,7 @@ function findItem(kind: PriceListKind, id: string): PriceListItemDto {
 }
 
 function unitOf(kind: PriceListKind, unit: string | null | undefined): string | null | undefined {
-  if (kind !== 'medication') return undefined
-  const trimmed = unit?.trim()
-  return trimmed ? trimmed : null
-}
-
-function newId(): string {
-  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : `item-${Date.now()}-${Math.random().toString(16).slice(2)}`
-}
-
-export function listItems(kind: PriceListKind, query: PriceListQueryDto): PriceListPageDto {
-  const page = query.page < 1 ? 1 : query.page
-  const pageSize =
-    query.pageSize < 1 || query.pageSize > MAX_PAGE_SIZE ? DEFAULT_PAGE_SIZE : query.pageSize
-  const term = query.search?.trim().toLocaleLowerCase()
-
-  const matching = load()
-    [kind].filter((item) => {
-      if (query.status === STATUS_ACTIVE) return item.isActive
-      if (query.status === STATUS_RETIRED) return !item.isActive
-      return true
-    })
-    .filter((item) => !term || item.name.toLocaleLowerCase().includes(term))
-    .sort((a, b) => a.name.localeCompare(b.name, 'sr'))
-
-  return {
-    items: matching.slice((page - 1) * pageSize, page * pageSize).map(copy),
-    totalCount: matching.length,
-    page,
-    pageSize,
-  }
+  return kind === 'medication' ? trimmedOrNull(unit) : undefined
 }
 
 function vaccineFieldsOf(
@@ -298,13 +191,19 @@ function vaccineFieldsOf(
   }
 }
 
+export function listItems(kind: PriceListKind, query: PriceListQueryDto): PriceListPageDto {
+  return catalogPage(store.state()[kind], query, (item, term) =>
+    item.name.toLocaleLowerCase().includes(term),
+  )
+}
+
 export function createItem(kind: PriceListKind, request: PriceListWriteRequest): string {
-  assertValid(kind, request)
+  validate(kind, request)
   const name = request.name.trim()
   assertUniqueName(kind, name)
 
   const item: PriceListItemDto = {
-    id: newId(),
+    id: newId('item'),
     name,
     price: request.price,
     unit: unitOf(kind, request.unit),
@@ -313,15 +212,15 @@ export function createItem(kind: PriceListKind, request: PriceListWriteRequest):
     createdAt: new Date().toISOString(),
   }
 
-  load()[kind].push(item)
-  commit()
+  store.state()[kind].push(item)
+  store.commit()
 
   return item.id
 }
 
 export function updateItem(kind: PriceListKind, id: string, request: PriceListWriteRequest): void {
   const item = findItem(kind, id)
-  assertValid(kind, request)
+  validate(kind, request)
   const name = request.name.trim()
   assertUniqueName(kind, name, id)
 
@@ -329,7 +228,7 @@ export function updateItem(kind: PriceListKind, id: string, request: PriceListWr
   item.price = request.price
   item.unit = unitOf(kind, request.unit)
   Object.assign(item, vaccineFieldsOf(kind, request))
-  commit()
+  store.commit()
 }
 
 export function setItemActive(kind: PriceListKind, id: string, isActive: boolean): void {
@@ -337,5 +236,5 @@ export function setItemActive(kind: PriceListKind, id: string, isActive: boolean
   if (item.isActive === isActive) return
 
   item.isActive = isActive
-  commit()
+  store.commit()
 }

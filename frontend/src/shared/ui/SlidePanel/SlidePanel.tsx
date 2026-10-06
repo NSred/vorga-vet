@@ -3,27 +3,44 @@ import type { ReactNode } from 'react'
 import { IconButton } from '@/shared/ui/IconButton/IconButton'
 import styles from './SlidePanel.module.css'
 
-export type SlidePanelHeaderTone = 'plain' | 'accent' | 'warn'
+export type SlidePanelHeaderTone = 'plain' | 'accent'
 
-export interface SlidePanelProps {
+interface SlidePanelBaseProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  ariaLabel: string
   headerTone?: SlidePanelHeaderTone
-  header: ReactNode
   footer?: ReactNode
   children: ReactNode
 }
 
+interface TitledSlidePanelProps extends SlidePanelBaseProps {
+  title: string
+  subtitle?: ReactNode
+  badge?: ReactNode
+  ariaLabel?: string
+  header?: never
+}
+
+interface CustomSlidePanelProps extends SlidePanelBaseProps {
+  header: ReactNode
+  ariaLabel: string
+  title?: never
+  subtitle?: never
+  badge?: never
+}
+
+export type SlidePanelProps = TitledSlidePanelProps | CustomSlidePanelProps
+
 export function SlidePanel({
   open,
   onOpenChange,
-  ariaLabel,
   headerTone = 'plain',
-  header,
   footer,
   children,
+  ...heading
 }: SlidePanelProps) {
+  const ariaLabel = heading.ariaLabel ?? heading.title
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -31,7 +48,19 @@ export function SlidePanel({
         <Dialog.Content className={styles.content} aria-describedby={undefined}>
           <Dialog.Title className={styles.visuallyHidden}>{ariaLabel}</Dialog.Title>
           <div className={`${styles.header} ${styles[`header_${headerTone}`]}`}>
-            <div className={styles.headerBody}>{header}</div>
+            <div className={styles.headerBody}>
+              {heading.title === undefined ? (
+                heading.header
+              ) : (
+                <>
+                  <div className={styles.titleRow}>
+                    <div className={styles.title}>{heading.title}</div>
+                    {heading.badge}
+                  </div>
+                  {heading.subtitle && <div className={styles.subtitle}>{heading.subtitle}</div>}
+                </>
+              )}
+            </div>
             <Dialog.Close asChild>
               <IconButton label="Close">✕</IconButton>
             </Dialog.Close>

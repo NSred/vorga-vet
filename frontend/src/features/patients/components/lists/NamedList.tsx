@@ -1,4 +1,4 @@
-import { EmptyState, Skeleton } from '@/shared/ui'
+import { EmptyState, layout, Skeleton } from '@/shared/ui'
 import styles from './NamedList.module.css'
 
 export interface NamedListProps {
@@ -25,7 +25,7 @@ export function NamedList({
   }
 
   return (
-    <div className={styles.wrap}>
+    <div className={layout.stackTight}>
       <ul className={styles.list} aria-label={label}>
         {names.map((item) => (
           <li key={item.id} className={styles.item}>
@@ -34,7 +34,7 @@ export function NamedList({
         ))}
       </ul>
       {names.length >= limit && (
-        <p className={styles.note}>Showing the first {limit}. Search to narrow the list.</p>
+        <p className={layout.note}>Showing the first {limit}. Search to narrow the list.</p>
       )}
     </div>
   )

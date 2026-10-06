@@ -1,9 +1,3 @@
-.sections {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
 .section {
   display: flex;
   flex-direction: column;
@@ -19,12 +13,6 @@
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text);
-}
-
-.hint {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--text-muted);
 }
 
 .newPatient {

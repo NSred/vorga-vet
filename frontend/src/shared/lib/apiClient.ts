@@ -19,6 +19,21 @@ export function isApiErrorCode(error: unknown, ...codes: string[]): error is Api
   return error instanceof ApiError && error.code !== undefined && codes.includes(error.code)
 }
 
+export function apiErrorMessage(
+  error: unknown,
+  fallback: string,
+  messages: Partial<Record<string, string>> = {},
+): string {
+  if (!(error instanceof ApiError)) return fallback
+
+  const known = error.code ? messages[error.code] : undefined
+  if (known) return known
+
+  if (error.validationMessages) return error.validationMessages.join(' ')
+
+  return fallback
+}
+
 interface ProblemEntry {
   code?: string
   description?: string

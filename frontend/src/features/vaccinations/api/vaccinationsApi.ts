@@ -1,3 +1,4 @@
+import { settle } from '@/shared/lib/mockApi'
 import { toDueItem, toReminder, toVaccination } from '../lib/vaccinationMapping'
 import type {
   DueItem,
@@ -18,12 +19,6 @@ import {
   removeVaccination,
   replaceExamVaccinations,
 } from './mockVaccinationsStore'
-
-const MOCK_DELAY_MS = import.meta.env.MODE === 'test' ? 0 : 150
-
-function settle(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
-}
 
 export async function getPatientVaccinations(patientId: string): Promise<Vaccination[]> {
   await settle()

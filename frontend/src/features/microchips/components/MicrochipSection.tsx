@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { Button, PrintPortal, RecordItem, RecordList, Skeleton, useToast } from '@/shared/ui'
+import {
+  Button,
+  layout,
+  PrintPortal,
+  RecordItem,
+  RecordList,
+  Skeleton,
+  useToast,
+} from '@/shared/ui'
 import { usePatientRegistrations } from '../hooks/useMicrochips'
 import type { LastRabies, MicrochipRegistration, RegistrationSubject } from '../types'
 import { JmbgPrompt } from './JmbgPrompt'
@@ -36,7 +44,7 @@ export function MicrochipSection({
   const registration = data?.find((item) => item.chipNumber === chipNumber) ?? data?.[0]
 
   return (
-    <div className={styles.section}>
+    <div className={layout.stackTight}>
       {isPending && <Skeleton height="3rem" />}
       {isError && <p className={styles.muted}>Could not load the registration.</p>}
 

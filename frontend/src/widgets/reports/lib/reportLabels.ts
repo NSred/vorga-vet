@@ -1,5 +1,5 @@
-import { differenceInCalendarDays, format } from 'date-fns'
-import { clinicTimeOf, clinicToday } from '@/shared/lib/clinicTime'
+import { differenceInCalendarDays } from 'date-fns'
+import { clinicTimeOf, clinicToday, weekdayName } from '@/shared/lib/clinicTime'
 import { formatDisplayDate, parseDateOnly } from '@/shared/lib/dateOnly'
 
 export function printedAtSr(): string {
@@ -14,5 +14,5 @@ export function daysAgo(day: string, today: string): string {
 }
 
 export function dayWithWeekday(day: string): string {
-  return `${format(parseDateOnly(day), 'EEEE')} ${formatDisplayDate(day)}`
+  return `${weekdayName(day)} ${formatDisplayDate(day)}`
 }

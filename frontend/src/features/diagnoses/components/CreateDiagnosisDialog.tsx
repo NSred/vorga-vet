@@ -1,15 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, FormError, Modal, TextField } from '@/shared/ui'
+import { apiErrorMessage, isApiErrorCode } from '@/shared/lib/apiClient'
+import { textRule } from '@/shared/lib/formRules'
+import { FormDialog, FormError, TextField } from '@/shared/ui'
 import {
   DUPLICATE_CODE_MESSAGE,
   DUPLICATE_DIAGNOSIS_MESSAGE,
-  diagnosisErrorMessage,
   diagnosisErrors,
 } from '../api/diagnosisErrors'
 import { useCreateDiagnosis } from '../hooks/useDiagnosisMutations'
-import styles from './CreateDiagnosisDialog.module.css'
 
 export interface CreateDiagnosisDialogProps {
   open: boolean
@@ -22,13 +21,6 @@ export interface CreateDiagnosisDialogProps {
 interface FormValues {
   name: string
   code: string
-}
-
-function nameError(value: string): string | true {
-  const trimmed = value.trim()
-  if (!trimmed) return 'Name is required'
-  if (trimmed.length > 200) return 'Maximum 200 characters'
-  return true
 }
 
 export function CreateDiagnosisDialog({
@@ -50,13 +42,6 @@ export function CreateDiagnosisDialog({
     formState: { errors, isSubmitting },
   } = useForm<FormValues>()
 
-  useEffect(() => {
-    if (open) {
-      reset({ name: initialName, code: '' })
-      setSubmitError(undefined)
-    }
-  }, [open, initialName, reset])
-
   const submit = handleSubmit(async (values) => {
     setSubmitError(undefined)
     const name = values.name.trim()
@@ -74,7 +59,7 @@ export function CreateDiagnosisDialog({
         setError('code', { message: DUPLICATE_CODE_MESSAGE })
         return
       }
-      setSubmitError(diagnosisErrorMessage(error, 'Could not add the diagnosis.'))
+      setSubmitError(apiErrorMessage(error, 'Could not add the diagnosis.'))
     }
   })
 
@@ -83,56 +68,35 @@ export function CreateDiagnosisDialog({
   }
 
   return (
-    <Modal
+    <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="New diagnosis"
       description="The diagnosis is added to the diagnosis list and to this exam."
-      footer={
-        <>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="secondary" type="button" onClick={() => void keepAsTyped()}>
-            Use without adding
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form="create-diagnosis-form"
-            disabled={isSubmitting || create.isPending}
-          >
-            Add to diagnosis list
-          </Button>
-        </>
-      }
+      formId="create-diagnosis-form"
+      submitLabel="Add to diagnosis list"
+      isPending={isSubmitting || create.isPending}
+      secondaryAction={{ label: 'Use without adding', onClick: () => void keepAsTyped() }}
+      onSubmit={submit}
+      onOpen={() => {
+        reset({ name: initialName, code: '' })
+        setSubmitError(undefined)
+      }}
     >
-      <form
-        id="create-diagnosis-form"
-        className={styles.form}
-        noValidate
-        onSubmit={(event) => {
-          event.stopPropagation()
-          void submit(event)
-        }}
-      >
-        <TextField
-          id="new-diagnosis-name"
-          label="Name *"
-          {...register('name', { validate: nameError })}
-          error={errors.name?.message}
-        />
-        <TextField
-          id="new-diagnosis-code"
-          label="Code"
-          placeholder="Optional, e.g. D12"
-          {...register('code', {
-            validate: (value) => value.trim().length <= 20 || 'Maximum 20 characters',
-          })}
-          error={errors.code?.message}
-        />
-        <FormError message={submitError} />
-      </form>
-    </Modal>
+      <TextField
+        id="new-diagnosis-name"
+        label="Name *"
+        {...register('name', { validate: textRule(200, 'Name is required') })}
+        error={errors.name?.message}
+      />
+      <TextField
+        id="new-diagnosis-code"
+        label="Code"
+        placeholder="Optional, e.g. D12"
+        {...register('code', { validate: textRule(20) })}
+        error={errors.code?.message}
+      />
+      <FormError message={submitError} />
+    </FormDialog>
   )
 }

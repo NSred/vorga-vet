@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, FormError, SlidePanel, useToast } from '@/shared/ui'
+import { Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import { useCurrentUser } from '@/features/auth'
 import {
   emptyExaminationValues,
@@ -128,17 +128,11 @@ export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPa
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel="Walk-in visit"
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>Walk-in visit</div>
-          <div className={styles.subtitle}>
-            {step.kind === 'form'
-              ? 'An examination without an appointment behind it.'
-              : 'The visit is recorded.'}
-          </div>
-        </div>
+      title="Walk-in visit"
+      subtitle={
+        step.kind === 'form'
+          ? 'An examination without an appointment behind it.'
+          : 'The visit is recorded.'
       }
       footer={
         step.kind === 'form' ? (
@@ -158,9 +152,9 @@ export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPa
       }
     >
       {step.kind === 'form' ? (
-        <form id="walk-in-form" onSubmit={submit} className={styles.body}>
+        <form id="walk-in-form" onSubmit={submit} className={layout.page}>
           <PatientPicker value={patient} onChange={setPatient} error={patientError} />
-          <p className={styles.notice}>
+          <p className={layout.note}>
             The animal needs a card first. If it is not found, create it in{' '}
             <Link to="/patients">Patient Records</Link> and come back.
           </p>

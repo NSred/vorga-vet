@@ -9,7 +9,16 @@ import {
   clinicUpcomingDaysRange,
 } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { Button, DatePicker, FormError, Select, SlidePanel, Textarea } from '@/shared/ui'
+import {
+  Button,
+  DatePicker,
+  fieldStyles,
+  FormError,
+  layout,
+  Select,
+  SlidePanel,
+  Textarea,
+} from '@/shared/ui'
 import { appointmentErrorMessage, appointmentErrors } from '../api/appointmentErrors'
 import { getAvailability } from '../api/appointmentsApi'
 import { useCreateAppointment, useRescheduleAppointment } from '../hooks/useAppointmentMutations'
@@ -282,6 +291,21 @@ export function AppointmentFormPanel({
   })
 
   const isPending = isSubmitting || create.isPending || reschedule.isPending
+  const durationField = isSurgery && (
+    <Controller
+      name="durationMinutes"
+      control={control}
+      render={({ field }) => (
+        <Select
+          id="appointment-duration"
+          label="Duration"
+          value={String(field.value)}
+          onChange={(value) => field.onChange(Number(value))}
+          options={DURATION_OPTIONS}
+        />
+      )}
+    />
+  )
   const title = isReschedule
     ? isClient || !appointment
       ? 'Move your visit'
@@ -295,17 +319,9 @@ export function AppointmentFormPanel({
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      ariaLabel={title}
-      headerTone="plain"
-      header={
-        <div>
-          <div className={styles.title}>{title}</div>
-          <div className={styles.subtitle}>
-            {isReschedule
-              ? 'Pick a new date and time.'
-              : 'Pick a free slot and fill in the details.'}
-          </div>
-        </div>
+      title={title}
+      subtitle={
+        isReschedule ? 'Pick a new date and time.' : 'Pick a free slot and fill in the details.'
       }
       footer={
         <>
@@ -318,7 +334,7 @@ export function AppointmentFormPanel({
         </>
       }
     >
-      <form id="appointment-form" onSubmit={submit} className={styles.form}>
+      <form id="appointment-form" onSubmit={submit} className={layout.stack}>
         {isReschedule && appointment && (
           <div className={styles.summaryGrid}>
             <Summary label="Type" value={typeLabel(appointment.type)} />
@@ -327,7 +343,7 @@ export function AppointmentFormPanel({
           </div>
         )}
 
-        <div className={styles.row}>
+        <div className={layout.formRow}>
           <Controller
             name="date"
             control={control}
@@ -388,7 +404,7 @@ export function AppointmentFormPanel({
         )}
 
         {!isReschedule && (
-          <div className={styles.row}>
+          <div className={layout.formRow}>
             <Controller
               name="type"
               control={control}
@@ -402,39 +418,11 @@ export function AppointmentFormPanel({
                 />
               )}
             />
-            {isSurgery && (
-              <Controller
-                name="durationMinutes"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    id="appointment-duration"
-                    label="Duration"
-                    value={String(field.value)}
-                    onChange={(value) => field.onChange(Number(value))}
-                    options={DURATION_OPTIONS}
-                  />
-                )}
-              />
-            )}
+            {durationField}
           </div>
         )}
 
-        {isReschedule && isSurgery && (
-          <Controller
-            name="durationMinutes"
-            control={control}
-            render={({ field }) => (
-              <Select
-                id="appointment-duration"
-                label="Duration"
-                value={String(field.value)}
-                onChange={(value) => field.onChange(Number(value))}
-                options={DURATION_OPTIONS}
-              />
-            )}
-          />
-        )}
+        {isReschedule && durationField}
 
         {!isReschedule && (
           <>
@@ -453,7 +441,7 @@ export function AppointmentFormPanel({
             )}
             {ownerFromPatient && (
               <div className={styles.lockedField}>
-                <span className={styles.lockedLabel} id="appointment-owner-label">
+                <span className={fieldStyles.label} id="appointment-owner-label">
                   Owner
                 </span>
                 <div

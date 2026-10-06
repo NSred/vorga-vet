@@ -1,4 +1,4 @@
-import { Badge, EmptyState, Pagination, Table, type TableColumn } from '@/shared/ui'
+import { Badge, PagedTable, type TableColumn } from '@/shared/ui'
 import { DIAGNOSIS_PAGE_SIZES } from '../lib/diagnosisParams'
 import type { Diagnosis } from '../types'
 import styles from './DiagnosisTable.module.css'
@@ -44,32 +44,21 @@ export function DiagnosisTable({
   onPageSizeChange,
   onRowClick,
 }: DiagnosisTableProps) {
-  if (!isLoading && diagnoses.length === 0) {
-    return (
-      <EmptyState
-        message={hasSearch ? 'No diagnoses match your search.' : 'No diagnoses here yet.'}
-      />
-    )
-  }
-
   return (
-    <div>
-      <Table
-        columns={COLUMNS}
-        rows={diagnoses}
-        getRowId={(diagnosis) => diagnosis.id}
-        onRowClick={onRowClick}
-        rowClassName={(diagnosis) => (diagnosis.isActive ? undefined : styles.retiredRow)}
-        isLoading={isLoading}
-      />
-      <Pagination
-        page={page}
-        pageCount={Math.max(1, Math.ceil(totalCount / pageSize))}
-        pageSize={pageSize}
-        pageSizeOptions={DIAGNOSIS_PAGE_SIZES}
-        onPageChange={onPageChange}
-        onPageSizeChange={onPageSizeChange}
-      />
-    </div>
+    <PagedTable
+      columns={COLUMNS}
+      rows={diagnoses}
+      getRowId={(diagnosis) => diagnosis.id}
+      isLoading={isLoading}
+      page={page}
+      pageSize={pageSize}
+      totalCount={totalCount}
+      pageSizeOptions={DIAGNOSIS_PAGE_SIZES}
+      emptyMessage={hasSearch ? 'No diagnoses match your search.' : 'No diagnoses here yet.'}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      onRowClick={onRowClick}
+      rowClassName={(diagnosis) => (diagnosis.isActive ? undefined : styles.retiredRow)}
+    />
   )
 }

@@ -1,11 +1,6 @@
+import { settle } from '@/shared/lib/mockApi'
 import type { MicrochipRegistration, RegisterMicrochipRequest } from '../types'
 import { lastClinic, listPatientRegistrations, registerMicrochip } from './mockMicrochipsStore'
-
-const MOCK_DELAY_MS = import.meta.env.MODE === 'test' ? 0 : 150
-
-function settle(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
-}
 
 export async function getPatientRegistrations(patientId: string): Promise<MicrochipRegistration[]> {
   await settle()
