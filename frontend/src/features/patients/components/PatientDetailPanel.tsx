@@ -7,25 +7,13 @@ import {
   Field,
   FieldGrid,
   SlidePanel,
+  Tile,
 } from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { calculateAge } from '../lib/patientAge'
 import type { PatientDetail } from '../types'
 import { SPECIES_EMOJI, SPECIES_LABELS } from '@/shared/domain/species'
 import styles from './PatientDetailPanel.module.css'
-
-function Tile({ label, value, unit }: { label: string; value?: string | number; unit?: string }) {
-  const blank = value === undefined || value === ''
-  return (
-    <div className={styles.tile}>
-      <span className={styles.tileLabel}>{label}</span>
-      <span className={styles.tileValue}>
-        {blank ? '—' : value}
-        {!blank && unit && <span className={styles.unit}> {unit}</span>}
-      </span>
-    </div>
-  )
-}
 
 export interface PatientDetailPanelProps {
   patient: PatientDetail

@@ -49,7 +49,7 @@ export function Select({
       >
         <RadixSelect.Trigger
           id={id}
-          className={styles.trigger}
+          className={`${styles.trigger} ${error ? fieldStyles.shellInvalid : ''}`}
           aria-label={label}
           aria-invalid={error ? true : undefined}
         >

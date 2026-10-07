@@ -20,7 +20,7 @@ body {
     Roboto,
     sans-serif;
   color: var(--text);
-  background-color: var(--bg);
+  background-color: var(--surface-2);
   -webkit-font-smoothing: antialiased;
 }
 

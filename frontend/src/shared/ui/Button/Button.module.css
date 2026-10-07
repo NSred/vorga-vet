@@ -31,16 +31,6 @@
   filter: brightness(1.06);
 }
 
-.secondary {
-  border: 1px solid var(--border-strong);
-  background: var(--field);
-  color: var(--text);
-}
-
-.secondary:hover:not(:disabled) {
-  background: var(--surface-2);
-}
-
 .outline {
   border: 1px solid var(--border-strong);
   background: var(--field);
@@ -53,7 +43,7 @@
 }
 
 .danger {
-  border: 1px solid #e3c4c0;
+  border: 1px solid var(--danger-line);
   background: var(--field);
   color: var(--danger);
 }
@@ -65,7 +55,7 @@
 .soft {
   min-height: 2rem;
   padding: 0 0.75rem;
-  border: 1px solid #cfe0d5;
+  border: 1px solid var(--accent-line);
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);

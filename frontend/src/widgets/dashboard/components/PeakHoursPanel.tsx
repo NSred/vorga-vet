@@ -1,4 +1,4 @@
-import { DetailSection, FieldGrid, SlidePanel } from '@/shared/ui'
+import { DetailSection, SlidePanel, Tile } from '@/shared/ui'
 import { usePeakHoursBreakdown } from '../hooks/usePeakHoursBreakdown'
 import type { DayBreakdown, HourCount } from '../lib/appointmentStats'
 import styles from './PeakHoursPanel.module.css'
@@ -6,15 +6,6 @@ import styles from './PeakHoursPanel.module.css'
 export interface PeakHoursPanelProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-}
-
-function Tile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.tile}>
-      <span className={styles.tileLabel}>{label}</span>
-      <span className={styles.tileValue}>{value}</span>
-    </div>
-  )
 }
 
 function HourRow({ entry, max, isPeak }: { entry: HourCount; max: number; isPeak: boolean }) {
@@ -77,12 +68,12 @@ export function PeakHoursPanel({ open, onOpenChange }: PeakHoursPanelProps) {
       ) : (
         <>
           <DetailSection title="Overview">
-            <FieldGrid>
-              <Tile label="Peak hour" value={data.peakHour?.hour ?? '—'} />
-              <Tile label="Appointments in that hour" value={String(data.peakHour?.count ?? 0)} />
-              <Tile label="Busiest day" value={data.busiestDay?.day ?? '—'} />
+            <div className={styles.tiles}>
+              <Tile label="Peak hour" value={data.peakHour?.hour} />
+              <Tile label="Appointments in that hour" value={data.peakHour?.count ?? 0} />
+              <Tile label="Busiest day" value={data.busiestDay?.day} />
               <Tile label="Average per day" value={data.averagePerDay.toFixed(1)} />
-            </FieldGrid>
+            </div>
           </DetailSection>
 
           <DetailSection title="Appointments by hour">

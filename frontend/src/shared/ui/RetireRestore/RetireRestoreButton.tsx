@@ -21,7 +21,7 @@ export function RetireRestoreButton({
           Retire
         </Button>
       ) : (
-        <Button variant="secondary" type="button" onClick={onRestore} disabled={disabled}>
+        <Button variant="outline" type="button" onClick={onRestore} disabled={disabled}>
           Restore
         </Button>
       )}

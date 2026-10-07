@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByClinicDate, openDates } from './calendarDays'
+import { groupByClinicDate, openDates, weekDays } from './calendarDays'
 import type { Appointment, AvailabilitySlot } from '../types'
 
 function appointment(id: string, startsAt: string): Appointment {
@@ -14,6 +14,21 @@ function appointment(id: string, startsAt: string): Appointment {
     createdAt: '2026-09-10T10:00:00Z',
   }
 }
+
+describe('weekDays', () => {
+  it('lists the week of a date from Monday to Sunday', () => {
+    expect(weekDays('2026-10-07')).toEqual([
+      '2026-10-05',
+      '2026-10-06',
+      '2026-10-07',
+      '2026-10-08',
+      '2026-10-09',
+      '2026-10-10',
+      '2026-10-11',
+    ])
+    expect(weekDays('2026-10-11')[0]).toBe('2026-10-05')
+  })
+})
 
 describe('groupByClinicDate', () => {
   it('groups by clinic day and sorts by start time', () => {

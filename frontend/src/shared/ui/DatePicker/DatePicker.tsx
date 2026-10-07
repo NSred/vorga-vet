@@ -136,7 +136,7 @@ export function DatePicker({
         <Popover.Trigger
           id={id}
           type="button"
-          className={`${styles.trigger} ${error ? styles.triggerInvalid : ''}`}
+          className={`${styles.trigger} ${error ? fieldStyles.shellInvalid : ''}`}
           aria-invalid={Boolean(error) || undefined}
           aria-label={hideLabel ? label : undefined}
         >

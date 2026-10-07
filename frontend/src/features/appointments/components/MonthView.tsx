@@ -9,7 +9,8 @@ import {
   weekdayName,
 } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { AgendaRow } from './AgendaRow'
+import { plural } from '@/shared/lib/text'
+import { AgendaDay } from './AgendaDay'
 import { AppointmentChip } from './AppointmentChip'
 import { groupByClinicDate, openDates } from '../lib/calendarDays'
 import type { Appointment, AvailabilitySlot } from '../types'
@@ -26,10 +27,6 @@ export interface MonthViewProps {
 }
 
 const VISIBLE_CHIP_LIMIT = 3
-
-function countLabel(count: number): string {
-  return `${count} ${count === 1 ? 'appointment' : 'appointments'}`
-}
 
 export function MonthView({
   date,
@@ -53,9 +50,6 @@ export function MonthView({
       : today.slice(0, 7) === visibleMonth
         ? today
         : null
-  const previewItems = preview
-    ? [...(byDate.get(preview) ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt))
-    : []
 
   return (
     <>
@@ -88,7 +82,7 @@ export function MonthView({
                   className={styles.phoneOpen}
                   onClick={() => setPicked(dayIso)}
                   aria-pressed={dayIso === preview}
-                  aria-label={`Show ${formatDisplayDate(dayIso)}${dayAppointments.length > 0 ? `, ${countLabel(dayAppointments.length)}` : ''}`}
+                  aria-label={`Show ${formatDisplayDate(dayIso)}${dayAppointments.length > 0 ? `, ${plural(dayAppointments.length, 'appointment', 'appointments')}` : ''}`}
                 >
                   {dayAppointments.length > 0 ? dayAppointments.length : ''}
                 </button>
@@ -124,30 +118,20 @@ export function MonthView({
       </div>
 
       {preview && !isLoading && (
-        <section className={styles.preview} aria-label="Selected day">
-          <div className={styles.previewHeading}>
-            <span className={styles.previewTitle}>
-              {weekdayName(preview)}, {formatDisplayDate(preview)}
-            </span>
-            <span className={styles.previewCount}>{countLabel(previewItems.length)}</span>
-          </div>
-          {previewItems.length === 0 ? (
-            <p className={styles.previewEmpty}>Nothing booked on this day.</p>
-          ) : (
-            <div className={styles.previewRows}>
-              {previewItems.map((appointment) => (
-                <AgendaRow
-                  key={appointment.id}
-                  appointment={appointment}
-                  onClick={() => onAppointmentClick(appointment)}
-                />
-              ))}
-            </div>
-          )}
-          <Button variant="outline" type="button" onClick={() => onDateSelect(preview)}>
-            Open day
-          </Button>
-        </section>
+        <div className={styles.preview}>
+          <AgendaDay
+            label={`${weekdayName(preview)}, ${formatDisplayDate(preview)}`}
+            isToday={preview === today}
+            appointments={byDate.get(preview) ?? []}
+            emptyText="Nothing booked on this day."
+            onAppointmentClick={onAppointmentClick}
+            action={
+              <Button variant="outline" type="button" onClick={() => onDateSelect(preview)}>
+                Open day
+              </Button>
+            }
+          />
+        </div>
       )}
     </>
   )

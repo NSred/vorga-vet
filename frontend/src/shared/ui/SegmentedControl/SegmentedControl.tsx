@@ -1,27 +1,27 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
+import { FieldLabel } from '../FieldLabel/FieldLabel'
+import fieldStyles from '../field.module.css'
 import styles from './SegmentedControl.module.css'
 
 export interface SegmentedControlOption<T extends string> {
   value: T
   label: string
-  count?: number
 }
 
 export interface SegmentedControlProps<T extends string> {
   value: T
   onChange: (value: T) => void
   options: readonly SegmentedControlOption<T>[]
-  labelledBy?: string
-  fullWidth?: boolean
+  label?: string
 }
 
 export function SegmentedControl<T extends string>({
   value,
   onChange,
   options,
-  labelledBy,
-  fullWidth = false,
+  label,
 }: SegmentedControlProps<T>) {
+  const labelId = useId()
   const buttonRefs = useRef(new Map<T, HTMLButtonElement>())
   const [thumbStyle, setThumbStyle] = useState<{ left: number; width: number } | null>(null)
 
@@ -48,12 +48,12 @@ export function SegmentedControl<T extends string>({
     return () => observer.disconnect()
   }, [value, options.length])
 
-  return (
+  const control = (
     <div
-      className={`${styles.segmented} ${fullWidth ? styles.fullWidth : ''}`}
+      className={`${styles.segmented} ${label ? styles.fullWidth : ''}`}
       ref={containerRef}
-      role={labelledBy ? 'group' : undefined}
-      aria-labelledby={labelledBy}
+      role={label ? 'group' : undefined}
+      aria-labelledby={label ? labelId : undefined}
     >
       {thumbStyle && (
         <span className={styles.thumb} style={{ left: thumbStyle.left, width: thumbStyle.width }} />
@@ -71,14 +71,17 @@ export function SegmentedControl<T extends string>({
           onClick={() => onChange(option.value)}
         >
           {option.label}
-          {option.count !== undefined && (
-            <>
-              {' '}
-              <span className={styles.count}>{option.count}</span>
-            </>
-          )}
         </button>
       ))}
+    </div>
+  )
+
+  if (!label) return control
+
+  return (
+    <div className={fieldStyles.field}>
+      <FieldLabel id={labelId} text={label} />
+      {control}
     </div>
   )
 }

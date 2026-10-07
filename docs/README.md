@@ -19,6 +19,7 @@ not implemented yet. **Superseded** — kept for history; the linked document re
 
 | Date | Area | Topic | Document | Status |
 |---|---|---|---|---|
+| 2026-10-07 | FE | De-duplication after the phone patterns: shared radio group, day of visits, panel tile, trigger rule, dead code, colour tokens | [document](specs/2026-10-07-frontend-dedup.md) | Implemented |
 | 2026-10-06 | FE | Phone patterns from the Claude Design file: action bars, bottom sheets, day strip, week agenda, month preview, appointment stepper, slot picker, patient card headings | [document](specs/2026-10-06-phone-patterns.md) | Implemented |
 | 2026-10-06 | FE | Shared visual system from the Claude Design file: tokens, Figtree, field shell, segmented control, section cards, panel headers, empty states, on phone and desktop | [document](specs/2026-10-06-visual-system.md) | Implemented |
 | 2026-10-06 | FE | Mobile layout: phone navigation strip, table cards, full-screen panels, calendar day view, print hidden on phones | [document](specs/2026-10-06-mobile-layout.md) | Implemented |

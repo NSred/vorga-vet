@@ -12,7 +12,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: #5f7d6c;
+  color: var(--accent-muted);
 }
 
 .main {
@@ -49,7 +49,7 @@
 .subtitle {
   margin-top: 0.125rem;
   font-size: 0.875rem;
-  color: #5d6b62;
+  color: var(--accent-muted);
 }
 
 .chips {

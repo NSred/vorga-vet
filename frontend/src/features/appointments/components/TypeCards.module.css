@@ -17,14 +17,7 @@
   border-radius: var(--radius-field);
   background: var(--field);
   color: var(--text);
-  font: inherit;
   text-align: left;
-  cursor: pointer;
-}
-
-.card:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 4px var(--focus-ring);
 }
 
 .male {
@@ -42,7 +35,7 @@
   --tone-soft: var(--warn-soft);
 }
 
-.checked {
+.card[aria-checked='true'] {
   border-color: var(--tone);
   background: var(--tone-soft);
 }

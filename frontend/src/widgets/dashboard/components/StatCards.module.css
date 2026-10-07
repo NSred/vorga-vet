@@ -15,7 +15,7 @@
   min-width: 0;
   padding: 0.25rem 1rem;
   border: 0;
-  border-left: 1px solid #ece7de;
+  border-left: 1px solid var(--border);
   border-radius: 0;
   background: transparent;
   color: inherit;

@@ -33,7 +33,7 @@
     box-shadow 160ms ease;
 }
 
-.shell:hover:not(:disabled, [data-disabled], :focus, [data-state='open'], [readonly]) {
+.shell:hover:not(:disabled, [data-disabled], :focus, [data-state='open']) {
   border-color: var(--text-faint);
 }
 
@@ -47,14 +47,15 @@ button.shell:focus-visible,
   box-shadow: 0 0 0 4px var(--focus-ring);
 }
 
-.shell[readonly] {
-  background: var(--surface-2);
-  color: var(--text-muted);
-}
-
-.shell[readonly]:focus {
-  border-color: var(--border-strong);
-  box-shadow: none;
+.trigger {
+  composes: shell;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0 0.875rem;
+  cursor: pointer;
+  text-align: left;
 }
 
 .shellInvalid {

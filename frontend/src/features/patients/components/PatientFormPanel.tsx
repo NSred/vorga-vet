@@ -13,9 +13,7 @@ import {
   SlidePanel,
   Textarea,
   TextField,
-  ChoiceChips,
-  FieldLabel,
-  fieldStyles,
+  RadioGroup,
   SegmentedControl,
 } from '@/shared/ui'
 import { patientErrors } from '../api/patientErrors'
@@ -295,7 +293,7 @@ export function PatientFormPanel({
               name="species"
               control={control}
               render={({ field }) => (
-                <ChoiceChips
+                <RadioGroup
                   label="Species"
                   value={field.value}
                   onChange={(value) => field.onChange(value as Species)}
@@ -322,18 +320,12 @@ export function PatientFormPanel({
                 name="sex"
                 control={control}
                 render={({ field }) => (
-                  <div className={fieldStyles.field}>
-                    <span id="sex-label">
-                      <FieldLabel text="Sex" />
-                    </span>
-                    <SegmentedControl
-                      value={field.value}
-                      onChange={field.onChange}
-                      options={SEX_OPTIONS}
-                      labelledBy="sex-label"
-                      fullWidth
-                    />
-                  </div>
+                  <SegmentedControl
+                    label="Sex"
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={SEX_OPTIONS}
+                  />
                 )}
               />
               <Controller

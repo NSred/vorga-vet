@@ -1,13 +1,8 @@
 import { useEffect, useRef } from 'react'
 import { Skeleton } from '@/shared/ui'
-import {
-  addClinicDays,
-  clinicDateOf,
-  clinicToday,
-  clinicWeekRange,
-  MONDAY_FIRST_WEEKDAYS,
-} from '@/shared/lib/clinicTime'
+import { clinicToday, MONDAY_FIRST_WEEKDAYS } from '@/shared/lib/clinicTime'
 import { AppointmentBlock } from './AppointmentBlock'
+import { weekDays } from '../lib/calendarDays'
 import { layoutWeek } from '../lib/weekGrid'
 import type { Appointment, AvailabilitySlot } from '../types'
 import styles from './WeekView.module.css'
@@ -32,7 +27,8 @@ export function WeekView({
   hasSlotData,
 }: WeekViewProps) {
   const scrollerRef = useRef<HTMLDivElement>(null)
-  const weekStart = clinicDateOf(clinicWeekRange(date).from)
+  const dates = weekDays(date)
+  const weekStart = dates[0]
   const today = clinicToday()
 
   useEffect(() => {
@@ -52,7 +48,6 @@ export function WeekView({
     return <Skeleton height="20rem" />
   }
 
-  const dates = Array.from({ length: 7 }, (_, index) => addClinicDays(weekStart, index))
   const { rows, days } = layoutWeek(dates, appointments, slots, hasSlotData)
   const rowTemplate = `repeat(${rows.length}, var(--week-slot-height))`
 

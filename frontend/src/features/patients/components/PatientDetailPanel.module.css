@@ -4,31 +4,3 @@
   gap: 0.5rem;
   margin-bottom: 0.875rem;
 }
-
-.tile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  min-width: 0;
-  padding: 0.625rem 0.75rem;
-  border-radius: var(--radius-field);
-  background: var(--surface-2);
-}
-
-.tileLabel {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.tileValue {
-  font-size: 1.125rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.unit {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-muted);
-}

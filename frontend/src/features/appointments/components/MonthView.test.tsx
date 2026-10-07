@@ -72,7 +72,7 @@ describe('MonthView', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Show 17.09.2026, 2 appointments' }))
 
-    const preview = screen.getByRole('region', { name: 'Selected day' })
+    const preview = screen.getByRole('region', { name: 'Thursday, 17.09.2026' })
     expect(within(preview).getByText('Luna')).toBeInTheDocument()
     expect(within(preview).getByText('Rex')).toBeInTheDocument()
     expect(onDateSelect).not.toHaveBeenCalled()
@@ -87,7 +87,7 @@ describe('MonthView', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Show 18.09.2026' }))
 
     expect(
-      within(screen.getByRole('region', { name: 'Selected day' })).getByText(
+      within(screen.getByRole('region', { name: 'Friday, 18.09.2026' })).getByText(
         'Nothing booked on this day.',
       ),
     ).toBeInTheDocument()

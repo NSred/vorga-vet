@@ -3,21 +3,10 @@
   font-size: 0.85rem;
 }
 
-.tile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.tileLabel {
-  font-size: 0.7rem;
-  color: var(--text-faint);
-}
-
-.tileValue {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 
 .barRow {

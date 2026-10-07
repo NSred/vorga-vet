@@ -13,6 +13,10 @@ export interface FieldProps {
   value?: ReactNode
 }
 
+export interface TileProps extends FieldProps {
+  unit?: string
+}
+
 function isBlank(value: ReactNode): boolean {
   return (
     value === undefined ||
@@ -53,6 +57,20 @@ export function Field({ label, value }: FieldProps) {
     <div className={styles.field}>
       <span className={styles.label}>{label}</span>
       <span className={styles.value}>{isBlank(value) ? '—' : value}</span>
+    </div>
+  )
+}
+
+export function Tile({ label, value, unit }: TileProps) {
+  const blank = isBlank(value)
+
+  return (
+    <div className={styles.tile}>
+      <span className={styles.label}>{label}</span>
+      <span className={styles.tileValue}>
+        {blank ? '—' : value}
+        {!blank && unit && <span className={styles.unit}> {unit}</span>}
+      </span>
     </div>
   )
 }

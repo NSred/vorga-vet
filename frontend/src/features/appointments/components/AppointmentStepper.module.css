@@ -24,7 +24,7 @@
   left: calc(-50% + 0.875rem);
   height: 2px;
   border-radius: 2px;
-  background: #d8d1c5;
+  background: var(--border-strong);
   content: '';
 }
 
@@ -38,7 +38,7 @@
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;
-  border: 1.5px solid #d8d1c5;
+  border: 1.5px solid var(--border-strong);
   border-radius: 50%;
   background: var(--field);
   color: var(--text-muted);

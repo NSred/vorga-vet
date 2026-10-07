@@ -3,6 +3,24 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-07 — De-duplication after the phone patterns
+
+Frontend only. 141 test files, 774 tests, typecheck and lint clean. Production code is 213 lines
+shorter. Before-and-after screenshots of the touched components at phone and desktop width,
+compared pixel by pixel, then the touched screens against the real API as the vet and the client.
+
+- One shared radio group draws the slot grid, the type cards and the species chips; the sex switch
+  takes a label like every other field, and group labels now line up with the rest.
+- One day-of-visits component serves the week agenda and the month preview; one week helper serves
+  the day strip, the agenda and the week grid.
+- One panel tile for the patient panel and Peak hours; the visit panels use the section cards.
+- One trigger rule and one invalid style for the three dropdown triggers, which also brings back
+  the date picker's red error border.
+- Unused code removed (segmented count, read-only style, `secondary` button), and the last
+  hard-coded colours moved to tokens.
+
+Details: [document](specs/2026-10-07-frontend-dedup.md)
+
 ## 2026-10-06 — Phone patterns
 
 Frontend only. 141 test files, 770 tests, typecheck and lint clean. Checked on a phone and on

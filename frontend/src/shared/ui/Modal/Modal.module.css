@@ -115,7 +115,7 @@
     height: 5px;
     margin: 0.625rem auto 0;
     border-radius: 99px;
-    background: #ddd7cc;
+    background: var(--border-strong);
   }
 
   .header {

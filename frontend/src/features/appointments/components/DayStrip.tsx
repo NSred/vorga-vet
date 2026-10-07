@@ -1,11 +1,7 @@
-import {
-  addClinicDays,
-  clinicDateOf,
-  clinicToday,
-  clinicWeekRange,
-  MONDAY_FIRST_WEEKDAYS,
-} from '@/shared/lib/clinicTime'
+import { clinicToday, MONDAY_FIRST_WEEKDAYS } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
+import { plural } from '@/shared/lib/text'
+import { weekDays } from '../lib/calendarDays'
 import styles from './DayStrip.module.css'
 
 export interface DayStripProps {
@@ -17,13 +13,11 @@ export interface DayStripProps {
 }
 
 export function DayStrip({ date, onSelect, counts, label = 'Day', minDate }: DayStripProps) {
-  const weekStart = clinicDateOf(clinicWeekRange(date).from)
   const today = clinicToday()
-  const days = Array.from({ length: 7 }, (_, index) => addClinicDays(weekStart, index))
 
   return (
     <div className={styles.strip} role="group" aria-label={label}>
-      {days.map((day, index) => {
+      {weekDays(date).map((day, index) => {
         const count = counts?.get(day) ?? 0
         const selected = day === date
         return (
@@ -39,7 +33,7 @@ export function DayStrip({ date, onSelect, counts, label = 'Day', minDate }: Day
               .join(' ')}
             aria-pressed={selected}
             disabled={minDate !== undefined && day < minDate}
-            aria-label={`${formatDisplayDate(day)}${count > 0 ? `, ${count} ${count === 1 ? 'appointment' : 'appointments'}` : ''}`}
+            aria-label={`${formatDisplayDate(day)}${count > 0 ? `, ${plural(count, 'appointment', 'appointments')}` : ''}`}
             onClick={() => onSelect(day)}
           >
             <span className={styles.weekday}>{MONDAY_FIRST_WEEKDAYS[index]}</span>

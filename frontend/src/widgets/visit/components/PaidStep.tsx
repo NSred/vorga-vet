@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
 import { formatPrice } from '@/shared/lib/money'
-import { Badge, Button, FormError, layout } from '@/shared/ui'
+import { Badge, Button, DetailSection, Field, FieldGrid, FormError, layout } from '@/shared/ui'
 import {
   examinationErrorMessage,
   examinationErrors,
   usePayExamination,
 } from '@/features/examinations'
-import styles from './VisitPanel.module.css'
 
 export interface PaidStepProps {
   examinationId: string
@@ -41,18 +40,12 @@ export function PaidStep({ examinationId, cost, onPaid }: PaidStepProps) {
 
   return (
     <div className={layout.page}>
-      <div className={styles.summary}>
-        <div className={styles.field}>
-          <span className={styles.fieldLabel}>Status</span>
-          <span className={styles.fieldValue}>
-            <Badge tone="ok">Recorded</Badge>
-          </span>
-        </div>
-        <div className={styles.field}>
-          <span className={styles.fieldLabel}>Cost</span>
-          <span className={styles.fieldValue}>{cost === undefined ? '—' : formatPrice(cost)}</span>
-        </div>
-      </div>
+      <DetailSection>
+        <FieldGrid>
+          <Field label="Status" value={<Badge tone="ok">Recorded</Badge>} />
+          <Field label="Cost" value={cost === undefined ? undefined : formatPrice(cost)} />
+        </FieldGrid>
+      </DetailSection>
 
       {cost !== undefined && state === 'unpaid' && (
         <Button variant="primary" type="button" disabled={pay.isPending} onClick={markPaid}>

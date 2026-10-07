@@ -52,7 +52,7 @@ export function FormDialog({
             Cancel
           </Button>
           {secondaryAction && (
-            <Button variant="secondary" type="button" onClick={secondaryAction.onClick}>
+            <Button variant="outline" type="button" onClick={secondaryAction.onClick}>
               {secondaryAction.label}
             </Button>
           )}

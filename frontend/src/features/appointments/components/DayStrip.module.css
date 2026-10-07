@@ -16,7 +16,6 @@
   border-radius: var(--radius);
   background: transparent;
   color: var(--text);
-  font: inherit;
   cursor: pointer;
 }
 
@@ -30,7 +29,7 @@
 }
 
 .today {
-  border-color: #b9d3c3;
+  background: var(--accent-soft);
 }
 
 .selected {
@@ -45,7 +44,7 @@
 }
 
 .selected .weekday {
-  color: #cfe6d9;
+  color: var(--accent-soft);
 }
 
 .number {

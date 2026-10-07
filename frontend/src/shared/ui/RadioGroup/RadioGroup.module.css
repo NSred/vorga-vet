@@ -5,6 +5,19 @@
   scrollbar-width: none;
 }
 
+.option {
+  cursor: pointer;
+}
+
+.option:disabled {
+  cursor: default;
+}
+
+.option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
 .chip {
   flex: none;
   min-height: var(--control-height);
@@ -12,21 +25,20 @@
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   background: var(--field);
-  color: #5d574e;
-  font: inherit;
+  color: var(--text-soft);
   font-size: 0.875rem;
   font-weight: 600;
   white-space: nowrap;
-  cursor: pointer;
 }
 
-.chip:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 4px var(--focus-ring);
-}
-
-.checked {
+.chip[aria-checked='true'] {
   border-color: var(--accent);
-  background: #eaf0ec;
+  background: var(--accent-soft);
   color: var(--accent);
+}
+
+.placeholder {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }

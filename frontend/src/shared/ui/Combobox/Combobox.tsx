@@ -139,7 +139,7 @@ export function Combobox({
             type="button"
             disabled={disabled}
             aria-label={label}
-            className={`${styles.trigger} ${error ? styles.triggerInvalid : ''}`}
+            className={`${styles.trigger} ${error ? fieldStyles.shellInvalid : ''}`}
           >
             <span className={triggerText ? styles.value : styles.placeholder}>
               {triggerText || placeholder}

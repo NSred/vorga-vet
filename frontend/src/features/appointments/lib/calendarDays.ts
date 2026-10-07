@@ -1,5 +1,10 @@
-import { clinicDateOf } from '@/shared/lib/clinicTime'
+import { addClinicDays, clinicDateOf, clinicWeekRange } from '@/shared/lib/clinicTime'
 import type { Appointment, AvailabilitySlot } from '../types'
+
+export function weekDays(date: string): string[] {
+  const monday = clinicDateOf(clinicWeekRange(date).from)
+  return Array.from({ length: 7 }, (_, index) => addClinicDays(monday, index))
+}
 
 export function groupByClinicDate(appointments: Appointment[]): Map<string, Appointment[]> {
   const grouped = new Map<string, Appointment[]>()
