@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DayView } from './DayView'
 import type { Appointment, AvailabilitySlot } from '../types'
 
@@ -45,7 +45,27 @@ function renderDay(appointments: Appointment[], daySlots: AvailabilitySlot[], ha
   )
 }
 
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
 describe('DayView', () => {
+  it('marks the current time inside the slot it falls in', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-17T05:45:00Z'))
+    renderDay([], slots)
+
+    const line = screen.getByTestId('now-line')
+    expect(line).toHaveStyle({ gridRow: '2' })
+    expect(line.style.marginTop).toBe('calc(0.5 * var(--day-slot-height))')
+  })
+
+  it('draws no time line on a day that is not today', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-18T05:45:00Z'))
+    renderDay([], slots)
+
+    expect(screen.queryByTestId('now-line')).not.toBeInTheDocument()
+  })
+
   it('renders a row per slot with clinic times', () => {
     renderDay([], slots)
 

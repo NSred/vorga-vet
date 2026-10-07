@@ -1,4 +1,5 @@
 import { forwardRef, type TextareaHTMLAttributes } from 'react'
+import { FieldLabel } from '../FieldLabel/FieldLabel'
 import fieldStyles from '../field.module.css'
 import styles from './Textarea.module.css'
 
@@ -14,14 +15,12 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
 ) {
   return (
     <div className={`${fieldStyles.field} ${className ?? ''}`}>
-      <label htmlFor={id} className={fieldStyles.label}>
-        {label}
-      </label>
+      <FieldLabel text={label} htmlFor={id} />
       <textarea
         ref={ref}
         id={id}
         rows={rows}
-        className={`${styles.textarea} ${error ? styles.textareaInvalid : ''}`}
+        className={`${styles.textarea} ${error ? fieldStyles.shellInvalid : ''}`}
         aria-invalid={Boolean(error) || undefined}
         {...rest}
       />

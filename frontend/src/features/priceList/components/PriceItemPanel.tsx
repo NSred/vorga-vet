@@ -3,6 +3,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { apiErrorMessage, isApiErrorCode } from '@/shared/lib/apiClient'
 import { textRule } from '@/shared/lib/formRules'
 import {
+  DetailSection,
   Badge,
   Button,
   FormError,
@@ -141,66 +142,68 @@ export function PriceItemPanel(props: PriceItemPanelProps) {
         </>
       }
     >
-      <form id="price-item-form" onSubmit={submit} className={layout.stack} noValidate>
-        <TextField
-          id="price-item-name"
-          label="Name *"
-          {...register('name', { validate: textRule(200, 'Name is required') })}
-          error={errors.name?.message}
-        />
-
-        <div className={kind === 'medication' ? layout.formRow : undefined}>
-          {kind === 'medication' && (
-            <Controller
-              name="unit"
-              control={control}
-              render={({ field }) => (
-                <UnitSelect id="price-item-unit" value={field.value} onChange={field.onChange} />
-              )}
-            />
-          )}
+      <DetailSection>
+        <form id="price-item-form" onSubmit={submit} className={layout.stack} noValidate>
           <TextField
-            id="price-item-price"
-            label="Price (RSD) *"
-            inputMode="decimal"
-            placeholder="0,00"
-            {...register('price', { validate: (value) => priceError(value) ?? true })}
-            error={errors.price?.message}
+            id="price-item-name"
+            label="Name *"
+            {...register('name', { validate: textRule(200, 'Name is required') })}
+            error={errors.name?.message}
           />
-        </div>
 
-        {kind === 'medication' && (
-          <fieldset className={styles.vaccine}>
-            <legend className={styles.legend}>Vaccine</legend>
-            <SegmentedControl
-              value={vaccineKind}
-              onChange={chooseVaccineKind}
-              options={VACCINE_KINDS}
-            />
-            <p className={layout.note}>{VACCINE_HINTS[vaccineKind]}</p>
-            {isVaccine && (
-              <TextField
-                id="price-item-validity"
-                label="Lasts (days) *"
-                inputMode="numeric"
-                className={styles.validity}
-                {...register('validityDays', {
-                  validate: (value) => {
-                    const days = Number(value.trim())
-                    return (
-                      (Number.isInteger(days) && days >= 1 && days <= 3650) ||
-                      'Enter 1 to 3650 days'
-                    )
-                  },
-                })}
-                error={errors.validityDays?.message}
+          <div className={kind === 'medication' ? layout.formRow : undefined}>
+            {kind === 'medication' && (
+              <Controller
+                name="unit"
+                control={control}
+                render={({ field }) => (
+                  <UnitSelect id="price-item-unit" value={field.value} onChange={field.onChange} />
+                )}
               />
             )}
-          </fieldset>
-        )}
+            <TextField
+              id="price-item-price"
+              label="Price (RSD) *"
+              inputMode="decimal"
+              placeholder="0,00"
+              {...register('price', { validate: (value) => priceError(value) ?? true })}
+              error={errors.price?.message}
+            />
+          </div>
 
-        <FormError message={submitError} />
-      </form>
+          {kind === 'medication' && (
+            <fieldset className={styles.vaccine}>
+              <legend className={styles.legend}>Vaccine</legend>
+              <SegmentedControl
+                value={vaccineKind}
+                onChange={chooseVaccineKind}
+                options={VACCINE_KINDS}
+              />
+              <p className={layout.note}>{VACCINE_HINTS[vaccineKind]}</p>
+              {isVaccine && (
+                <TextField
+                  id="price-item-validity"
+                  label="Lasts (days) *"
+                  inputMode="numeric"
+                  className={styles.validity}
+                  {...register('validityDays', {
+                    validate: (value) => {
+                      const days = Number(value.trim())
+                      return (
+                        (Number.isInteger(days) && days >= 1 && days <= 3650) ||
+                        'Enter 1 to 3650 days'
+                      )
+                    },
+                  })}
+                  error={errors.validityDays?.message}
+                />
+              )}
+            </fieldset>
+          )}
+
+          <FormError message={submitError} />
+        </form>
+      </DetailSection>
     </SlidePanel>
   )
 }

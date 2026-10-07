@@ -1,18 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { SPECIES_OPTIONS } from '@/shared/domain/species'
+import { SPECIES_EMOJI, SPECIES_OPTIONS } from '@/shared/domain/species'
 import { ApiError, isApiErrorCode } from '@/shared/lib/apiClient'
 import { todayIso } from '@/shared/lib/dateOnly'
 import {
+  DetailSection,
   Button,
   ConfirmDialog,
   DatePicker,
   FormError,
   layout,
-  Select,
   SlidePanel,
   Textarea,
   TextField,
+  ChoiceChips,
+  FieldLabel,
+  fieldStyles,
+  SegmentedControl,
 } from '@/shared/ui'
 import { patientErrors } from '../api/patientErrors'
 import { useCreatePatient, useUpdatePatient } from '../hooks/usePatientMutations'
@@ -26,6 +30,16 @@ import { OwnerPicker } from './pickers/OwnerPicker'
 import styles from './PatientFormPanel.module.css'
 
 const DISCARD_PROMPT = 'You have unsaved changes. Discard them?'
+
+const SPECIES_CHIPS = SPECIES_OPTIONS.map((option) => ({
+  value: option.value,
+  label: `${SPECIES_EMOJI[option.value]} ${option.label}`,
+}))
+
+const SEX_OPTIONS = [
+  { value: 'male', label: '♂ Male' },
+  { value: 'female', label: '♀ Female' },
+] as const
 
 export interface PatientFormPanelProps {
   mode: 'create' | 'edit'
@@ -236,145 +250,159 @@ export function PatientFormPanel({
       }
     >
       <form id="patient-form" onSubmit={submit} className={layout.stack}>
-        <div className={layout.formRow}>
-          <TextField
-            id="cardNumber"
-            label="No. *"
-            {...cardNumberField}
-            onChange={(event) => {
-              cardNumberEdited.current = true
-              return cardNumberField.onChange(event)
-            }}
-            error={errors.cardNumber?.message}
-          />
-          <TextField
-            id="name"
-            label="Animal name *"
-            {...register('name', {
-              required: 'Name is required',
-              maxLength: { value: 100, message: 'Maximum 100 characters' },
-            })}
-            error={errors.name?.message}
-          />
-        </div>
+        <DetailSection title="Identity">
+          <div className={layout.stack}>
+            <div className={layout.formRow}>
+              <TextField
+                id="cardNumber"
+                label="No. *"
+                {...cardNumberField}
+                onChange={(event) => {
+                  cardNumberEdited.current = true
+                  return cardNumberField.onChange(event)
+                }}
+                error={errors.cardNumber?.message}
+              />
+              <TextField
+                id="name"
+                label="Animal name *"
+                {...register('name', {
+                  required: 'Name is required',
+                  maxLength: { value: 100, message: 'Maximum 100 characters' },
+                })}
+                error={errors.name?.message}
+              />
+            </div>
 
-        <Controller
-          name="owner"
-          control={control}
-          rules={{ required: 'Owner is required' }}
-          render={({ field }) => (
-            <OwnerPicker
-              value={field.value}
-              onChange={field.onChange}
-              error={errors.owner?.message}
+            <Controller
+              name="owner"
+              control={control}
+              rules={{ required: 'Owner is required' }}
+              render={({ field }) => (
+                <OwnerPicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.owner?.message}
+                />
+              )}
             />
-          )}
-        />
+          </div>
+        </DetailSection>
 
-        <div className={layout.formRow}>
-          <Controller
-            name="species"
-            control={control}
-            render={({ field }) => (
-              <Select
-                id="species"
-                label="Species"
-                value={field.value}
-                onChange={(value) => field.onChange(value as Species)}
-                options={SPECIES_OPTIONS}
+        <DetailSection title="Animal">
+          <div className={layout.stack}>
+            <Controller
+              name="species"
+              control={control}
+              render={({ field }) => (
+                <ChoiceChips
+                  label="Species"
+                  value={field.value}
+                  onChange={(value) => field.onChange(value as Species)}
+                  options={SPECIES_CHIPS}
+                />
+              )}
+            />
+            <Controller
+              name="breed"
+              control={control}
+              rules={{ required: 'Breed is required' }}
+              render={({ field }) => (
+                <BreedPicker
+                  species={species}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.breed?.message}
+                />
+              )}
+            />
+
+            <div className={layout.formRow}>
+              <Controller
+                name="sex"
+                control={control}
+                render={({ field }) => (
+                  <div className={fieldStyles.field}>
+                    <span id="sex-label">
+                      <FieldLabel text="Sex" />
+                    </span>
+                    <SegmentedControl
+                      value={field.value}
+                      onChange={field.onChange}
+                      options={SEX_OPTIONS}
+                      labelledBy="sex-label"
+                      fullWidth
+                    />
+                  </div>
+                )}
               />
-            )}
-          />
-          <Controller
-            name="breed"
-            control={control}
-            rules={{ required: 'Breed is required' }}
-            render={({ field }) => (
-              <BreedPicker
-                species={species}
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.breed?.message}
+              <Controller
+                name="birthDate"
+                control={control}
+                rules={{
+                  validate: (value) =>
+                    !value || value <= todayIso() ? true : 'Date of birth cannot be in the future',
+                }}
+                render={({ field }) => (
+                  <DatePicker
+                    id="birthDate"
+                    label="Date of birth"
+                    value={field.value}
+                    onChange={field.onChange}
+                    maxDate={todayIso()}
+                    error={errors.birthDate?.message}
+                  />
+                )}
               />
-            )}
-          />
-        </div>
+            </div>
 
-        <div className={layout.formRow}>
-          <Controller
-            name="sex"
-            control={control}
-            render={({ field }) => (
-              <Select
-                id="sex"
-                label="Sex"
-                value={field.value}
-                onChange={field.onChange}
-                options={[
-                  { value: 'male', label: 'Male' },
-                  { value: 'female', label: 'Female' },
-                ]}
+            <div className={layout.formRow}>
+              <TextField
+                id="weightKg"
+                label="Weight"
+                suffix="kg"
+                type="number"
+                step="0.1"
+                {...register('weightKg', {
+                  setValueAs: (value) => (value === '' ? undefined : Number(value)),
+                  min: { value: 0.01, message: 'Weight must be greater than 0' },
+                })}
+                error={errors.weightKg?.message}
               />
-            )}
-          />
-          <Controller
-            name="birthDate"
-            control={control}
-            rules={{
-              validate: (value) =>
-                !value || value <= todayIso() ? true : 'Date of birth cannot be in the future',
-            }}
-            render={({ field }) => (
-              <DatePicker
-                id="birthDate"
-                label="Date of birth"
-                value={field.value}
-                onChange={field.onChange}
-                maxDate={todayIso()}
-                error={errors.birthDate?.message}
-              />
-            )}
-          />
-        </div>
+              <TextField id="color" label="Color" {...register('color')} />
+            </div>
 
-        <div className={layout.formRow}>
-          <TextField
-            id="weightKg"
-            label="Weight (kg)"
-            type="number"
-            step="0.1"
-            {...register('weightKg', {
-              setValueAs: (value) => (value === '' ? undefined : Number(value)),
-              min: { value: 0.01, message: 'Weight must be greater than 0' },
-            })}
-            error={errors.weightKg?.message}
-          />
-          <TextField id="color" label="Color" {...register('color')} />
-        </div>
+            <TextField id="chipNumber" label="Chip no." {...register('chipNumber')} />
+          </div>
+        </DetailSection>
 
-        <TextField id="chipNumber" label="Chip no." {...register('chipNumber')} />
+        <DetailSection title="Medical">
+          <div className={layout.stack}>
+            <Controller
+              name="allergens"
+              control={control}
+              render={({ field }) => (
+                <AllergenPicker value={field.value} onChange={field.onChange} />
+              )}
+            />
 
-        <Controller
-          name="allergens"
-          control={control}
-          render={({ field }) => <AllergenPicker value={field.value} onChange={field.onChange} />}
-        />
+            <Textarea
+              id="anamnesis"
+              label="Medical history"
+              placeholder="Medical history, symptoms, treatment…"
+              {...register('anamnesis')}
+              className={styles.fullWidth}
+            />
 
-        <Textarea
-          id="anamnesis"
-          label="Medical history"
-          placeholder="Medical history, symptoms, treatment…"
-          {...register('anamnesis')}
-          className={styles.fullWidth}
-        />
-
-        <Textarea
-          id="note"
-          label="Note"
-          placeholder="Internal note, recommendation…"
-          {...register('note')}
-          className={styles.fullWidth}
-        />
+            <Textarea
+              id="note"
+              label="Note"
+              placeholder="Internal note, recommendation…"
+              {...register('note')}
+              className={styles.fullWidth}
+            />
+          </div>
+        </DetailSection>
 
         <FormError message={submitError} />
       </form>

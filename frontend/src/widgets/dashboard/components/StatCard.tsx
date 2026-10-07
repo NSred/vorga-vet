@@ -12,8 +12,10 @@ export interface StatCardBodyProps {
 export function StatCardBody({ icon, label, isLoading, children }: StatCardBodyProps) {
   return (
     <>
-      <span className={styles.icon}>{icon}</span>
-      <span className={styles.label}>{label}</span>
+      <span className={styles.label}>
+        <span aria-hidden="true">{icon}</span>
+        {label}
+      </span>
       {isLoading ? <Skeleton width="3rem" height="1.6rem" /> : children}
     </>
   )

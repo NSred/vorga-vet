@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import styles from './Badge.module.css'
 
-export type BadgeTone = 'male' | 'female' | 'warn' | 'danger' | 'neutral' | 'ok'
+export type BadgeTone = 'male' | 'female' | 'warn' | 'danger' | 'neutral' | 'ok' | 'accent'
 
 export interface BadgeProps {
   tone?: BadgeTone

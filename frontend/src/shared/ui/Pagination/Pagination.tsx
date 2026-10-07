@@ -16,7 +16,10 @@ function getPageWindow(page: number, pageCount: number): number[] {
   if (pageCount <= WINDOW_SIZE) {
     return Array.from({ length: pageCount }, (_, index) => index + 1)
   }
-  const start = Math.min(Math.max(page - Math.floor(WINDOW_SIZE / 2), 1), pageCount - WINDOW_SIZE + 1)
+  const start = Math.min(
+    Math.max(page - Math.floor(WINDOW_SIZE / 2), 1),
+    pageCount - WINDOW_SIZE + 1,
+  )
   return Array.from({ length: WINDOW_SIZE }, (_, index) => start + index)
 }
 
@@ -86,7 +89,10 @@ export function Pagination({
         hideLabel
         value={String(pageSize)}
         onChange={(next) => onPageSizeChange(Number(next))}
-        options={pageSizeOptions.map((option) => ({ value: String(option), label: `${option} / page` }))}
+        options={pageSizeOptions.map((option) => ({
+          value: String(option),
+          label: `${option} / page`,
+        }))}
       />
     </div>
   )

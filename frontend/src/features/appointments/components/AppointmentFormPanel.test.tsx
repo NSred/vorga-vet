@@ -82,21 +82,18 @@ afterEach(() => {
 })
 
 async function pickTime(user: ReturnType<typeof userEvent.setup>, label: string) {
-  await user.click(screen.getByRole('combobox', { name: 'Start time *' }))
-  await user.click(await screen.findByRole('option', { name: label }))
+  await user.click(await screen.findByRole('radio', { name: label }))
 }
 
 describe('AppointmentFormPanel create', () => {
-  it('lists only free slots in clinic time', async () => {
-    const user = userEvent.setup()
+  it('offers free slots in clinic time and shows taken ones disabled', async () => {
     renderForm()
 
     await waitFor(() => expect(availabilitySpy).toHaveBeenCalled())
-    await user.click(screen.getByRole('combobox', { name: 'Start time *' }))
 
-    expect(await screen.findByRole('option', { name: '07:00' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: '08:00' })).toBeInTheDocument()
-    expect(screen.queryByRole('option', { name: '07:30' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('radio', { name: '07:00' })).toBeEnabled()
+    expect(screen.getByRole('radio', { name: '08:00' })).toBeEnabled()
+    expect(screen.getByRole('radio', { name: '07:30, taken' })).toBeDisabled()
   })
 
   it('submits the chosen slot with the mapped type and parties', async () => {
@@ -129,8 +126,7 @@ describe('AppointmentFormPanel create', () => {
 
     expect(screen.queryByRole('combobox', { name: 'Duration' })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('combobox', { name: 'Type' }))
-    await user.click(await screen.findByRole('option', { name: 'Surgery' }))
+    await user.click(screen.getByRole('radio', { name: /Surgery/ }))
     await user.click(screen.getByRole('combobox', { name: 'Duration' }))
     await user.click(await screen.findByRole('option', { name: '90 min' }))
 
@@ -141,7 +137,7 @@ describe('AppointmentFormPanel create', () => {
     renderForm({ initialStartsAt: '2026-09-17T06:00:00Z' })
 
     await waitFor(() =>
-      expect(screen.getByRole('combobox', { name: 'Start time *' })).toHaveTextContent('08:00'),
+      expect(screen.getByRole('radio', { name: '08:00' })).toHaveAttribute('aria-checked', 'true'),
     )
   })
 
@@ -196,13 +192,12 @@ describe('AppointmentFormPanel reschedule', () => {
       .mockResolvedValue(undefined)
     const props = renderForm({ mode: 'reschedule', appointment: scheduled })
 
-    expect(screen.queryByRole('combobox', { name: 'Type' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Type' })).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Reason')).not.toBeInTheDocument()
     expect(screen.getByText('Luna')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('combobox', { name: 'Start time *' }))
-    expect(await screen.findByRole('option', { name: '07:30' })).toBeInTheDocument()
-    await user.click(screen.getByRole('option', { name: '08:00' }))
+    expect(await screen.findByRole('radio', { name: '07:30' })).toBeEnabled()
+    await user.click(screen.getByRole('radio', { name: '08:00' }))
     await user.click(screen.getByRole('button', { name: 'Move' }))
 
     await waitFor(() =>
@@ -231,17 +226,13 @@ describe('AppointmentFormPanel reschedule', () => {
 })
 
 describe('AppointmentFormPanel client variant', () => {
-  it('offers no surgery and no duration', async () => {
-    const user = userEvent.setup()
+  it('offers no surgery and no duration', () => {
     renderForm({ variant: 'client' })
 
     expect(screen.queryByRole('combobox', { name: 'Duration' })).not.toBeInTheDocument()
-
-    await user.click(screen.getByRole('combobox', { name: 'Type' }))
-
-    expect(await screen.findByRole('option', { name: 'Checkup' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: 'First visit' })).toBeInTheDocument()
-    expect(screen.queryByRole('option', { name: 'Surgery' })).not.toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Checkup/ })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /First visit/ })).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: /Surgery/ })).not.toBeInTheDocument()
   })
 
   it('renders no owner field and no patient field unless one is given', () => {
@@ -295,14 +286,10 @@ describe('AppointmentFormPanel client variant', () => {
         isMine: true,
       },
     ])
-    const user = userEvent.setup()
     renderForm({ variant: 'client', ownerField: undefined, patientField: undefined })
 
-    await user.click(screen.getByRole('combobox', { name: 'Start time *' }))
-
-    expect(await screen.findByRole('option', { name: '07:00' })).toBeInTheDocument()
-    const own = screen.getByRole('option', { name: '07:30 · yours' })
-    expect(own).toHaveAttribute('data-disabled')
+    expect(await screen.findByRole('radio', { name: '07:00' })).toBeEnabled()
+    expect(screen.getByRole('radio', { name: '07:30 · yours' })).toBeDisabled()
   })
 
   it('calls the visit a visit', () => {
@@ -414,7 +401,7 @@ describe('AppointmentFormPanel with no free time on the day', () => {
     },
   ]
 
-  it('disables the start time and jumps to the next free day', async () => {
+  it('says the day is full and jumps to the next free day', async () => {
     const user = userEvent.setup()
     availabilitySpy.mockImplementation(async (range: { from: string }) =>
       range.from.startsWith('2026-09-16') ? [] : later,
@@ -422,12 +409,12 @@ describe('AppointmentFormPanel with no free time on the day', () => {
     renderForm()
 
     expect(await screen.findByText('No free time left on 17.09.2026.')).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Start time *' })).toBeDisabled()
+    expect(screen.queryByRole('radiogroup', { name: 'Start time *' })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Next free day' }))
 
     await waitFor(() =>
-      expect(screen.getByRole('combobox', { name: 'Start time *' })).toHaveTextContent('08:00'),
+      expect(screen.getByRole('radio', { name: '08:00' })).toHaveAttribute('aria-checked', 'true'),
     )
     expect(screen.getByRole('button', { name: 'Date *' })).toHaveTextContent('19.09.2026')
     expect(screen.queryByText(/No free time/)).not.toBeInTheDocument()

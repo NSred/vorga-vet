@@ -2,7 +2,9 @@ import type { ReactNode } from 'react'
 import styles from './Details.module.css'
 
 export interface DetailSectionProps {
-  title: string
+  title?: string
+  count?: number
+  action?: ReactNode
   children: ReactNode
 }
 
@@ -21,10 +23,22 @@ function isBlank(value: ReactNode): boolean {
   )
 }
 
-export function DetailSection({ title, children }: DetailSectionProps) {
+export function DetailSection({ title, count, action, children }: DetailSectionProps) {
+  const hasHeading = Boolean(title || action)
+
   return (
     <section className={styles.section}>
-      <h3 className={styles.sectionTitle}>{title}</h3>
+      {hasHeading && (
+        <div className={styles.heading}>
+          {title && <h3 className={styles.sectionTitle}>{title}</h3>}
+          {count !== undefined && (
+            <span className={styles.count} aria-label={`${count} ${title ?? ''}`.trim()}>
+              {count}
+            </span>
+          )}
+          {action && <div className={styles.action}>{action}</div>}
+        </div>
+      )}
       {children}
     </section>
   )

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
 import { clinicDateOf, clinicTimeOf } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
+import { DetailSection, Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import { examinationErrorMessage, examinationErrors } from '../api/examinationErrors'
 import { useUpdateExamination } from '../hooks/useExaminationMutations'
 import { examinationValuesOf, toExaminationDetails } from '../lib/examinationDetails'
@@ -111,16 +111,18 @@ export function ExaminationEditPanel({
         </>
       }
     >
-      <form id="examination-edit-form" onSubmit={submit} className={layout.stack}>
-        <ExaminationFields
-          register={register}
-          control={control}
-          errors={errors}
-          renderDiagnosis={renderDiagnosis}
-          costSection={costSlot.section}
-        />
-        <FormError message={submitError} />
-      </form>
+      <DetailSection>
+        <form id="examination-edit-form" onSubmit={submit} className={layout.stack}>
+          <ExaminationFields
+            register={register}
+            control={control}
+            errors={errors}
+            renderDiagnosis={renderDiagnosis}
+            costSection={costSlot.section}
+          />
+          <FormError message={submitError} />
+        </form>
+      </DetailSection>
     </SlidePanel>
   )
 }

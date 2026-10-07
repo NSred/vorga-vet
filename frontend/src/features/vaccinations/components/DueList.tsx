@@ -32,7 +32,14 @@ export function DueList({ dueWindow, renderPatient }: DueListProps) {
   if (isError) return <p className={styles.muted}>Could not load what is due.</p>
 
   const items = (data ?? []).filter((item) => inWindow(item, dueWindow, today))
-  if (items.length === 0) return <EmptyState message={EMPTY[dueWindow]} />
+  if (items.length === 0)
+    return (
+      <EmptyState
+        message={EMPTY[dueWindow]}
+        icon="🔔"
+        hint="Vaccinations and reminders coming due show up here with the owner's phone."
+      />
+    )
 
   const action = (item: DueItem) => {
     if (item.kind === 'reminder') {

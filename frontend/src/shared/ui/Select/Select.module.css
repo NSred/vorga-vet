@@ -1,26 +1,13 @@
 .trigger {
+  composes: shell from '../field.module.css';
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  padding: 0.5rem 0.75rem;
+  width: 100%;
+  padding: 0 0.875rem;
   cursor: pointer;
-  transition:
-    border-color 220ms ease,
-    box-shadow 220ms ease,
-    background 200ms ease;
-}
-
-.trigger:hover {
-  border-color: var(--text-faint);
-  background: var(--surface-glass-hover);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0.25rem 0.6rem -0.15rem rgba(27, 26, 23, 0.12);
+  text-align: left;
+  justify-content: space-between;
 }
 
 .trigger[data-disabled] {
@@ -28,21 +15,8 @@
   opacity: 0.6;
 }
 
-.trigger[data-disabled]:hover {
-  border-color: var(--border-strong);
-  background: transparent;
-  box-shadow: none;
-}
-
-.trigger:focus {
-  outline: none;
-}
-
-.trigger[data-state='open'] {
-  border-color: var(--accent);
-  background: var(--surface-glass-hover);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+.trigger[aria-invalid='true'] {
+  border-color: var(--danger);
 }
 
 .icon {

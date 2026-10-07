@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { PHONE_QUERY, useMediaQuery } from '@/shared/lib/useMediaQuery'
 import {
+  DetailSection,
   Button,
   layout,
   PrintPortal,
@@ -46,81 +47,83 @@ export function MicrochipSection({
   const registration = data?.find((item) => item.chipNumber === chipNumber) ?? data?.[0]
 
   return (
-    <div className={layout.stackTight}>
-      {isPending && <Skeleton height="3rem" />}
-      {isError && <p className={styles.muted}>Could not load the registration.</p>}
+    <DetailSection title="Microchip">
+      <div className={layout.stackTight}>
+        {isPending && <Skeleton height="3rem" />}
+        {isError && <p className={styles.muted}>Could not load the registration.</p>}
 
-      {data && registration && (
-        <RecordList label="Microchip">
-          <RecordItem
-            title={`Chip ${registration.chipNumber}`}
-            meta={`Implanted ${formatDisplayDate(registration.implantedOn)} · registered by ${registration.vetName}, ${registration.clinic}`}
-            actions={
-              <Button
-                variant="outline"
-                type="button"
-                className={layout.hideOnPhone}
-                onClick={() => setReprinting(registration)}
-              >
-                Print registration sheet
-              </Button>
-            }
+        {data && registration && (
+          <RecordList label="Microchip">
+            <RecordItem
+              title={`Chip ${registration.chipNumber}`}
+              meta={`Implanted ${formatDisplayDate(registration.implantedOn)} · registered by ${registration.vetName}, ${registration.clinic}`}
+              actions={
+                <Button
+                  variant="outline"
+                  type="button"
+                  className={layout.hideOnPhone}
+                  onClick={() => setReprinting(registration)}
+                >
+                  Print registration sheet
+                </Button>
+              }
+            />
+          </RecordList>
+        )}
+
+        {data && !registration && !chipNumber && (
+          <p className={styles.muted}>
+            No chip number on this card yet. Add it with Edit to register the microchip.
+          </p>
+        )}
+
+        {data && !registration && chipNumber && (
+          <RecordList label="Microchip">
+            <RecordItem
+              title={`Chip ${chipNumber}`}
+              meta="Not registered yet"
+              actions={
+                <Button variant="outline" type="button" onClick={() => setRegistering(true)}>
+                  Register microchip
+                </Button>
+              }
+            />
+          </RecordList>
+        )}
+
+        {registering && chipNumber && (
+          <RegisterMicrochipDialog
+            patientId={patientId}
+            chipNumber={chipNumber}
+            subject={subject}
+            lastRabies={lastRabies}
+            defaultVetName={vetName}
+            open
+            onOpenChange={setRegistering}
+            print={canPrint}
+            onRegistered={(saved, jmbg) => {
+              setRegistering(false)
+              showToast({ tone: 'success', title: `Chip ${saved.chipNumber} was registered` })
+              if (canPrint) setPrintJob({ registration: saved, jmbg })
+            }}
           />
-        </RecordList>
-      )}
+        )}
 
-      {data && !registration && !chipNumber && (
-        <p className={styles.muted}>
-          No chip number on this card yet. Add it with Edit to register the microchip.
-        </p>
-      )}
-
-      {data && !registration && chipNumber && (
-        <RecordList label="Microchip">
-          <RecordItem
-            title={`Chip ${chipNumber}`}
-            meta="Not registered yet"
-            actions={
-              <Button variant="outline" type="button" onClick={() => setRegistering(true)}>
-                Register microchip
-              </Button>
-            }
-          />
-        </RecordList>
-      )}
-
-      {registering && chipNumber && (
-        <RegisterMicrochipDialog
-          patientId={patientId}
-          chipNumber={chipNumber}
-          subject={subject}
-          lastRabies={lastRabies}
-          defaultVetName={vetName}
-          open
-          onOpenChange={setRegistering}
-          print={canPrint}
-          onRegistered={(saved, jmbg) => {
-            setRegistering(false)
-            showToast({ tone: 'success', title: `Chip ${saved.chipNumber} was registered` })
-            if (canPrint) setPrintJob({ registration: saved, jmbg })
+        <JmbgPrompt
+          open={reprinting !== null}
+          onOpenChange={(open) => !open && setReprinting(null)}
+          onConfirm={(jmbg) => {
+            if (reprinting) setPrintJob({ registration: reprinting, jmbg })
+            setReprinting(null)
           }}
         />
-      )}
 
-      <JmbgPrompt
-        open={reprinting !== null}
-        onOpenChange={(open) => !open && setReprinting(null)}
-        onConfirm={(jmbg) => {
-          if (reprinting) setPrintJob({ registration: reprinting, jmbg })
-          setReprinting(null)
-        }}
-      />
-
-      {printJob && (
-        <PrintPortal onPrinted={() => setPrintJob(null)}>
-          <RegistrationSheetPrint registration={printJob.registration} jmbg={printJob.jmbg} />
-        </PrintPortal>
-      )}
-    </div>
+        {printJob && (
+          <PrintPortal onPrinted={() => setPrintJob(null)}>
+            <RegistrationSheetPrint registration={printJob.registration} jmbg={printJob.jmbg} />
+          </PrintPortal>
+        )}
+      </div>
+    </DetailSection>
   )
 }

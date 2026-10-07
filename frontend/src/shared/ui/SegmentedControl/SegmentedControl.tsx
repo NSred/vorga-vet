@@ -4,18 +4,23 @@ import styles from './SegmentedControl.module.css'
 export interface SegmentedControlOption<T extends string> {
   value: T
   label: string
+  count?: number
 }
 
 export interface SegmentedControlProps<T extends string> {
   value: T
   onChange: (value: T) => void
   options: readonly SegmentedControlOption<T>[]
+  labelledBy?: string
+  fullWidth?: boolean
 }
 
 export function SegmentedControl<T extends string>({
   value,
   onChange,
   options,
+  labelledBy,
+  fullWidth = false,
 }: SegmentedControlProps<T>) {
   const buttonRefs = useRef(new Map<T, HTMLButtonElement>())
   const [thumbStyle, setThumbStyle] = useState<{ left: number; width: number } | null>(null)
@@ -44,7 +49,12 @@ export function SegmentedControl<T extends string>({
   }, [value, options.length])
 
   return (
-    <div className={styles.segmented} ref={containerRef}>
+    <div
+      className={`${styles.segmented} ${fullWidth ? styles.fullWidth : ''}`}
+      ref={containerRef}
+      role={labelledBy ? 'group' : undefined}
+      aria-labelledby={labelledBy}
+    >
       {thumbStyle && (
         <span className={styles.thumb} style={{ left: thumbStyle.left, width: thumbStyle.width }} />
       )}
@@ -61,6 +71,12 @@ export function SegmentedControl<T extends string>({
           onClick={() => onChange(option.value)}
         >
           {option.label}
+          {option.count !== undefined && (
+            <>
+              {' '}
+              <span className={styles.count}>{option.count}</span>
+            </>
+          )}
         </button>
       ))}
     </div>

@@ -1,34 +1,12 @@
 .trigger {
+  composes: shell from '../field.module.css';
   display: flex;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  padding: 0.5rem 0.75rem;
+  padding: 0 0.875rem;
   cursor: pointer;
   text-align: left;
-  transition:
-    border-color 220ms ease,
-    box-shadow 220ms ease,
-    background 200ms ease;
-}
-
-.trigger:hover {
-  border-color: var(--text-faint);
-  background: var(--surface-glass-hover);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0.25rem 0.6rem -0.15rem rgba(27, 26, 23, 0.12);
-}
-
-.trigger[data-state='open'] {
-  border-color: var(--accent);
-  background: var(--surface-glass-hover);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .triggerInvalid {

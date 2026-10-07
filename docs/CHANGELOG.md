@@ -3,6 +3,42 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-06 — Phone patterns
+
+Frontend only. 141 test files, 770 tests, typecheck and lint clean. Checked on a phone and on
+desktop against the real API as the vet and the client.
+
+- Main actions sit in a bottom bar on phones, with a floating New patient button; toasts and page
+  padding make room for it. Dialogs become bottom sheets on phones.
+- Day view gets a week strip with dots and a current-time line; week view becomes an agenda on
+  phones; tapping a month day previews its visits.
+- The appointment panel shows a Scheduled → Checked in → Completed stepper with the next step as
+  the main button and Open record in the Patient heading.
+- Booking and rescheduling pick a time from a slot grid, with taken slots crossed out for vets,
+  and the type from colour cards.
+- Patient card sections show counts and add buttons in their headings; the panel has age, weight
+  and sex tiles; the form picks species from chips and sex from a switch.
+
+Details: [document](specs/2026-10-06-phone-patterns.md)
+
+## 2026-10-06 — Shared visual system
+
+Frontend only. 133 test files, 744 tests, typecheck and lint clean. Desktop changes on purpose;
+before-and-after screenshots of eleven screens on desktop and phone against the real API.
+
+- The app uses Figtree, bundled with it, and the design's palette and rounder shapes, keeping
+  our darker grey for small text and input borders for contrast.
+- All five input kinds share one field shell and focus ring; labels are normal case with a red
+  asterisk; a text field can show a unit such as "kg".
+- Detail panels and forms group content into section cards on a grey panel body; the patient
+  form splits into Identity, Animal and Medical.
+- The patient and appointment panels open with a tinted header of card number or type, title and
+  status chips.
+- The segmented control has a white tab on a grey track and optional counts; empty states can
+  carry an icon and a hint; the header has a brand mark and a Log out pill.
+
+Details: [document](specs/2026-10-06-visual-system.md)
+
 ## 2026-10-06 — Mobile layout
 
 Frontend only. 129 test files, 733 tests, typecheck and lint clean. Desktop screenshots are

@@ -21,6 +21,18 @@
   transform: scale(1.08);
 }
 
+.filled {
+  width: 2.375rem;
+  height: 2.375rem;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.filled:hover {
+  background: var(--surface-3);
+  transform: none;
+}
+
 @media (max-width: 40rem) and (pointer: coarse) {
   .iconButton {
     width: var(--touch-target);

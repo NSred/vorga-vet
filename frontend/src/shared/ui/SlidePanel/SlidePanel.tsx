@@ -62,7 +62,9 @@ export function SlidePanel({
               )}
             </div>
             <Dialog.Close asChild>
-              <IconButton label="Close">✕</IconButton>
+              <IconButton label="Close" variant="filled" className={styles.close}>
+                ✕
+              </IconButton>
             </Dialog.Close>
           </div>
           <div className={styles.body}>{children}</div>

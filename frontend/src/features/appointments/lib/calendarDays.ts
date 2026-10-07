@@ -10,7 +10,10 @@ export function groupByClinicDate(appointments: Appointment[]): Map<string, Appo
   }
 
   for (const [date, items] of grouped) {
-    grouped.set(date, [...items].sort((a, b) => a.startsAt.localeCompare(b.startsAt)))
+    grouped.set(
+      date,
+      [...items].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+    )
   }
 
   return grouped

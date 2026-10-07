@@ -1,5 +1,6 @@
 import * as Popover from '@radix-ui/react-popover'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { FieldLabel } from '../FieldLabel/FieldLabel'
 import fieldStyles from '../field.module.css'
 import styles from './Combobox.module.css'
 
@@ -121,9 +122,7 @@ export function Combobox({
 
   return (
     <div className={fieldStyles.field}>
-      <label htmlFor={id} className={fieldStyles.label}>
-        {label}
-      </label>
+      <FieldLabel text={label} htmlFor={id} />
 
       <Popover.Root
         modal

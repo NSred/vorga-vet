@@ -10,6 +10,7 @@ import {
 } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import {
+  DetailSection,
   Button,
   DatePicker,
   fieldStyles,
@@ -27,6 +28,9 @@ import { partyLabel, typeLabel } from '../lib/appointmentLabels'
 import { toCreateRequest, toRescheduleRequest } from '../lib/appointmentRequest'
 import { isSelectable, slotOptions } from '../lib/slotOptions'
 import type { Appointment, AppointmentType, AppointmentWriteValues, PartyRef } from '../types'
+import { DayStrip } from './DayStrip'
+import { SlotPicker } from './SlotPicker'
+import { TypeCards } from './TypeCards'
 import styles from './AppointmentFormPanel.module.css'
 
 export interface PartyField {
@@ -53,12 +57,6 @@ export interface AppointmentFormPanelProps {
 
 const TYPES: AppointmentType[] = ['first_visit', 'checkup', 'blood_draw', 'surgery']
 const CLIENT_TYPES = TYPES.filter((type) => type !== 'surgery')
-
-function typeOptions(variant: AppointmentFormVariant) {
-  const allowed = variant === 'client' ? CLIENT_TYPES : TYPES
-
-  return allowed.map((type) => ({ value: type, label: typeLabel(type) }))
-}
 const DURATION_OPTIONS = Array.from({ length: 16 }, (_, index) => (index + 1) * 30).map(
   (minutes) => ({ value: String(minutes), label: `${minutes} min` }),
 )
@@ -186,7 +184,7 @@ export function AppointmentFormPanel({
     )
 
     if (!isClient) {
-      return all.filter((option) => !option.disabled)
+      return all
     }
 
     // A client sees their own bookings in place, disabled, instead of an unexplained gap.
@@ -313,7 +311,7 @@ export function AppointmentFormPanel({
     : isClient
       ? 'Book a visit'
       : 'New appointment'
-  const noSlots = availabilityQuery.isSuccess && options.length === 0
+  const noSlots = availabilityQuery.isSuccess && options.every((option) => option.disabled)
 
   return (
     <SlidePanel
@@ -334,29 +332,39 @@ export function AppointmentFormPanel({
         </>
       }
     >
-      <form id="appointment-form" onSubmit={submit} className={layout.stack}>
-        {isReschedule && appointment && (
-          <div className={styles.summaryGrid}>
-            <Summary label="Type" value={typeLabel(appointment.type)} />
-            <Summary label="Patient" value={appointment.patientName ?? 'No patient yet'} />
-            <Summary label="Owner" value={appointment.ownerName ?? 'No owner yet'} />
-          </div>
-        )}
+      <DetailSection>
+        <form id="appointment-form" onSubmit={submit} className={layout.stack}>
+          {isReschedule && appointment && (
+            <div className={styles.summaryGrid}>
+              <Summary label="Type" value={typeLabel(appointment.type)} />
+              <Summary label="Patient" value={appointment.patientName ?? 'No patient yet'} />
+              <Summary label="Owner" value={appointment.ownerName ?? 'No owner yet'} />
+            </div>
+          )}
 
-        <div className={layout.formRow}>
           <Controller
             name="date"
             control={control}
             rules={{ required: 'Pick a date' }}
             render={({ field }) => (
-              <DatePicker
-                id="appointment-date"
-                label="Date *"
-                value={field.value}
-                onChange={field.onChange}
-                minDate={clinicToday()}
-                error={errors.date?.message}
-              />
+              <div className={layout.stackTight}>
+                <DatePicker
+                  id="appointment-date"
+                  label="Date *"
+                  value={field.value}
+                  onChange={field.onChange}
+                  minDate={clinicToday()}
+                  error={errors.date?.message}
+                />
+                {field.value && (
+                  <DayStrip
+                    date={field.value}
+                    onSelect={field.onChange}
+                    minDate={clinicToday()}
+                    label="Days of the week"
+                  />
+                )}
+              </div>
             )}
           />
           <Controller
@@ -367,124 +375,124 @@ export function AppointmentFormPanel({
               validate: (value) =>
                 !value || Date.parse(value) > Date.now() ? true : 'Pick a start time in the future',
             }}
-            render={({ field }) => (
-              <Select
-                id="appointment-start"
-                label="Start time *"
-                value={field.value}
-                onChange={field.onChange}
-                options={options}
-                placeholder={noSlots ? 'No free slots' : 'Select a time'}
-                error={errors.startsAt?.message}
-                disabled={noSlots}
-              />
-            )}
-          />
-        </div>
-
-        {noSlots && (
-          <div className={styles.noSlots}>
-            <p className={styles.noSlotsText} role="status">
-              {freeDaySearch === 'none'
-                ? `No free time in the next ${FREE_DAY_SEARCH_DAYS} days.`
-                : freeDaySearch === 'failed'
-                  ? 'Could not look for a free day. Try again.'
-                  : `No free time left on ${formatDisplayDate(date)}.`}
-            </p>
-            <Button
-              variant="outline"
-              type="button"
-              className={styles.noSlotsButton}
-              disabled={freeDaySearch === 'searching'}
-              onClick={() => void goToNextFreeDay()}
-            >
-              Next free day
-            </Button>
-          </div>
-        )}
-
-        {!isReschedule && (
-          <div className={layout.formRow}>
-            <Controller
-              name="type"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  id="appointment-type"
-                  label="Type"
+            render={({ field }) =>
+              options.length > 0 || availabilityQuery.isLoading ? (
+                <SlotPicker
+                  label="Start time *"
+                  options={options}
                   value={field.value}
-                  onChange={(value) => field.onChange(value as AppointmentType)}
-                  options={typeOptions(variant)}
+                  onChange={field.onChange}
+                  error={errors.startsAt?.message}
+                  isLoading={availabilityQuery.isLoading}
+                />
+              ) : (
+                <>{errors.startsAt && <FormError message={errors.startsAt.message} />}</>
+              )
+            }
+          />
+
+          {noSlots && (
+            <div className={styles.noSlots}>
+              <p className={styles.noSlotsText} role="status">
+                {freeDaySearch === 'none'
+                  ? `No free time in the next ${FREE_DAY_SEARCH_DAYS} days.`
+                  : freeDaySearch === 'failed'
+                    ? 'Could not look for a free day. Try again.'
+                    : `No free time left on ${formatDisplayDate(date)}.`}
+              </p>
+              <Button
+                variant="outline"
+                type="button"
+                className={styles.noSlotsButton}
+                disabled={freeDaySearch === 'searching'}
+                onClick={() => void goToNextFreeDay()}
+              >
+                Next free day
+              </Button>
+            </div>
+          )}
+
+          {!isReschedule && (
+            <>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <TypeCards
+                    value={field.value}
+                    onChange={field.onChange}
+                    types={isClient ? CLIENT_TYPES : TYPES}
+                  />
+                )}
+              />
+              {durationField}
+            </>
+          )}
+
+          {isReschedule && durationField}
+
+          {!isReschedule && (
+            <>
+              {patientField && (
+                <Controller
+                  name="patient"
+                  control={control}
+                  render={({ field }) =>
+                    patientField({
+                      value: field.value,
+                      onChange: (next) => choosePatient(next, field.onChange),
+                      error: errors.patient?.message,
+                    })
+                  }
                 />
               )}
-            />
-            {durationField}
-          </div>
-        )}
-
-        {isReschedule && durationField}
-
-        {!isReschedule && (
-          <>
-            {patientField && (
-              <Controller
-                name="patient"
-                control={control}
-                render={({ field }) =>
-                  patientField({
-                    value: field.value,
-                    onChange: (next) => choosePatient(next, field.onChange),
-                    error: errors.patient?.message,
-                  })
-                }
-              />
-            )}
-            {ownerFromPatient && (
-              <div className={styles.lockedField}>
-                <span className={fieldStyles.label} id="appointment-owner-label">
-                  Owner
-                </span>
-                <div
-                  className={styles.lockedValue}
-                  role="status"
-                  aria-labelledby="appointment-owner-label"
-                >
-                  {ownerLookup === 'loading'
-                    ? 'Finding the owner…'
-                    : ownerLookup === 'failed'
-                      ? "The owner on the patient's card is used when you book."
-                      : (owner?.label ?? '')}
+              {ownerFromPatient && (
+                <div className={styles.lockedField}>
+                  <span className={fieldStyles.label} id="appointment-owner-label">
+                    Owner
+                  </span>
+                  <div
+                    className={styles.lockedValue}
+                    role="status"
+                    aria-labelledby="appointment-owner-label"
+                  >
+                    {ownerLookup === 'loading'
+                      ? 'Finding the owner…'
+                      : ownerLookup === 'failed'
+                        ? "The owner on the patient's card is used when you book."
+                        : (owner?.label ?? '')}
+                  </div>
+                  <p className={styles.lockedHint}>Taken from the patient's card.</p>
                 </div>
-                <p className={styles.lockedHint}>Taken from the patient's card.</p>
-              </div>
-            )}
-            {ownerField && !ownerFromPatient && (
-              <Controller
-                name="owner"
-                control={control}
-                render={({ field }) =>
-                  ownerField({
-                    value: field.value,
-                    onChange: field.onChange,
-                    error: errors.owner?.message,
-                  })
-                }
+              )}
+              {ownerField && !ownerFromPatient && (
+                <Controller
+                  name="owner"
+                  control={control}
+                  render={({ field }) =>
+                    ownerField({
+                      value: field.value,
+                      onChange: field.onChange,
+                      error: errors.owner?.message,
+                    })
+                  }
+                />
+              )}
+              <Textarea
+                id="appointment-reason"
+                label="Reason"
+                placeholder="Why the animal is coming in…"
+                {...register('reason', {
+                  maxLength: { value: 1000, message: 'Maximum 1000 characters' },
+                })}
+                error={errors.reason?.message}
               />
-            )}
-            <Textarea
-              id="appointment-reason"
-              label="Reason"
-              placeholder="Why the animal is coming in…"
-              {...register('reason', {
-                maxLength: { value: 1000, message: 'Maximum 1000 characters' },
-              })}
-              error={errors.reason?.message}
-            />
-          </>
-        )}
+            </>
+          )}
 
-        <FormError message={submitError} />
-      </form>
+          <FormError message={submitError} />
+        </form>
+      </DetailSection>
     </SlidePanel>
   )
 }

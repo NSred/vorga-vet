@@ -1,10 +1,31 @@
 import type { ReactNode } from 'react'
-import { Badge, Button, DetailSection, Field, FieldGrid, SlidePanel } from '@/shared/ui'
+import {
+  Badge,
+  Button,
+  DetailSection,
+  EntityHeader,
+  Field,
+  FieldGrid,
+  SlidePanel,
+} from '@/shared/ui'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { calculateAge } from '../lib/patientAge'
 import type { PatientDetail } from '../types'
-import { SPECIES_EMOJI } from '@/shared/domain/species'
+import { SPECIES_EMOJI, SPECIES_LABELS } from '@/shared/domain/species'
 import styles from './PatientDetailPanel.module.css'
+
+function Tile({ label, value, unit }: { label: string; value?: string | number; unit?: string }) {
+  const blank = value === undefined || value === ''
+  return (
+    <div className={styles.tile}>
+      <span className={styles.tileLabel}>{label}</span>
+      <span className={styles.tileValue}>
+        {blank ? '—' : value}
+        {!blank && unit && <span className={styles.unit}> {unit}</span>}
+      </span>
+    </div>
+  )
+}
 
 export interface PatientDetailPanelProps {
   patient: PatientDetail
@@ -38,15 +59,29 @@ export function PatientDetailPanel({
       ariaLabel={`Record for ${patient.name}`}
       headerTone="accent"
       header={
-        <div className={styles.header}>
-          <span className={styles.avatar}>{SPECIES_EMOJI[patient.species]}</span>
-          <div>
-            <div className={styles.name}>{patient.name}</div>
-            <div className={styles.subtitle}>
-              {patient.breedName} · {age ?? '—'} yrs
-            </div>
-          </div>
-        </div>
+        <EntityHeader
+          eyebrow={patient.cardNumber}
+          avatar={SPECIES_EMOJI[patient.species]}
+          title={patient.name}
+          subtitle={`${patient.breedName} · ${age ?? '—'} yrs`}
+          chips={
+            <>
+              {patient.isDeleted ? (
+                <Badge tone="danger">Deleted</Badge>
+              ) : (
+                <Badge tone="accent">● Active</Badge>
+              )}
+              <Badge tone={patient.sex === 'female' ? 'female' : 'male'}>
+                {patient.sex === 'female' ? '♀ Female' : '♂ Male'}
+              </Badge>
+              {patient.allergies.map((allergen) => (
+                <Badge key={allergen.id} tone="warn">
+                  ⚠ {allergen.name}
+                </Badge>
+              ))}
+            </>
+          }
+        />
       }
       footer={
         onDelete || onEdit ? (
@@ -66,16 +101,16 @@ export function PatientDetailPanel({
       }
     >
       <DetailSection title="Basic information">
+        <div className={styles.tiles}>
+          <Tile label="Age" value={age} unit="yrs" />
+          <Tile label="Weight" value={patient.weightKg} unit="kg" />
+          <Tile label="Sex" value={patient.sex === 'female' ? 'Female' : 'Male'} />
+        </div>
         <FieldGrid>
-          <Field label="Record no." value={patient.cardNumber} />
-          <Field label="Species" value={patient.species} />
+          <Field label="Species" value={SPECIES_LABELS[patient.species]} />
           <Field label="Breed" value={patient.breedName} />
-          <Field label="Sex" value={patient.sex === 'female' ? 'Female' : 'Male'} />
-          <Field label="Age" value={age} />
-          <Field label="Weight" value={patient.weightKg} />
           <Field label="Color" value={patient.color} />
           <Field label="Chip no." value={patient.chipNumber} />
-          <Field label="Record status" value={patient.isDeleted ? 'Deleted' : 'Active'} />
         </FieldGrid>
       </DetailSection>
 
@@ -102,12 +137,10 @@ export function PatientDetailPanel({
         </FieldGrid>
       </DetailSection>
 
-      {vaccinationsSection && (
-        <DetailSection title="Vaccinations">{vaccinationsSection}</DetailSection>
-      )}
-      {microchipSection && <DetailSection title="Microchip">{microchipSection}</DetailSection>}
-      {remindersSection && <DetailSection title="Reminders">{remindersSection}</DetailSection>}
-      {visitsSection && <DetailSection title="Visits">{visitsSection}</DetailSection>}
+      {vaccinationsSection}
+      {microchipSection}
+      {remindersSection}
+      {visitsSection}
     </SlidePanel>
   )
 }

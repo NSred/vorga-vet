@@ -1,0 +1,73 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.card {
+  --tone: var(--accent);
+  --tone-soft: var(--accent-soft);
+
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.25rem;
+  padding: 0 0.75rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-field);
+  background: var(--field);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+.male {
+  --tone: var(--male);
+  --tone-soft: var(--male-soft);
+}
+
+.female {
+  --tone: var(--female);
+  --tone-soft: var(--female-soft);
+}
+
+.warn {
+  --tone: var(--warn);
+  --tone-soft: var(--warn-soft);
+}
+
+.checked {
+  border-color: var(--tone);
+  background: var(--tone-soft);
+}
+
+.dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--tone);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.hint {
+  font-size: 0.71875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}

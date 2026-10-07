@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { EmptyState, layout, Skeleton } from '@/shared/ui'
+import { DetailSection, EmptyState, layout, Skeleton } from '@/shared/ui'
 import { usePatientExaminationsQuery } from '../hooks/usePatientExaminationsQuery'
 import type { Examination } from '../types'
 import { ExaminationCard } from './ExaminationCard'
@@ -14,6 +14,26 @@ export interface VisitHistoryProps {
 export function VisitHistory({ patientId, onEdit, renderCharges }: VisitHistoryProps) {
   const { data, isPending, isError } = usePatientExaminationsQuery(patientId)
 
+  return (
+    <DetailSection title="Visits" count={data?.length}>
+      <VisitList
+        data={data}
+        isPending={isPending}
+        isError={isError}
+        onEdit={onEdit}
+        renderCharges={renderCharges}
+      />
+    </DetailSection>
+  )
+}
+
+interface VisitListProps extends Omit<VisitHistoryProps, 'patientId'> {
+  data: Examination[] | undefined
+  isPending: boolean
+  isError: boolean
+}
+
+function VisitList({ data, isPending, isError, onEdit, renderCharges }: VisitListProps) {
   if (isPending) {
     return <Skeleton height="8rem" />
   }
@@ -23,7 +43,13 @@ export function VisitHistory({ patientId, onEdit, renderCharges }: VisitHistoryP
   }
 
   if (!data || data.length === 0) {
-    return <EmptyState message="No visits recorded yet." />
+    return (
+      <EmptyState
+        message="No visits recorded yet."
+        icon="🩺"
+        hint="Visits appear here after appointments."
+      />
+    )
   }
 
   return (

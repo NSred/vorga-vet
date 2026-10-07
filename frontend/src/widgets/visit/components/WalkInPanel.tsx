@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
+import { DetailSection, Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import { useCurrentUser } from '@/features/auth'
 import {
   emptyExaminationValues,
@@ -18,7 +18,6 @@ import { PatientPicker, type PatientListItem } from '@/features/patients'
 import { DiagnosisPicker } from '@/features/diagnoses'
 import { useVisitCharges } from '../hooks/useVisitCharges'
 import { PaidStep } from './PaidStep'
-import styles from './VisitPanel.module.css'
 
 export interface WalkInPanelProps {
   open: boolean
@@ -153,19 +152,24 @@ export function WalkInPanel({ open, onOpenChange, onRecorded, onPaid }: WalkInPa
     >
       {step.kind === 'form' ? (
         <form id="walk-in-form" onSubmit={submit} className={layout.page}>
-          <PatientPicker value={patient} onChange={setPatient} error={patientError} />
-          <p className={layout.note}>
-            The animal needs a card first. If it is not found, create it in{' '}
-            <Link to="/patients">Patient Records</Link> and come back.
-          </p>
-          <h3 className={styles.sectionTitle}>Examination</h3>
-          <ExaminationFields
-            register={register}
-            control={control}
-            errors={errors}
-            renderDiagnosis={(field) => <DiagnosisPicker {...field} />}
-            costSection={charges.section}
-          />
+          <DetailSection title="Patient">
+            <div className={layout.stackTight}>
+              <PatientPicker value={patient} onChange={setPatient} error={patientError} />
+              <p className={layout.note}>
+                The animal needs a card first. If it is not found, create it in{' '}
+                <Link to="/patients">Patient Records</Link> and come back.
+              </p>
+            </div>
+          </DetailSection>
+          <DetailSection title="Examination">
+            <ExaminationFields
+              register={register}
+              control={control}
+              errors={errors}
+              renderDiagnosis={(field) => <DiagnosisPicker {...field} />}
+              costSection={charges.section}
+            />
+          </DetailSection>
           <FormError message={submitError} />
         </form>
       ) : (

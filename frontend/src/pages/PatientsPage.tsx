@@ -124,6 +124,7 @@ export function PatientsPage() {
       <PageHeader
         title="Patient Records"
         subtitle="Overview and entry of animals, owners, and basic medical information."
+        mobileActions="floating"
         actions={
           isVeterinarian && (
             <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>

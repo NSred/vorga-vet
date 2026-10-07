@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { EmptyState, Skeleton } from '@/shared/ui'
 import { AppointmentBlock } from './AppointmentBlock'
 import { AppointmentChip } from './AppointmentChip'
@@ -16,6 +16,29 @@ export interface DayViewProps {
   hasSlotData: boolean
 }
 
+const MINUTE = 60_000
+
+function useNow(): number {
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), MINUTE)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  return now
+}
+
+function nowPosition(slots: AvailabilitySlot[], now: number) {
+  const index = slots.findIndex(
+    (slot) => Date.parse(slot.startsAt) <= now && now < Date.parse(slot.endsAt),
+  )
+  if (index === -1) return null
+  const start = Date.parse(slots[index].startsAt)
+  const fraction = (now - start) / (Date.parse(slots[index].endsAt) - start)
+  return { index, fraction }
+}
+
 export function DayView({
   slots,
   appointments,
@@ -24,15 +47,24 @@ export function DayView({
   isLoading,
   hasSlotData,
 }: DayViewProps) {
+  const now = useNow()
+
   if (isLoading) {
     return <Skeleton height="20rem" />
   }
 
   const { rows, blocks, laneCount } = layoutDay(appointments, slots)
   const outside = appointmentsOutsideSlots(appointments, slots)
+  const nowAt = nowPosition(slots, now)
 
   if (hasSlotData && slots.length === 0 && outside.length === 0) {
-    return <EmptyState message="The clinic is closed on this day." />
+    return (
+      <EmptyState
+        message="The clinic is closed on this day."
+        icon="🌙"
+        hint="Pick another day to book."
+      />
+    )
   }
 
   return (
@@ -90,6 +122,19 @@ export function DayView({
               </Fragment>
             )
           })}
+
+          {nowAt && (
+            <span
+              className={styles.now}
+              data-testid="now-line"
+              aria-hidden="true"
+              style={{
+                gridRow: nowAt.index + 1,
+                gridColumn: '1 / -1',
+                marginTop: `calc(${nowAt.fraction} * var(--day-slot-height))`,
+              }}
+            />
+          )}
 
           {blocks.map((block) => (
             <AppointmentBlock

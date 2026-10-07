@@ -11,7 +11,11 @@ import { PeakHourTile } from './PeakHourTile'
 import { ScheduledTodayTile } from './ScheduledTodayTile'
 import { TotalPatientsTile } from './TotalPatientsTile'
 
-function todayAt(id: string, time: string, status: Appointment['status'] = 'scheduled'): Appointment {
+function todayAt(
+  id: string,
+  time: string,
+  status: Appointment['status'] = 'scheduled',
+): Appointment {
   const startsAt = `${clinicToday()}T${time}:00.000Z`
 
   return {

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
+import { DetailSection, Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import {
   appointmentErrorMessage,
   appointmentErrors,
@@ -33,7 +33,6 @@ import {
 import { useVisitCharges } from '../hooks/useVisitCharges'
 import { PaidStep } from './PaidStep'
 import { PartyResolutionFields } from './PartyResolutionFields'
-import styles from './VisitPanel.module.css'
 
 export interface CompleteVisitPanelProps {
   appointment: Appointment
@@ -229,14 +228,15 @@ export function CompleteVisitPanel({
               errors={resolutionErrors}
             />
           )}
-          <h3 className={styles.sectionTitle}>Examination</h3>
-          <ExaminationFields
-            register={register}
-            control={control}
-            errors={errors}
-            renderDiagnosis={(field) => <DiagnosisPicker {...field} />}
-            costSection={charges.section}
-          />
+          <DetailSection title="Examination">
+            <ExaminationFields
+              register={register}
+              control={control}
+              errors={errors}
+              renderDiagnosis={(field) => <DiagnosisPicker {...field} />}
+              costSection={charges.section}
+            />
+          </DetailSection>
           <FormError message={submitError} />
         </form>
       ) : (

@@ -22,10 +22,26 @@
 }
 
 .brand {
+  display: flex;
   flex-shrink: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text);
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
 }
 
 .nav {
@@ -99,14 +115,21 @@
 
 .logoutButton {
   flex-shrink: 0;
+  height: 2.125rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--field);
+  color: #5d574e;
+  font-size: 0.8125rem;
+  font-weight: 600;
   white-space: nowrap;
-  border: none;
-  background: none;
-  padding: 0;
-  font-weight: 500;
-  color: var(--text);
-  text-decoration: underline;
   cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.logoutButton:hover {
+  border-color: var(--border-strong);
 }
 
 .main {
@@ -116,7 +139,7 @@
 @media (max-width: 40rem) {
   .main {
     overflow-x: clip;
-    padding: 1rem;
+    padding: 1rem 1rem calc(1rem + var(--action-bar-space, 0px));
   }
 }
 
@@ -171,9 +194,5 @@
 @media (max-width: 40rem) and (pointer: coarse) {
   .navLink {
     padding-block: 0.65rem;
-  }
-
-  .logoutButton {
-    min-height: var(--touch-target);
   }
 }

@@ -86,7 +86,7 @@
   .viewport {
     left: 1rem;
     right: 1rem;
-    bottom: calc(1rem + env(safe-area-inset-bottom));
+    bottom: calc(1rem + env(safe-area-inset-bottom) + var(--action-bar-space, 0px));
     width: auto;
   }
 }

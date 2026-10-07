@@ -42,6 +42,7 @@ export function ReportsPage() {
       <PageHeader
         title="Reports"
         subtitle="The day's exams and takings, what is still unpaid, and deleted patient cards."
+        mobileActions="inline"
         actions={
           <Button
             variant="outline"

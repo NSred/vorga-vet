@@ -17,6 +17,13 @@ const STATUS_LABELS: Record<AppointmentStatus, string> = {
   cancelled: 'Cancelled',
 }
 
+const TYPE_TONES: Record<AppointmentType, BadgeTone> = {
+  first_visit: 'male',
+  checkup: 'ok',
+  blood_draw: 'female',
+  surgery: 'warn',
+}
+
 const STATUS_TONES: Record<AppointmentStatus, BadgeTone> = {
   scheduled: 'neutral',
   checked_in: 'ok',
@@ -27,6 +34,10 @@ const STATUS_TONES: Record<AppointmentStatus, BadgeTone> = {
 
 export function typeLabel(type: AppointmentType): string {
   return TYPE_LABELS[type]
+}
+
+export function typeTone(type: AppointmentType): BadgeTone {
+  return TYPE_TONES[type]
 }
 
 export function statusLabel(status: AppointmentStatus): string {

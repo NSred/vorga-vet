@@ -17,13 +17,16 @@ import {
   appointmentErrorMessage,
   AppointmentFormPanel,
   CalendarToolbar,
+  DayStrip,
   DayView,
+  groupByClinicDate,
   isVisible,
   MonthView,
   parseViewParams,
   toViewParams,
   UnresolvedBanner,
   UnresolvedPanel,
+  WeekAgenda,
   useAppointmentQuery,
   useAppointmentsQuery,
   useAvailabilityQuery,
@@ -76,7 +79,8 @@ export function AppointmentsPage() {
   const { ownerField, patientField, ownerOfPatient } = usePartyFields()
   const cancel = useCancelAppointment()
   const noShow = useMarkNoShow()
-  const defaultView: CalendarView = useMediaQuery(PHONE_QUERY) ? 'day' : 'week'
+  const isPhone = useMediaQuery(PHONE_QUERY)
+  const defaultView: CalendarView = isPhone ? 'day' : 'week'
 
   const {
     view,
@@ -109,6 +113,16 @@ export function AppointmentsPage() {
     () => (appointmentsQuery.data ?? []).filter((item) => isVisible(item, showCancelled)),
     [appointmentsQuery.data, showCancelled],
   )
+
+  const showDayStrip = isPhone && view === 'day'
+  const weekRange = useMemo(() => clinicWeekRange(currentDate), [currentDate])
+  const weekQuery = useAppointmentsQuery(weekRange, showDayStrip)
+  const weekCounts = useMemo(() => {
+    const shown = (weekQuery.data ?? []).filter((item) => isVisible(item, showCancelled))
+    return new Map(
+      [...groupByClinicDate(shown)].map(([dateIso, items]) => [dateIso, items.length] as const),
+    )
+  }, [weekQuery.data, showCancelled])
 
   const inRange = appointmentsQuery.data?.find((item) => item.id === selectedId) ?? null
   const detailQuery = useAppointmentQuery(selectedId, inRange === null)
@@ -195,6 +209,15 @@ export function AppointmentsPage() {
         onWalkIn={() => setWalkInOpen(true)}
       />
 
+      {showDayStrip && (
+        <DayStrip
+          date={currentDate}
+          onSelect={setCurrentDate}
+          counts={weekCounts}
+          label="Days of the week"
+        />
+      )}
+
       {hasError ? (
         <EmptyState message="Appointments could not be loaded." />
       ) : (
@@ -212,7 +235,17 @@ export function AppointmentsPage() {
               hasSlotData={hasSlotData}
             />
           )}
-          {view === 'week' && (
+          {view === 'week' && isPhone && (
+            <WeekAgenda
+              date={currentDate}
+              appointments={visible}
+              slots={slots}
+              onAppointmentClick={(appointment) => setSelectedId(appointment.id)}
+              isLoading={isLoading}
+              hasSlotData={hasSlotData}
+            />
+          )}
+          {view === 'week' && !isPhone && (
             <WeekView
               date={currentDate}
               appointments={visible}

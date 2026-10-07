@@ -15,6 +15,7 @@ import {
 } from 'date-fns'
 import { useState } from 'react'
 import { formatDateOnly, formatDisplayDate, parseDateOnly } from '@/shared/lib/dateOnly'
+import { FieldLabel } from '../FieldLabel/FieldLabel'
 import fieldStyles from '../field.module.css'
 import styles from './DatePicker.module.css'
 
@@ -33,7 +34,20 @@ export interface DatePickerProps {
 }
 
 const WEEKDAY_HEADERS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MONTH_LABELS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
 const YEARS_PER_PAGE = 12
 
 function buildDayGrid(displayDate: Date): Date[] {
@@ -62,7 +76,9 @@ export function DatePicker({
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState<'days' | 'months' | 'years'>('days')
-  const [displayDate, setDisplayDate] = useState<Date>(() => (value ? parseDateOnly(value) : new Date()))
+  const [displayDate, setDisplayDate] = useState<Date>(() =>
+    value ? parseDateOnly(value) : new Date(),
+  )
   const [yearPageStart, setYearPageStart] = useState<number>(() => getYear(displayDate) - 5)
 
   const minDay = minDate ? parseDateOnly(minDate) : undefined
@@ -115,11 +131,7 @@ export function DatePicker({
 
   return (
     <div className={`${fieldStyles.field} ${className ?? ''}`}>
-      {!hideLabel && (
-        <label htmlFor={id} className={fieldStyles.label}>
-          {label}
-        </label>
-      )}
+      {!hideLabel && <FieldLabel text={label} htmlFor={id} />}
       <Popover.Root open={open} onOpenChange={handleOpenChange}>
         <Popover.Trigger
           id={id}
@@ -128,10 +140,30 @@ export function DatePicker({
           aria-invalid={Boolean(error) || undefined}
           aria-label={hideLabel ? label : undefined}
         >
-          <svg className={styles.icon} width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <rect x="3" y="4.5" width="14" height="12.5" rx="2" stroke="currentColor" strokeWidth="1.5" />
+          <svg
+            className={styles.icon}
+            width="15"
+            height="15"
+            viewBox="0 0 20 20"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect
+              x="3"
+              y="4.5"
+              width="14"
+              height="12.5"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
             <path d="M3 8h14" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M6.5 2.5v3M13.5 2.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path
+              d="M6.5 2.5v3M13.5 2.5v3"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           </svg>
           <span className={value ? styles.value : styles.placeholder}>
             {value ? formatValue(value) : placeholder}

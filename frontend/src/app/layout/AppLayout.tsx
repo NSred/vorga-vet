@@ -38,7 +38,12 @@ export function AppLayout() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <span className={styles.brand}>VorgaVet</span>
+          <span className={styles.brand}>
+            <span className={styles.brandMark} aria-hidden="true">
+              V
+            </span>
+            VorgaVet
+          </span>
           <nav className={styles.nav} ref={navRef} aria-label="Main">
             {thumbStyle && (
               <span

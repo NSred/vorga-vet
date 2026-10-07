@@ -177,9 +177,7 @@ describe('DatePicker maxDate', () => {
 describe('DatePicker minDate', () => {
   it('disables days before minDate and keeps today and later enabled', async () => {
     const user = userEvent.setup()
-    render(
-      <DatePicker id="appointmentDate" label="Date" onChange={vi.fn()} minDate="2026-08-26" />,
-    )
+    render(<DatePicker id="appointmentDate" label="Date" onChange={vi.fn()} minDate="2026-08-26" />)
 
     await user.click(screen.getByLabelText('Date'))
 
@@ -190,9 +188,7 @@ describe('DatePicker minDate', () => {
 
   it('blocks navigating before the minimum month', async () => {
     const user = userEvent.setup()
-    render(
-      <DatePicker id="appointmentDate" label="Date" onChange={vi.fn()} minDate="2026-08-26" />,
-    )
+    render(<DatePicker id="appointmentDate" label="Date" onChange={vi.fn()} minDate="2026-08-26" />)
 
     await user.click(screen.getByLabelText('Date'))
 

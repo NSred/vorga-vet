@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { AppointmentDetailPanel } from './AppointmentDetailPanel'
@@ -31,8 +31,8 @@ describe('AppointmentDetailPanel', () => {
       />,
     )
 
-    expect(screen.getAllByText('17.09.2026').length).toBeGreaterThan(0)
-    expect(screen.getByText('07:00–07:30')).toBeInTheDocument()
+    expect(screen.getByText(/17.09.2026 · 30 min/)).toBeInTheDocument()
+    expect(screen.getByText('07:00 – 07:30')).toBeInTheDocument()
     expect(screen.getByText('Surgery')).toBeInTheDocument()
     expect(screen.getByText('Checked in')).toBeInTheDocument()
     expect(screen.getByText('limping')).toBeInTheDocument()
@@ -53,7 +53,7 @@ describe('AppointmentDetailPanel', () => {
       />,
     )
 
-    await user.click(screen.getByRole('button', { name: 'Patient record' }))
+    await user.click(screen.getByRole('button', { name: 'Open record ›' }))
     expect(onOpenPatientRecord).toHaveBeenCalledTimes(1)
 
     rerender(
@@ -65,7 +65,7 @@ describe('AppointmentDetailPanel', () => {
       />,
     )
 
-    expect(screen.queryByRole('button', { name: 'Patient record' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Open record ›' })).not.toBeInTheDocument()
   })
 })
 
@@ -154,5 +154,57 @@ describe('AppointmentDetailPanel visit actions', () => {
 
     expect(screen.queryByRole('button', { name: 'Check in' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Complete visit' })).not.toBeInTheDocument()
+  })
+})
+
+describe('AppointmentDetailPanel stepper', () => {
+  function renderWith(status: Appointment['status']) {
+    render(
+      <AppointmentDetailPanel
+        appointment={{ ...appointment, status }}
+        open
+        onOpenChange={vi.fn()}
+        patientSection={null}
+        onCheckIn={vi.fn()}
+        onComplete={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    )
+  }
+
+  function currentStep() {
+    return within(screen.getByRole('list', { name: 'Visit progress' }))
+      .getAllByRole('listitem')
+      .find((item) => item.getAttribute('aria-current') === 'step')
+  }
+
+  it.each([
+    ['scheduled', 'Scheduled', 'Check in'],
+    ['checked_in', 'Checked in', 'Complete visit'],
+  ] as const)(
+    'marks %s as the current step and leads with the next action',
+    (status, step, next) => {
+      renderWith(status)
+
+      expect(currentStep()).toHaveTextContent(step)
+      expect(screen.getAllByRole('button', { name: next })[0]).toHaveClass(/primary/)
+    },
+  )
+
+  it('shows every step done once completed', () => {
+    renderWith('completed')
+
+    expect(currentStep()).toHaveTextContent('Completed')
+    expect(screen.queryByRole('button', { name: 'Check in' })).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['cancelled', 'Cancelled'],
+    ['no_show', 'No show'],
+  ] as const)('replaces the stepper with the state of a %s visit', (status, label) => {
+    renderWith(status)
+
+    expect(screen.queryByRole('list', { name: 'Visit progress' })).not.toBeInTheDocument()
+    expect(screen.getByText(label)).toBeInTheDocument()
   })
 })

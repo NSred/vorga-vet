@@ -222,8 +222,7 @@ describe('ClientAppointmentsPage booking', () => {
       within(panel).getByText('The clinic will match this booking to your animal when you arrive.'),
     ).toBeInTheDocument()
 
-    await user.click(within(panel).getByRole('combobox', { name: 'Start time *' }))
-    await user.click(await screen.findByRole('option', { name: '07:00' }))
+    await user.click(await within(panel).findByRole('radio', { name: '07:00' }))
     await user.click(within(panel).getByRole('button', { name: 'Book' }))
 
     await waitFor(() =>
@@ -256,8 +255,7 @@ describe('ClientAppointmentsPage booking', () => {
 
     await user.click(within(panel).getByRole('button', { name: /^Patient/ }))
     await user.click(await screen.findByText('Luna · Ana Petrović'))
-    await user.click(within(panel).getByRole('combobox', { name: 'Start time *' }))
-    await user.click(await screen.findByRole('option', { name: '07:00' }))
+    await user.click(await within(panel).findByRole('radio', { name: '07:00' }))
     await user.click(within(panel).getByRole('button', { name: 'Book' }))
 
     await waitFor(() =>
@@ -280,8 +278,7 @@ describe('ClientAppointmentsPage reschedule and cancel', () => {
     await user.click(screen.getByRole('button', { name: 'Reschedule' }))
     const panel = await screen.findByRole('dialog', { name: 'Move your visit' })
 
-    await user.click(within(panel).getByRole('combobox', { name: 'Start time *' }))
-    await user.click(await screen.findByRole('option', { name: '07:30' }))
+    await user.click(await within(panel).findByRole('radio', { name: '07:30' }))
     await user.click(within(panel).getByRole('button', { name: 'Move' }))
 
     await waitFor(() =>

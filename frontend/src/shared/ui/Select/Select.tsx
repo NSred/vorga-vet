@@ -1,4 +1,5 @@
 import * as RadixSelect from '@radix-ui/react-select'
+import { FieldLabel } from '../FieldLabel/FieldLabel'
 import fieldStyles from '../field.module.css'
 import styles from './Select.module.css'
 
@@ -37,11 +38,7 @@ export function Select({
 
   return (
     <div className={`${fieldStyles.field} ${className ?? ''}`}>
-      {!hideLabel && (
-        <label htmlFor={id} className={fieldStyles.label}>
-          {label}
-        </label>
-      )}
+      {!hideLabel && <FieldLabel text={label} htmlFor={id} />}
       <RadixSelect.Root
         value={value}
         onValueChange={(next) => {

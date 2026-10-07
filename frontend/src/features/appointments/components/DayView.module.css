@@ -96,3 +96,24 @@
   gap: 0.3rem;
   min-width: 0;
 }
+
+.now {
+  position: relative;
+  z-index: 3;
+  align-self: start;
+  height: 2px;
+  margin-left: 3.25rem;
+  background: var(--danger);
+  pointer-events: none;
+}
+
+.now::before {
+  position: absolute;
+  top: -4px;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--danger);
+  content: '';
+}

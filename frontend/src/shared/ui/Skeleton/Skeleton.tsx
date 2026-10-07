@@ -9,5 +9,7 @@ export interface SkeletonProps {
 
 export function Skeleton({ width = '100%', height = '1rem', className }: SkeletonProps) {
   const style: CSSProperties = { width, height }
-  return <span aria-hidden="true" className={`${styles.skeleton} ${className ?? ''}`} style={style} />
+  return (
+    <span aria-hidden="true" className={`${styles.skeleton} ${className ?? ''}`} style={style} />
+  )
 }

@@ -1,28 +1,39 @@
 :root {
-  --bg: #f4f2ed;
-  --surface: #fffdfa;
-  --surface-2: #f7f5f0;
-  --surface-3: #efebe3;
-  --border: #e4e0d7;
+  --bg: #f3f1ec;
+  --surface: #fdfcf9;
+  --surface-2: #f3f1ec;
+  --surface-3: #e9e5dc;
+  --field: #ffffff;
+  --border: #e6e1d8;
   --border-strong: #d4cfc4;
-  --text: #1b1a17;
+  --text: #1d1b18;
   --text-muted: #6f6a61;
-  --text-faint: #a39d92;
-  --accent: #2f6f52;
-  --accent-strong: #24553f;
-  --accent-soft: #e5eee8;
-  --male: #45699c;
-  --male-soft: #e9eef5;
-  --female: #9d5378;
-  --female-soft: #f5e9ef;
-  --warn: #ad6f39;
-  --warn-soft: #f6ece0;
-  --danger: #a63f2e;
-  --danger-soft: #f7e6e2;
-  --ok: #2f6f52;
-  --radius: 10px;
-  --radius-sm: 7px;
-  --surface-glass: rgba(255, 253, 250, 0.6);
-  --surface-glass-hover: rgba(255, 253, 250, 0.88);
+  --text-faint: #8f877b;
+  --accent: #2e7353;
+  --accent-strong: #225a40;
+  --accent-soft: #e8f0eb;
+  --focus-ring: #e3eee7;
+  --male: #3d679b;
+  --male-soft: #e5edf6;
+  --female: #9c4a6d;
+  --female-soft: #f6e6ee;
+  --warn: #b0602c;
+  --warn-soft: #f7e8dc;
+  --danger: #a8382f;
+  --danger-soft: #f6e3e0;
+  --ok: #2e7353;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 18px;
+  --radius-field: 12px;
+  --control-height: 2.5rem;
+  --surface-glass: rgba(253, 252, 249, 0.6);
+  --surface-glass-hover: rgba(253, 252, 249, 0.88);
   --touch-target: 2.75rem;
+}
+
+@media (max-width: 40rem) {
+  :root {
+    --control-height: 3rem;
+  }
 }

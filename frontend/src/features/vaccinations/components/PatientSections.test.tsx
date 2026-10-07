@@ -49,7 +49,7 @@ describe('VaccinationsSection', () => {
     const user = userEvent.setup()
     render(<VaccinationsSection patientId="p1" />)
 
-    await user.click(await screen.findByRole('button', { name: '＋ Vaccination' }))
+    await user.click(await screen.findByRole('button', { name: 'Add vaccination' }))
     const dialog = await screen.findByRole('dialog', { name: 'Add a vaccination' })
     await user.click(within(dialog).getByRole('button', { name: 'Add vaccination' }))
     expect(await within(dialog).findByText('Name the vaccine')).toBeInTheDocument()
@@ -120,7 +120,7 @@ describe('RemindersSection', () => {
     const user = userEvent.setup()
     render(<RemindersSection patientId="p1" />)
 
-    await user.click(await screen.findByRole('button', { name: '＋ Reminder' }))
+    await user.click(await screen.findByRole('button', { name: 'Add reminder' }))
     const dialog = await screen.findByRole('dialog', { name: 'Add a reminder' })
     await user.click(within(dialog).getByRole('button', { name: 'Add reminder' }))
 

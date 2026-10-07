@@ -140,6 +140,26 @@ describe('AppointmentsPage', () => {
     )
   })
 
+  it('switches days from the strip on a phone and marks days with visits', async () => {
+    emulatePhone()
+    const user = userEvent.setup()
+    renderAt('/appointments?date=2026-09-17')
+
+    const strip = await screen.findByRole('group', { name: 'Days of the week' })
+    expect(
+      await within(strip).findByRole('button', { name: '17.09.2026, 1 appointment' }),
+    ).toBeInTheDocument()
+
+    await user.click(within(strip).getByRole('button', { name: '18.09.2026' }))
+
+    await waitFor(() =>
+      expect(getAppointmentsSpy).toHaveBeenCalledWith({
+        from: '2026-09-17T22:00:00.000Z',
+        to: '2026-09-18T22:00:00.000Z',
+      }),
+    )
+  })
+
   it('keeps a week view asked for in the address on a phone', async () => {
     emulatePhone()
     renderAt('/appointments?view=week&date=2026-09-17')
@@ -319,8 +339,9 @@ describe('AppointmentsPage booking', () => {
     const dialog = await screen.findByRole('dialog', { name: 'New appointment' })
 
     await waitFor(() =>
-      expect(within(dialog).getByRole('combobox', { name: 'Start time *' })).toHaveTextContent(
-        '07:30',
+      expect(within(dialog).getByRole('radio', { name: '07:30' })).toHaveAttribute(
+        'aria-checked',
+        'true',
       ),
     )
 

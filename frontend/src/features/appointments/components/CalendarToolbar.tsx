@@ -78,7 +78,7 @@ export function CalendarToolbar({
       </div>
 
       {(onNewAppointment || onWalkIn) && (
-        <div className={styles.actions}>
+        <div className={styles.actions} data-action-bar="bar">
           {onNewAppointment && (
             <Button variant="primary" type="button" onClick={onNewAppointment}>
               ＋ New appointment

@@ -3,6 +3,19 @@ import { describe, expect, it } from 'vitest'
 import { TextField } from './TextField'
 
 describe('TextField', () => {
+  it('shows a unit after the input and keeps the input named by its label', () => {
+    render(<TextField id="weight" label="Weight" suffix="kg" />)
+
+    expect(screen.getByRole('textbox', { name: 'Weight' })).toBeInTheDocument()
+    expect(screen.getByText('kg')).toBeInTheDocument()
+  })
+
+  it('names a required input with its asterisk', () => {
+    render(<TextField id="vet" label="Vet *" />)
+
+    expect(screen.getByRole('textbox', { name: 'Vet *' })).toBeInTheDocument()
+  })
+
   it('names the input by its visible label', () => {
     render(<TextField id="name" label="Name" />)
 

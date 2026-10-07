@@ -39,7 +39,14 @@ export function SearchInput({ value, onChange, placeholder }: SearchInputProps) 
 
   return (
     <div className={`${styles.box} ${isActive ? styles.active : ''}`}>
-      <svg className={styles.icon} width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <svg
+        className={styles.icon}
+        width="17"
+        height="17"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
         <circle cx="8.5" cy="8.5" r="6" strokeWidth="1.8" />
         <line x1="13.2" y1="13.2" x2="18" y2="18" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
@@ -56,7 +63,12 @@ export function SearchInput({ value, onChange, placeholder }: SearchInputProps) 
         aria-label={placeholder}
       />
       {value.length > 0 && (
-        <button type="button" className={styles.clear} aria-label="Clear search" onClick={handleClear}>
+        <button
+          type="button"
+          className={styles.clear}
+          aria-label="Clear search"
+          onClick={handleClear}
+        >
           ×
         </button>
       )}

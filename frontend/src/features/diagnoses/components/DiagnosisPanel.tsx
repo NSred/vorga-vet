@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { apiErrorMessage, isApiErrorCode } from '@/shared/lib/apiClient'
 import { textRule } from '@/shared/lib/formRules'
 import {
+  DetailSection,
   Badge,
   Button,
   FormError,
@@ -118,23 +119,25 @@ export function DiagnosisPanel(props: DiagnosisPanelProps) {
         </>
       }
     >
-      <form id="diagnosis-form" onSubmit={submit} className={layout.stack} noValidate>
-        <TextField
-          id="diagnosis-name"
-          label="Name *"
-          {...register('name', { validate: textRule(200, 'Name is required') })}
-          error={errors.name?.message}
-        />
-        <TextField
-          id="diagnosis-code"
-          label="Code"
-          placeholder="Optional, e.g. D12"
-          className={styles.code}
-          {...register('code', { validate: textRule(20) })}
-          error={errors.code?.message}
-        />
-        <FormError message={submitError} />
-      </form>
+      <DetailSection>
+        <form id="diagnosis-form" onSubmit={submit} className={layout.stack} noValidate>
+          <TextField
+            id="diagnosis-name"
+            label="Name *"
+            {...register('name', { validate: textRule(200, 'Name is required') })}
+            error={errors.name?.message}
+          />
+          <TextField
+            id="diagnosis-code"
+            label="Code"
+            placeholder="Optional, e.g. D12"
+            className={styles.code}
+            {...register('code', { validate: textRule(20) })}
+            error={errors.code?.message}
+          />
+          <FormError message={submitError} />
+        </form>
+      </DetailSection>
     </SlidePanel>
   )
 }

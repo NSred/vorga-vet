@@ -99,7 +99,14 @@ export function DailyReport({
   const body = () => {
     if (isPending) return <Skeleton height="10rem" />
     if (isError) return <p className={styles.mutedNote}>Could not load the report.</p>
-    if (rows.length === 0) return <EmptyState message={`No exams on ${formatDisplayDate(day)}.`} />
+    if (rows.length === 0)
+      return (
+        <EmptyState
+          message={`No exams on ${formatDisplayDate(day)}.`}
+          icon="📋"
+          hint="Completed visits show up here with their totals."
+        />
+      )
 
     return (
       <div className={styles.tableCard}>

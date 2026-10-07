@@ -33,15 +33,67 @@ function cardNumberInput(): HTMLInputElement {
 }
 
 async function selectCatSpecies(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('combobox', { name: 'Species' }))
-  await user.click(await screen.findByRole('option', { name: 'Cat' }))
+  await user.click(screen.getByRole('radio', { name: /Cat/ }))
 }
 
 afterEach(() => {
   vi.restoreAllMocks()
 })
 
+function section(title: string): HTMLElement {
+  return screen.getByRole('heading', { name: title }).closest('section') as HTMLElement
+}
+
 describe('PatientFormPanel', () => {
+  it('groups the fields into identity, animal and medical sections', () => {
+    stubLookups()
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
+
+    expect(within(section('Identity')).getByLabelText('No. *')).toBeInTheDocument()
+    expect(within(section('Identity')).getByLabelText('Animal name *')).toBeInTheDocument()
+    expect(
+      within(section('Animal')).getByRole('radiogroup', { name: 'Species' }),
+    ).toBeInTheDocument()
+    expect(within(section('Animal')).getByLabelText('Weight')).toBeInTheDocument()
+    expect(within(section('Animal')).getByText('kg')).toBeInTheDocument()
+    expect(within(section('Medical')).getByLabelText('Medical history')).toBeInTheDocument()
+  })
+
+  it('picks species from chips and sex from a switch', async () => {
+    const user = userEvent.setup()
+    stubLookups()
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
+
+    expect(screen.getByRole('radio', { name: /Dog/ })).toHaveAttribute('aria-checked', 'true')
+    const sex = screen.getByRole('group', { name: 'Sex' })
+    expect(within(sex).getByRole('button', { name: '♂ Male' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+
+    await user.click(within(sex).getByRole('button', { name: '♀ Female' }))
+    expect(within(sex).getByRole('button', { name: '♀ Female' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+  })
+
   it('prefills a card number matching the species letter format', () => {
     stubLookups()
     render(
@@ -332,8 +384,7 @@ describe('PatientFormPanel in edit mode', () => {
 
     renderEdit()
 
-    await user.click(screen.getByRole('combobox', { name: 'Species' }))
-    await user.click(await screen.findByRole('option', { name: 'Bird' }))
+    await user.click(screen.getByRole('radio', { name: /Bird/ }))
 
     await waitFor(() => {
       expect(cardNumberInput().value).toBe('C26-11111')

@@ -187,7 +187,11 @@ export function ClientAppointmentsPage() {
             {isPending ? (
               <Skeleton height="4rem" />
             ) : open.length === 0 ? (
-              <EmptyState message="You have no upcoming visits." />
+              <EmptyState
+                message="You have no upcoming visits."
+                icon="📅"
+                hint="Book a visit and it will show up here."
+              />
             ) : (
               <ul className={styles.list}>
                 {open.map((appointment) => (

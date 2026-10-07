@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { MonthView } from './MonthView'
@@ -60,7 +60,7 @@ describe('MonthView', () => {
     expect(screen.getByTestId('month-day-2026-09-17')).not.toHaveTextContent('Closed')
   })
 
-  it('offers a phone shortcut that opens a day with appointments', async () => {
+  it('previews a tapped day under the month and opens it on request', async () => {
     const onDateSelect = vi.fn()
     renderMonth(
       [
@@ -70,14 +70,26 @@ describe('MonthView', () => {
       onDateSelect,
     )
 
-    await userEvent.click(screen.getByRole('button', { name: /^Open .*, 2 appointments$/ }))
+    await userEvent.click(screen.getByRole('button', { name: 'Show 17.09.2026, 2 appointments' }))
 
+    const preview = screen.getByRole('region', { name: 'Selected day' })
+    expect(within(preview).getByText('Luna')).toBeInTheDocument()
+    expect(within(preview).getByText('Rex')).toBeInTheDocument()
+    expect(onDateSelect).not.toHaveBeenCalled()
+
+    await userEvent.click(within(preview).getByRole('button', { name: 'Open day' }))
     expect(onDateSelect).toHaveBeenCalledWith('2026-09-17')
   })
 
-  it('offers no shortcut for an empty day', () => {
+  it('says when a previewed day has nothing booked', async () => {
     renderMonth([])
 
-    expect(screen.queryByRole('button', { name: /^Open / })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Show 18.09.2026' }))
+
+    expect(
+      within(screen.getByRole('region', { name: 'Selected day' })).getByText(
+        'Nothing booked on this day.',
+      ),
+    ).toBeInTheDocument()
   })
 })

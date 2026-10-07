@@ -1,10 +1,19 @@
 import type { ReactNode } from 'react'
-import { Badge, Button, DetailSection, Field, FieldGrid, SlidePanel } from '@/shared/ui'
+import {
+  Badge,
+  Button,
+  DetailSection,
+  EntityHeader,
+  Field,
+  FieldGrid,
+  SlidePanel,
+} from '@/shared/ui'
 import { clinicDateOf, clinicTimeOf, weekdayName } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { partyLabel, statusLabel, statusTone, typeLabel } from '../lib/appointmentLabels'
+import { partyLabel, typeLabel, typeTone } from '../lib/appointmentLabels'
 import { canReschedule, canTransition } from '../lib/appointmentTransitions'
 import type { Appointment } from '../types'
+import { AppointmentStepper } from './AppointmentStepper'
 import styles from './AppointmentDetailPanel.module.css'
 
 export interface AppointmentDetailPanelProps {
@@ -37,15 +46,21 @@ export function AppointmentDetailPanel({
   onComplete,
 }: AppointmentDetailPanelProps) {
   const dateIso = clinicDateOf(appointment.startsAt)
-  const timeRange = `${clinicTimeOf(appointment.startsAt)}–${clinicTimeOf(appointment.endsAt)}`
+  const timeRange = `${clinicTimeOf(appointment.startsAt)} – ${clinicTimeOf(appointment.endsAt)}`
   const showReschedule = onReschedule && canReschedule(appointment.status)
   const showCancel = onCancel && canTransition(appointment.status, 'cancelled')
   const showNoShow =
     onNoShow && canTransition(appointment.status, 'no_show') && hasStarted(appointment)
   const showCheckIn = onCheckIn && canTransition(appointment.status, 'checked_in')
   const showComplete = onComplete && canTransition(appointment.status, 'completed')
-  const hasFooter =
-    showReschedule || showCancel || showNoShow || showCheckIn || showComplete || onOpenPatientRecord
+  const primary = showCheckIn
+    ? { label: 'Check in', onClick: onCheckIn }
+    : showComplete && appointment.status === 'checked_in'
+      ? { label: 'Complete visit', onClick: onComplete }
+      : null
+  const showDirectComplete = showComplete && appointment.status === 'scheduled'
+  const hasSecondary = showDirectComplete || showReschedule || showNoShow || showCancel
+  const hasFooter = Boolean(primary) || hasSecondary
 
   return (
     <SlidePanel
@@ -54,71 +69,74 @@ export function AppointmentDetailPanel({
       ariaLabel={`Appointment for ${partyLabel(appointment)}`}
       headerTone="accent"
       header={
-        <div className={styles.header}>
-          <span className={styles.icon}>📅</span>
-          <div>
-            <div className={styles.title}>{partyLabel(appointment)}</div>
-            <div className={styles.subtitle}>
-              {weekdayName(dateIso)}, {formatDisplayDate(dateIso)} · {timeRange}
-            </div>
-          </div>
-        </div>
+        <EntityHeader
+          eyebrow={<Badge tone={typeTone(appointment.type)}>{typeLabel(appointment.type)}</Badge>}
+          title={timeRange}
+          subtitle={`${weekdayName(dateIso)}, ${formatDisplayDate(dateIso)} · ${appointment.durationMinutes} min`}
+          chips={<AppointmentStepper appointment={appointment} />}
+        />
       }
       footer={
         hasFooter ? (
-          <>
-            {showComplete && (
-              <Button variant="primary" type="button" onClick={onComplete}>
-                Complete visit
+          <div className={styles.actions}>
+            {primary && (
+              <Button
+                variant="primary"
+                type="button"
+                className={styles.primary}
+                onClick={primary.onClick}
+              >
+                {primary.label}
               </Button>
             )}
-            {showCheckIn && (
-              <Button variant="primary" type="button" onClick={onCheckIn}>
-                Check in
-              </Button>
+            {hasSecondary && (
+              <div className={styles.secondary}>
+                {showDirectComplete && (
+                  <Button variant="outline" type="button" onClick={onComplete}>
+                    Complete visit
+                  </Button>
+                )}
+                {showReschedule && (
+                  <Button variant="outline" type="button" onClick={onReschedule}>
+                    Reschedule
+                  </Button>
+                )}
+                {showNoShow && (
+                  <Button variant="danger" type="button" onClick={onNoShow}>
+                    No-show
+                  </Button>
+                )}
+                {showCancel && (
+                  <Button variant="danger" type="button" onClick={onCancel}>
+                    Cancel appointment
+                  </Button>
+                )}
+              </div>
             )}
-            {showNoShow && (
-              <Button variant="danger" type="button" onClick={onNoShow}>
-                No-show
-              </Button>
-            )}
-            {showCancel && (
-              <Button variant="danger" type="button" onClick={onCancel}>
-                Cancel appointment
-              </Button>
-            )}
-            {showReschedule && (
-              <Button variant="outline" type="button" onClick={onReschedule}>
-                Reschedule
-              </Button>
-            )}
-            {onOpenPatientRecord && (
-              <Button variant="outline" type="button" onClick={onOpenPatientRecord}>
-                Patient record
-              </Button>
-            )}
-          </>
+          </div>
         ) : null
       }
     >
-      <DetailSection title="Appointment">
-        <FieldGrid>
-          <Field label="Date" value={formatDisplayDate(dateIso)} />
-          <Field label="Time" value={timeRange} />
-          <Field label="Duration" value={`${appointment.durationMinutes} min`} />
-          <Field label="Type" value={typeLabel(appointment.type)} />
-          <Field
-            label="Status"
-            value={
-              <Badge tone={statusTone(appointment.status)}>{statusLabel(appointment.status)}</Badge>
-            }
-          />
-          <Field label="Created" value={formatDisplayDate(clinicDateOf(appointment.createdAt))} />
-          <Field label="Reason" value={appointment.reason} />
-        </FieldGrid>
+      <DetailSection
+        title="Patient"
+        action={
+          onOpenPatientRecord && (
+            <Button variant="soft" type="button" onClick={onOpenPatientRecord}>
+              Open record ›
+            </Button>
+          )
+        }
+      >
+        {patientSection}
       </DetailSection>
 
-      <DetailSection title="Patient">{patientSection}</DetailSection>
+      <DetailSection title="Appointment">
+        <FieldGrid>
+          <Field label="Party" value={partyLabel(appointment)} />
+          <Field label="Created" value={formatDisplayDate(clinicDateOf(appointment.createdAt))} />
+        </FieldGrid>
+        <Field label="Reason" value={appointment.reason} />
+      </DetailSection>
     </SlidePanel>
   )
 }

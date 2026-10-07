@@ -112,7 +112,9 @@ This pass was the dedicated clean-up, but four later sub-projects each changed s
 Together with the list above, this is the whole set of app-wide changes in the appointments arc.
 The rows from the nav-label row to the `widgets/reports/` row come from the legacy-gap work that
 started on 2026-10-04, the rows from `shared/lib/mockStore.ts` onward from the consolidation of
-2026-10-06, and the rows from `useMediaQuery` onward from the mobile layout of the same day.
+2026-10-06, the rows from `useMediaQuery` onward from the mobile layout of the same day, the rows from
+the field shell onward from the shared visual system, and the rows from `PageHeader` onward from
+the phone patterns.
 
 | Change | Why | Where it is explained |
 |---|---|---|
@@ -156,3 +158,10 @@ started on 2026-10-04, the rows from `shared/lib/mockStore.ts` onward from the c
 | `SlidePanel`, `Modal`, `Toast`, `Pagination`, `SearchInput`, `SegmentedControl`, `RecordList`, `Button`, `IconButton` gained phone rules; `tokens.css` gained `--touch-target` | panels fill a phone screen and controls reach 44px on touch phones, with desktop unchanged | [mobile layout](2026-10-06-mobile-layout.md) |
 | `layout.module.css` gained `hideOnPhone`, phone toolbars and a one-column `formRow` under 22.5rem | print buttons are desktop-only, and filters and forms fit a narrow screen | [mobile layout](2026-10-06-mobile-layout.md) |
 | `AppLayout` header becomes two rows on phones, and its nav has `aria-label="Main"` | all tabs stay reachable in a swipeable strip under the brand | [mobile layout](2026-10-06-mobile-layout.md) |
+| `field.module.css` gained a shared `shell` and `required` mark; `FieldLabel` added; text field, text area, select, picker and date triggers compose the shell | one border, radius, height and focus ring for every input, and a red asterisk without changing accessible names | [visual system](2026-10-06-visual-system.md) |
+| `tokens.css` adopted the design palette and gained `--radius-lg`, `--radius-field`, `--field`, `--focus-ring`, `--control-height`; Figtree bundled | the Claude Design look on every width, with our darker grey kept for contrast | [visual system](2026-10-06-visual-system.md) |
+| `DetailSection` became a card with an optional title; `SlidePanel` body is grey with a flex gap; `EntityHeader` added | panels and forms group content into section cards, and entity panels open with a tinted hero | [visual system](2026-10-06-visual-system.md) |
+| `SegmentedControl` options take `count`; `Badge` gained `accent`; `IconButton` gained `filled`; `EmptyState` takes `icon` and `hint`; `TextField` takes `suffix` | counts on switches, a solid status chip, the round close button, richer empty states, units on fields | [visual system](2026-10-06-visual-system.md) |
+| `PageHeader` takes `mobileActions`; `index.css` styles `[data-action-bar]` and sets `--action-bar-space`; `AppLayout` and `Toast` read it | main actions sit in a bottom bar or a floating button on phones, and the page and toasts make room automatically | [phone patterns](2026-10-06-phone-patterns.md) |
+| `Modal` becomes a bottom sheet with a grab handle on phones | every confirm and form dialog rises from the bottom on a phone | [phone patterns](2026-10-06-phone-patterns.md) |
+| `DetailSection` takes `count` and `action`; `Button` gained `soft`; `ChoiceChips` added; `SegmentedControl` takes `labelledBy` and `fullWidth` | section headings count and act, and forms pick from chips and a labelled switch | [phone patterns](2026-10-06-phone-patterns.md) |
