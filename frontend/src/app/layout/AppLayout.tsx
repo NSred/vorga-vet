@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { Suspense, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '@/features/auth'
+import { Skeleton } from '@/shared/ui'
 import styles from './AppLayout.module.css'
 
 const NAV_ITEMS = [
@@ -74,7 +75,9 @@ export function AppLayout() {
         </div>
       </header>
       <main className={styles.main}>
-        <Outlet />
+        <Suspense fallback={<Skeleton height="20rem" />}>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   )

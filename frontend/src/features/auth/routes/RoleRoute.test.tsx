@@ -5,7 +5,7 @@ import { RoleRoute } from './RoleRoute'
 
 const auth = vi.hoisted(() => ({ role: 'veterinarian' as 'veterinarian' | 'client' }))
 
-vi.mock('../context/AuthContext', () => ({
+vi.mock('../context/useAuth', () => ({
   useAuth: () => ({ user: { userId: 'u1', email: 'user@example.com', role: auth.role } }),
 }))
 

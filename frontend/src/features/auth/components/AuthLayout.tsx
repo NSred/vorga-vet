@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+import { Suspense, useState, type CSSProperties } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
 import type { AuthOutletContext, MascotPose } from '@/features/auth/context/AuthLayoutContext'
 import styles from './AuthForm.module.css'
@@ -170,7 +170,9 @@ export function AuthLayout() {
         </nav>
 
         <div className={styles.formPane}>
-          <Outlet context={outletContext} />
+          <Suspense fallback={null}>
+            <Outlet context={outletContext} />
+          </Suspense>
         </div>
       </section>
     </main>

@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
+import { lazy, type ComponentType } from 'react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { AppLayout } from './AppLayout'
@@ -80,5 +81,25 @@ describe('AppLayout navigation', () => {
   it('hides the lists link from a client', () => {
     renderLayout('client')
     expect(screen.queryByRole('link', { name: 'Lists' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the header on screen while a page is still loading', async () => {
+    auth.role = 'veterinarian'
+    let finishLoading: (page: { default: ComponentType }) => void = () => undefined
+    const SlowPage = lazy(
+      () => new Promise<{ default: ComponentType }>((resolve) => (finishLoading = resolve)),
+    )
+    const router = createMemoryRouter(
+      [{ element: <AppLayout />, children: [{ path: '/patients', element: <SlowPage /> }] }],
+      { initialEntries: ['/patients'] },
+    )
+    render(<RouterProvider router={router} />)
+
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
+    expect(screen.queryByText('patients page')).not.toBeInTheDocument()
+
+    await act(async () => finishLoading({ default: () => <p>patients page</p> }))
+
+    expect(await screen.findByText('patients page')).toBeInTheDocument()
   })
 })

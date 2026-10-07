@@ -1,36 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { login as loginRequest, register as registerRequest } from '@/features/auth/api/authApi'
 import { decodeJwt, roleFromClaim } from '@/features/auth/lib/decodeJwt'
 import { accessTokenStore } from '@/shared/lib/accessTokenStore'
 import { tokenStorage } from '@/shared/lib/tokenStorage'
 import { refreshAccessToken, setUnauthorizedHandler } from '@/shared/lib/apiClient'
-import type { LoginRequest, RegisterRequest, UserRole } from '@/features/auth/types'
-
-interface AuthUser {
-  userId: string
-  email: string
-  role: UserRole
-}
-
-interface AuthContextValue {
-  user: AuthUser | null
-  isAuthenticated: boolean
-  isLoading: boolean
-  login: (request: LoginRequest) => Promise<void>
-  register: (request: RegisterRequest) => Promise<void>
-  logout: () => void
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
+import type { LoginRequest, RegisterRequest } from '@/features/auth/types'
+import { AuthContext, type AuthContextValue, type AuthUser } from './useAuth'
 
 function userFromAccessToken(accessToken: string): AuthUser {
   const claims = decodeJwt(accessToken)
@@ -94,12 +70,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
 }

@@ -3,6 +3,22 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-07 — Code splitting and a clean lint run
+
+Frontend only. 142 test files, 777 tests, typecheck clean, lint with no warnings. Checked on the
+rebuilt production image as the vet and the client.
+
+- Each page loads the first time it opens; the first load drops from 732 kB (221 kB compressed)
+  to 353 kB (110 kB compressed), and a client never downloads the vet-only screens.
+- Source files are marked side-effect free except CSS, so the shared UI barrel no longer drags
+  every component into the first load.
+- The header stays on screen while a page loads; a tab left open across a deploy offers a reload
+  when a page file is gone.
+- The four fast-refresh lint warnings are fixed: `patientLabel` and `useAuth` have their own files,
+  and test helpers are exempt from the rule.
+
+Details: [document](specs/2026-10-07-code-splitting-and-lint.md)
+
 ## 2026-10-07 — De-duplication after the phone patterns
 
 Frontend only. 141 test files, 774 tests, typecheck and lint clean. Production code is 213 lines

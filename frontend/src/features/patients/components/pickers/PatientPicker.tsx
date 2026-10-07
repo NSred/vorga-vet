@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { searchComboboxProps, usePagedEntitySearch } from '@/shared/lib/useEntitySearch'
 import { Combobox } from '@/shared/ui'
 import { getPatients } from '../../api/patientsApi'
+import { patientLabel } from '../../lib/patientLabel'
 import type { PatientListItem } from '../../types'
 
 export interface PatientPickerProps {
@@ -11,10 +12,6 @@ export interface PatientPickerProps {
 }
 
 const PAGE_SIZE = 15
-
-export function patientLabel(patient: PatientListItem): string {
-  return `${patient.name} · ${patient.ownerName}`
-}
 
 export function PatientPicker({ value, onChange, error }: PatientPickerProps) {
   const fetchPage = useCallback(

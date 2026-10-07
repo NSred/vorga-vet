@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { Suspense } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { AppointmentsRoute } from './AppointmentsRoute'
 
@@ -16,22 +17,30 @@ vi.mock('@/pages/ClientAppointmentsPage', () => ({
   ClientAppointmentsPage: () => <p>client visits</p>,
 }))
 
+function renderRoute() {
+  render(
+    <Suspense fallback={null}>
+      <AppointmentsRoute />
+    </Suspense>,
+  )
+}
+
 describe('AppointmentsRoute', () => {
-  it('gives a veterinarian the calendar', () => {
+  it('gives a veterinarian the calendar', async () => {
     auth.role = 'veterinarian'
 
-    render(<AppointmentsRoute />)
+    renderRoute()
 
-    expect(screen.getByText('vet calendar')).toBeInTheDocument()
+    expect(await screen.findByText('vet calendar')).toBeInTheDocument()
     expect(screen.queryByText('client visits')).not.toBeInTheDocument()
   })
 
-  it('gives a client their own visits', () => {
+  it('gives a client their own visits', async () => {
     auth.role = 'client'
 
-    render(<AppointmentsRoute />)
+    renderRoute()
 
-    expect(screen.getByText('client visits')).toBeInTheDocument()
+    expect(await screen.findByText('client visits')).toBeInTheDocument()
     expect(screen.queryByText('vet calendar')).not.toBeInTheDocument()
   })
 })

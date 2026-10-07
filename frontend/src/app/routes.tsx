@@ -1,14 +1,16 @@
 import { createBrowserRouter, Navigate } from 'react-router'
 import { AuthLayout, ProtectedRoute, RoleRoute } from '@/features/auth'
 import { AppLayout } from '@/app/layout/AppLayout'
-import { LoginPage } from '@/pages/LoginPage'
-import { RegisterPage } from '@/pages/RegisterPage'
-import { PatientsPage } from '@/pages/PatientsPage'
-import { PriceListPage } from '@/pages/PriceListPage'
-import { ListsPage } from '@/pages/ListsPage'
-import { RemindersPage } from '@/pages/RemindersPage'
-import { ReportsPage } from '@/pages/ReportsPage'
 import { AppointmentsRoute } from '@/app/AppointmentsRoute'
+import {
+  ListsPage,
+  LoginPage,
+  PatientsPage,
+  PriceListPage,
+  RegisterPage,
+  RemindersPage,
+  ReportsPage,
+} from '@/app/lazyPages'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { RouteErrorPage } from '@/pages/RouteErrorPage'
 

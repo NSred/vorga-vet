@@ -1,4 +1,5 @@
-export { AuthProvider, useAuth } from './context/AuthContext'
+export { AuthProvider } from './context/AuthContext'
+export { useAuth } from './context/useAuth'
 export { useCurrentUser } from './hooks/useCurrentUser'
 export { ProtectedRoute } from './routes/ProtectedRoute'
 export { RoleRoute } from './routes/RoleRoute'

@@ -6,7 +6,7 @@ import { useCurrentUser } from './useCurrentUser'
 
 const auth = vi.hoisted(() => ({ userId: 'u1' as string | null }))
 
-vi.mock('../context/AuthContext', () => ({
+vi.mock('../context/useAuth', () => ({
   useAuth: () => ({
     user: auth.userId ? { userId: auth.userId, email: 'v@x.com', role: 'veterinarian' } : null,
   }),

@@ -1,6 +1,5 @@
 import { useAuth } from '@/features/auth'
-import { AppointmentsPage } from '@/pages/AppointmentsPage'
-import { ClientAppointmentsPage } from '@/pages/ClientAppointmentsPage'
+import { AppointmentsPage, ClientAppointmentsPage } from '@/app/lazyPages'
 
 export function AppointmentsRoute() {
   const { user } = useAuth()
