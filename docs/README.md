@@ -19,6 +19,7 @@ not implemented yet. **Superseded** — kept for history; the linked document re
 
 | Date | Area | Topic | Document | Status |
 |---|---|---|---|---|
+| 2026-10-07 | FE | Appointment form kept in one file; tests for the owner lookup race and the free-day search reset | [document](specs/2026-10-07-appointment-form-tests.md) | Implemented |
 | 2026-10-07 | FE | Route-level code splitting, a reload after deploys, and a clean lint run | [document](specs/2026-10-07-code-splitting-and-lint.md) | Implemented |
 | 2026-10-07 | FE | De-duplication after the phone patterns: shared radio group, day of visits, panel tile, trigger rule, dead code, colour tokens | [document](specs/2026-10-07-frontend-dedup.md) | Implemented |
 | 2026-10-06 | FE | Phone patterns from the Claude Design file: action bars, bottom sheets, day strip, week agenda, month preview, appointment stepper, slot picker, patient card headings | [document](specs/2026-10-06-phone-patterns.md) | Implemented |

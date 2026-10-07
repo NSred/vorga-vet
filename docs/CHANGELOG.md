@@ -3,6 +3,17 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-07 — Appointment form tests
+
+Frontend only. 142 test files, 779 tests, typecheck and lint clean.
+
+- The appointment form stays in one file; a planned split into sections and hooks was declined
+  because its fields share state and the split would add indirection for little gain.
+- New tests: a late owner lookup for an earlier patient cannot overwrite the current owner, and
+  picking another day clears a finished "no free day" result. Each fails when its guard is removed.
+
+Details: [document](specs/2026-10-07-appointment-form-tests.md)
+
 ## 2026-10-07 — Code splitting and a clean lint run
 
 Frontend only. 142 test files, 777 tests, typecheck clean, lint with no warnings. Checked on the

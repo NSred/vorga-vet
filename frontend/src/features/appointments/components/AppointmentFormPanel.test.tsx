@@ -1,11 +1,11 @@
-import { screen, waitFor } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { ApiError } from '@/shared/lib/apiClient'
 import * as appointmentsApi from '../api/appointmentsApi'
 import { AppointmentFormPanel, type AppointmentFormPanelProps } from './AppointmentFormPanel'
-import type { Appointment, AvailabilitySlot } from '../types'
+import type { Appointment, AvailabilitySlot, PartyRef } from '../types'
 
 const slots: AvailabilitySlot[] = [
   {
@@ -79,6 +79,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.useRealTimers()
 })
 
 async function pickTime(user: ReturnType<typeof userEvent.setup>, label: string) {
@@ -366,6 +367,26 @@ describe('AppointmentFormPanel owner from the patient', () => {
     expect(screen.getByRole('button', { name: /^Owner:/ })).toHaveTextContent('Owner: none')
   })
 
+  it("keeps the later patient's owner when an earlier lookup answers late", async () => {
+    const user = userEvent.setup()
+    let answerLunaLookup: (owner: PartyRef) => void = () => undefined
+    const ownerOfPatient = vi.fn((patientId: string) =>
+      patientId === 'p1'
+        ? new Promise<PartyRef>((resolve) => (answerLunaLookup = resolve))
+        : Promise.resolve({ id: 'o2', label: 'Ivan Ilić · 063 1' }),
+    )
+    renderForm({ patientField: patientChooser, ownerOfPatient })
+
+    await user.click(screen.getByRole('button', { name: 'Choose Luna' }))
+    await user.click(screen.getByRole('button', { name: 'Choose Rex' }))
+    expect(await screen.findByRole('status', { name: 'Owner' })).toHaveTextContent('Ivan Ilić')
+
+    await act(async () => answerLunaLookup({ id: 'o1', label: 'Ana Petrović · 062 123 456' }))
+
+    expect(screen.getByRole('status', { name: 'Owner' })).toHaveTextContent('Ivan Ilić')
+    expect(screen.getByRole('status', { name: 'Owner' })).not.toHaveTextContent('Ana Petrović')
+  })
+
   it('books without an owner when the lookup fails, so the backend takes it from the patient', async () => {
     const user = userEvent.setup()
     const createSpy = vi.spyOn(appointmentsApi, 'createAppointment').mockResolvedValue('a9')
@@ -428,5 +449,21 @@ describe('AppointmentFormPanel with no free time on the day', () => {
     await user.click(await screen.findByRole('button', { name: 'Next free day' }))
 
     expect(await screen.findByText('No free time in the next 14 days.')).toBeInTheDocument()
+  })
+
+  it('forgets a finished search when another day is picked', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-09-16T12:00:00Z'))
+    const user = userEvent.setup()
+    availabilitySpy.mockResolvedValue([])
+    renderForm()
+
+    await user.click(await screen.findByRole('button', { name: 'Next free day' }))
+    expect(await screen.findByText('No free time in the next 14 days.')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '18.09.2026' }))
+
+    expect(await screen.findByText('No free time left on 18.09.2026.')).toBeInTheDocument()
+    expect(screen.queryByText('No free time in the next 14 days.')).not.toBeInTheDocument()
   })
 })
