@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -9,16 +9,19 @@ import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { reportExamination, reportPatient } from '@/test/reportFixtures'
 import { ReportsPage } from './ReportsPage'
 
+vi.mock('@/features/auth', () => ({
+  useAuth: () => ({ user: { userId: 'u1', email: 'v@x.com', role: 'veterinarian' } }),
+  useCurrentUser: () => ({
+    data: { id: 'u1', firstName: 'Mira', lastName: 'Vet', email: 'v@x.com' },
+  }),
+}))
+
 const luna = reportPatient()
 
 function renderPage(path = '/reports') {
-  const router = createMemoryRouter(
-    [
-      { path: '/reports', element: <ReportsPage /> },
-      { path: '/patients', element: <p>Patients page</p> },
-    ],
-    { initialEntries: [path] },
-  )
+  const router = createMemoryRouter([{ path: '/reports', element: <ReportsPage /> }], {
+    initialEntries: [path],
+  })
   render(<RouterProvider router={router} />)
   return router
 }
@@ -48,6 +51,17 @@ describe('ReportsPage', () => {
     expect(screen.getByRole('button', { name: 'Print' })).toBeEnabled()
   })
 
+  it('prints the current report on P', async () => {
+    const user = userEvent.setup()
+    const print = vi.spyOn(window, 'print').mockImplementation(() => undefined)
+    renderPage('/reports?day=2026-09-30')
+    await screen.findByText('Luna', { selector: 'span' })
+
+    await user.keyboard('p')
+
+    await waitFor(() => expect(print).toHaveBeenCalledTimes(1))
+  })
+
   it('restores the view and the day from the address', async () => {
     renderPage('/reports?day=2026-09-30')
 
@@ -75,13 +89,28 @@ describe('ReportsPage', () => {
     expect(await screen.findByText('No patient card has been deleted.')).toBeInTheDocument()
   })
 
-  it("opens the patient's card from a row", async () => {
+  it("opens the patient's card on top of the report", async () => {
     const user = userEvent.setup()
+    vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+      ...luna,
+      ownerId: 'o1',
+      breedId: 'b1',
+      createdAt: '2026-08-27',
+      allergies: [],
+    })
     const router = renderPage('/reports?view=unpaid')
 
     await user.click(await screen.findByText('Luna', { selector: 'span' }))
 
-    expect(router.state.location.pathname).toBe('/patients')
-    expect(router.state.location.search).toBe('?patient=p1')
+    expect(await screen.findByRole('dialog', { name: 'Record for Luna' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/reports')
+    expect(router.state.location.search).toBe('?view=unpaid')
+
+    await user.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Record for Luna' })).not.toBeInTheDocument(),
+    )
+    expect(screen.getByRole('region', { name: 'Unpaid exams' })).toBeInTheDocument()
   })
 })

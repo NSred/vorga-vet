@@ -1,6 +1,45 @@
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 import { Skeleton } from '@/shared/ui/Skeleton/Skeleton'
 import styles from './Table.module.css'
+
+const SEARCH = '[data-search-input]'
+
+function searchBefore(row: HTMLElement): HTMLElement | undefined {
+  return Array.from(document.querySelectorAll<HTMLElement>(SEARCH))
+    .filter((input) => row.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_PRECEDING)
+    .at(-1)
+}
+
+function handleRowKey(event: KeyboardEvent<HTMLTableRowElement>, open: () => void) {
+  if (event.target !== event.currentTarget) return
+
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    open()
+    return
+  }
+
+  if (event.key === 'ArrowUp' && !event.currentTarget.previousElementSibling) {
+    const search = searchBefore(event.currentTarget)
+    if (search) {
+      event.preventDefault()
+      search.focus()
+    }
+    return
+  }
+
+  const sibling =
+    event.key === 'ArrowDown'
+      ? event.currentTarget.nextElementSibling
+      : event.key === 'ArrowUp'
+        ? event.currentTarget.previousElementSibling
+        : null
+
+  if (sibling instanceof HTMLTableRowElement) {
+    event.preventDefault()
+    sibling.focus()
+  }
+}
 
 export type TableColumnMobile = 'title' | 'detail' | 'hidden'
 
@@ -90,6 +129,10 @@ export function Table<T>({
                       .join(' ') || undefined
                   }
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  onKeyDown={
+                    onRowClick ? (event) => handleRowKey(event, () => onRowClick(row)) : undefined
+                  }
                 >
                   {columns.map((column) => (
                     <td key={column.key} {...cellProps(column)}>

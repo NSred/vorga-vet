@@ -1,5 +1,5 @@
 import { Badge, PagedTable, type TableColumn } from '@/shared/ui'
-import { calculateAge } from '../lib/patientAge'
+import { formatAge } from '../lib/patientAge'
 import type { PatientListItem } from '../types'
 import { SPECIES_EMOJI } from '@/shared/domain/species'
 import styles from './PatientTable.module.css'
@@ -52,7 +52,7 @@ const columns: TableColumn<PatientListItem>[] = [
     key: 'age',
     header: 'Age',
     mobile: 'detail',
-    render: (p) => formatValue(calculateAge(p.birthDate)),
+    render: (p) => formatValue(formatAge(p.birthDate)),
   },
   {
     key: 'phoneNumber',

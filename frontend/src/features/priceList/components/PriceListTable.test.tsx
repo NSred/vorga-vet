@@ -1,6 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { renderWithQuery as render } from '@/test/renderWithQuery'
+import { resetExchangeRateStore, writeExchangeRate } from '../api/mockExchangeRateStore'
 import type { PriceListItem } from '../types'
 import { PriceListTable } from './PriceListTable'
 
@@ -27,7 +29,26 @@ function renderTable(overrides: Partial<Parameters<typeof PriceListTable>[0]> = 
   return props
 }
 
+afterEach(() => {
+  resetExchangeRateStore()
+})
+
 describe('PriceListTable', () => {
+  it('has no euro column until a rate is set', async () => {
+    renderTable()
+
+    await screen.findByText('Otifree')
+    expect(screen.queryByRole('columnheader', { name: 'In euros' })).not.toBeInTheDocument()
+  })
+
+  it('shows each price in euros once a rate is set', async () => {
+    writeExchangeRate(117.2)
+    renderTable()
+
+    expect(await screen.findByRole('columnheader', { name: 'In euros' })).toBeInTheDocument()
+    expect(screen.getByText('≈ 13,65 €')).toBeInTheDocument()
+  })
+
   it('shows name, unit and formatted price, and marks retired items', () => {
     renderTable()
 

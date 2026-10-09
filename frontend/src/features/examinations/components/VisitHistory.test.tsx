@@ -1,8 +1,7 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
-import { ApiError } from '@/shared/lib/apiClient'
 import * as examinationsApi from '../api/examinationsApi'
 import type { Examination } from '../types'
 import { VisitHistory } from './VisitHistory'
@@ -10,13 +9,13 @@ import { VisitHistory } from './VisitHistory'
 const base: Examination = {
   id: 'e1',
   patientId: 'p1',
-  patientName: 'Luna',
   appointmentId: 'a1',
   performedByFirstName: 'Mira',
   performedByLastName: 'Vet',
   startedAt: '2026-09-17T07:00:00Z',
-  endedAt: '2026-09-17T07:30:00Z',
+  anamnesis: 'Scratching the left ear.',
   diagnosis: 'otitis',
+  therapy: 'Drops twice daily.',
   cost: 45.5,
   isPaid: false,
   createdAt: '2026-09-17T07:30:00Z',
@@ -30,7 +29,11 @@ const older: Examination = {
   startedAt: '2026-08-01T07:00:00Z',
   diagnosis: 'vaccination',
   cost: undefined,
-  isPaid: false,
+}
+
+function bodyRows() {
+  const [, ...rows] = screen.getAllByRole('row')
+  return rows
 }
 
 afterEach(() => {
@@ -38,84 +41,72 @@ afterEach(() => {
 })
 
 describe('VisitHistory', () => {
-  it('lists the examinations in the order the backend returned them', async () => {
+  it('lists the visits in the shared table in the order the backend returned them', async () => {
     vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([base, older])
 
     render(<VisitHistory patientId="p1" />)
 
-    const cards = await screen.findAllByRole('article')
-    expect(cards).toHaveLength(2)
-    expect(cards[0]).toHaveTextContent('17.09.2026')
-    expect(cards[1]).toHaveTextContent('01.08.2026')
-  })
-
-  it('shows the origin of each visit', async () => {
-    vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([base, older])
-
-    const cards = await (async () => {
-      render(<VisitHistory patientId="p1" />)
-      return screen.findAllByRole('article')
-    })()
-
-    expect(cards[0]).toHaveTextContent('Appointment')
-    expect(cards[1]).toHaveTextContent('Walk-in')
+    await screen.findByRole('table')
+    for (const column of ['Date', 'Anamnesis', 'Diagnosis', 'Therapy', 'Amount']) {
+      expect(screen.getByRole('columnheader', { name: column })).toBeInTheDocument()
+    }
+    const [first, second] = bodyRows()
+    expect(first).toHaveTextContent('17.09.2026')
+    expect(first).toHaveTextContent('Appointment')
+    expect(second).toHaveTextContent('01.08.2026')
+    expect(second).toHaveTextContent('Walk-in')
   })
 
   it('marks paid, unpaid and cost-free visits', async () => {
     vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([
-      { ...base, isPaid: true, paidAt: '2026-09-17T08:00:00Z' },
-      base,
+      { ...base, isPaid: true },
+      { ...base, id: 'e3' },
       older,
     ])
 
     render(<VisitHistory patientId="p1" />)
 
-    const cards = await screen.findAllByRole('article')
-    expect(cards[0]).toHaveTextContent('Paid')
-    expect(cards[1]).toHaveTextContent('Unpaid')
-    expect(cards[2]).toHaveTextContent('No cost')
+    await screen.findByRole('table')
+    const [paid, unpaid, free] = bodyRows()
+    expect(paid).toHaveTextContent('Paid')
+    expect(unpaid).toHaveTextContent('Unpaid')
+    expect(free).toHaveTextContent('No cost')
   })
 
-  it('offers "Mark as paid" only for an unpaid visit that has a cost', async () => {
+  it('shows the outstanding total in the heading', async () => {
     vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([
       base,
-      { ...base, id: 'e3', isPaid: true },
-      older,
+      { ...base, id: 'e3', cost: 100, isPaid: true },
+      { ...base, id: 'e4', cost: 54.5 },
     ])
 
     render(<VisitHistory patientId="p1" />)
 
-    await screen.findAllByRole('article')
-    expect(screen.getAllByRole('button', { name: 'Mark as paid' })).toHaveLength(1)
+    expect(await screen.findByText('100,00 RSD', { selector: 'strong' })).toBeInTheDocument()
   })
 
-  it('pays a visit and reports it', async () => {
-    vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([base])
-    const paySpy = vi.spyOn(examinationsApi, 'payExamination').mockResolvedValue(undefined)
+  it('opens a visit on a click anywhere in its row and on Enter', async () => {
     const user = userEvent.setup()
+    const onOpen = vi.fn()
+    vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([base, older])
 
-    render(<VisitHistory patientId="p1" />)
+    render(<VisitHistory patientId="p1" onOpen={onOpen} />)
 
-    await user.click(await screen.findByRole('button', { name: 'Mark as paid' }))
+    await user.click(await screen.findByText('otitis'))
+    expect(onOpen).toHaveBeenLastCalledWith(base)
 
-    await waitFor(() => expect(paySpy).toHaveBeenCalledWith('e1'))
-    expect(await screen.findByText('Marked as paid')).toBeInTheDocument()
+    bodyRows()[1].focus()
+    await user.keyboard('{Enter}')
+    expect(onOpen).toHaveBeenLastCalledWith(older)
   })
 
-  it('reports a failed payment without claiming success', async () => {
+  it('offers no edit or payment buttons in the rows', async () => {
     vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([base])
-    vi.spyOn(examinationsApi, 'payExamination').mockRejectedValue(
-      new ApiError(400, 'x', 'Examinations.AlreadyPaid'),
-    )
-    const user = userEvent.setup()
 
-    render(<VisitHistory patientId="p1" />)
+    render(<VisitHistory patientId="p1" onOpen={vi.fn()} />)
 
-    await user.click(await screen.findByRole('button', { name: 'Mark as paid' }))
-
-    expect(
-      await screen.findByText('This examination is already marked as paid.'),
-    ).toBeInTheDocument()
+    await screen.findByRole('table')
+    expect(screen.queryByRole('button', { name: /Edit|Mark as paid/ })).not.toBeInTheDocument()
   })
 
   it('says so when there are no visits', async () => {
@@ -132,26 +123,5 @@ describe('VisitHistory', () => {
     render(<VisitHistory patientId="p1" />)
 
     expect(await screen.findByText('Could not load the visit history.')).toBeInTheDocument()
-  })
-
-  it('hands the examination to the edit callback', async () => {
-    vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([base])
-    const onEdit = vi.fn()
-    const user = userEvent.setup()
-
-    render(<VisitHistory patientId="p1" onEdit={onEdit} />)
-
-    await user.click(await screen.findByRole('button', { name: /Edit/ }))
-
-    expect(onEdit).toHaveBeenCalledWith(base)
-  })
-
-  it('offers no edit button without a callback', async () => {
-    vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([base])
-
-    render(<VisitHistory patientId="p1" />)
-
-    await screen.findAllByRole('article')
-    expect(screen.queryByRole('button', { name: /Edit/ })).not.toBeInTheDocument()
   })
 })

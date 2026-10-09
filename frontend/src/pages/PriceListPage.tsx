@@ -50,7 +50,12 @@ export function PriceListPage() {
         title="Price list"
         subtitle="Services and medications the clinic charges for, with their prices in dinars."
         actions={
-          <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
+          <Button
+            variant="primary"
+            type="button"
+            shortcut="n"
+            onClick={() => setPanel({ mode: 'create' })}
+          >
             {isMedication ? '＋ New medication' : '＋ New service'}
           </Button>
         }

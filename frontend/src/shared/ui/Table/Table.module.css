@@ -1,13 +1,13 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.9375rem;
 }
 
 .table th {
   text-align: left;
   padding: 0.6rem 0.75rem;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -39,9 +39,14 @@
     box-shadow 140ms ease;
 }
 
-.clickableRow:hover {
+.clickableRow:hover,
+.clickableRow:focus-visible {
   background: var(--surface-2);
   box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.clickableRow:focus-visible {
+  outline: none;
 }
 
 .scroller {

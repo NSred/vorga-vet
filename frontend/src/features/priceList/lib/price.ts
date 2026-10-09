@@ -15,3 +15,14 @@ export function priceError(text: string): string | undefined {
   if (price > MAX_AMOUNT) return 'Price is too large'
   return undefined
 }
+
+export const MAX_RSD_PER_EUR = 1000
+
+export function rateError(text: string): string | undefined {
+  const rate = parsePrice(text)
+  if (rate === undefined) return 'Enter a rate such as 117,20'
+  if (rate <= 0 || rate > MAX_RSD_PER_EUR) {
+    return `The rate must be greater than 0 and at most ${MAX_RSD_PER_EUR}`
+  }
+  return undefined
+}

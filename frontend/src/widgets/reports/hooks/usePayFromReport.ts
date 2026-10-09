@@ -10,7 +10,7 @@ export function usePayFromReport() {
     onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: reportKeys.all }),
-        queryClient.invalidateQueries({ queryKey: examinationKeys.all }),
+        queryClient.invalidateQueries({ queryKey: examinationKeys.patients }),
       ]),
   })
 }

@@ -1,6 +1,6 @@
 import { Badge, Field, FieldGrid, Skeleton } from '@/shared/ui'
 import { usePatientQuery } from '../hooks/usePatientQuery'
-import { calculateAge } from '../lib/patientAge'
+import { formatAge } from '../lib/patientAge'
 import styles from './PatientSummary.module.css'
 
 export interface PatientSummaryProps {
@@ -18,7 +18,7 @@ export function PatientSummary({ patientId }: PatientSummaryProps) {
     return <p className={styles.error}>Could not load the patient record.</p>
   }
 
-  const age = calculateAge(data.birthDate)
+  const age = formatAge(data.birthDate)
 
   return (
     <FieldGrid>

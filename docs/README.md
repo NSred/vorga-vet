@@ -13,12 +13,15 @@ app-wide changes, including the ones that landed later inside feature work.
 - `specs/` — feature documents, `YYYY-MM-DD-<topic>.md`
 - `design/` — the original HTML mockup the UI was built from
 - [CHANGELOG.md](CHANGELOG.md) — one entry per work session, linking the documents it touched
+- [client-requests.md](client-requests.md) — the clinic's requests of 2026-10-09 and what is done
+- [changes-2026-10-09.md](changes-2026-10-09.md) — a short technical tour of that work for the team
 
 Status meanings: **Implemented** — shipped and still describes the code. **Planned** — approved,
 not implemented yet. **Superseded** — kept for history; the linked document replaces it.
 
 | Date | Area | Topic | Document | Status |
 |---|---|---|---|---|
+| 2026-10-09 | BE + FE | Client feedback round 1: search, age, coat colours, record header and species colours, record in place, visit history window and table, keyboard and shortcuts, euro rate, therapy with charges, image volume, demo visits | [document](changes-2026-10-09.md) | Implemented |
 | 2026-10-07 | FE | Appointment form kept in one file; tests for the owner lookup race and the free-day search reset | [document](specs/2026-10-07-appointment-form-tests.md) | Implemented |
 | 2026-10-07 | FE | Route-level code splitting, a reload after deploys, and a clean lint run | [document](specs/2026-10-07-code-splitting-and-lint.md) | Implemented |
 | 2026-10-07 | FE | De-duplication after the phone patterns: shared radio group, day of visits, panel tile, trigger rule, dead code, colour tokens | [document](specs/2026-10-07-frontend-dedup.md) | Implemented |

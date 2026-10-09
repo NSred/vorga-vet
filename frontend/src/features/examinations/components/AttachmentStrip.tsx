@@ -12,6 +12,7 @@ import styles from './AttachmentStrip.module.css'
 export interface AttachmentStripProps {
   examinationId: string
   attachments: Attachment[]
+  editable?: boolean
 }
 
 function Thumbnail({
@@ -21,7 +22,7 @@ function Thumbnail({
 }: {
   attachment: Attachment
   onOpen: () => void
-  onDelete: () => void
+  onDelete?: () => void
 }) {
   const { url, isPending, isError } = useAttachmentUrl(attachment.id)
 
@@ -39,21 +40,27 @@ function Thumbnail({
       </button>
       <div className={styles.meta}>
         <span className={styles.kind}>{attachmentKindLabel(attachment.kind)}</span>
-        <button
-          type="button"
-          className={styles.remove}
-          onClick={onDelete}
-          aria-label={`Delete ${attachment.fileName}`}
-        >
-          ✕
-        </button>
+        {onDelete && (
+          <button
+            type="button"
+            className={styles.remove}
+            onClick={onDelete}
+            aria-label={`Delete ${attachment.fileName}`}
+          >
+            ✕
+          </button>
+        )}
       </div>
       <span className={styles.fileName}>{attachment.fileName}</span>
     </div>
   )
 }
 
-export function AttachmentStrip({ examinationId, attachments }: AttachmentStripProps) {
+export function AttachmentStrip({
+  examinationId,
+  attachments,
+  editable = true,
+}: AttachmentStripProps) {
   const { showToast } = useToast()
   const remove = useDeleteAttachment()
   const [uploaderOpen, setUploaderOpen] = useState(false)
@@ -89,23 +96,27 @@ export function AttachmentStrip({ examinationId, attachments }: AttachmentStripP
             key={attachment.id}
             attachment={attachment}
             onOpen={() => setViewing(attachment)}
-            onDelete={() => setDeleting(attachment)}
+            onDelete={editable ? () => setDeleting(attachment) : undefined}
           />
         ))}
-        <Button variant="outline" type="button" onClick={() => setUploaderOpen(true)}>
-          ＋ Add image
-        </Button>
+        {editable && (
+          <Button variant="outline" type="button" onClick={() => setUploaderOpen(true)}>
+            ＋ Add image
+          </Button>
+        )}
       </div>
 
-      <AttachmentUploader
-        examinationId={examinationId}
-        open={uploaderOpen}
-        onOpenChange={setUploaderOpen}
-        onUploaded={() => {
-          setUploaderOpen(false)
-          showToast({ tone: 'success', title: 'Image added' })
-        }}
-      />
+      {editable && (
+        <AttachmentUploader
+          examinationId={examinationId}
+          open={uploaderOpen}
+          onOpenChange={setUploaderOpen}
+          onUploaded={() => {
+            setUploaderOpen(false)
+            showToast({ tone: 'success', title: 'Image added' })
+          }}
+        />
+      )}
 
       {viewing && (
         <AttachmentViewer
@@ -115,16 +126,18 @@ export function AttachmentStrip({ examinationId, attachments }: AttachmentStripP
         />
       )}
 
-      <ConfirmDialog
-        open={deleting !== null}
-        onOpenChange={(open) => !open && setDeleting(null)}
-        title="Remove this image?"
-        description={deleting ? `${deleting.fileName} will be deleted.` : ''}
-        confirmLabel="Remove"
-        tone="danger"
-        isPending={remove.isPending}
-        onConfirm={confirmDelete}
-      />
+      {editable && (
+        <ConfirmDialog
+          open={deleting !== null}
+          onOpenChange={(open) => !open && setDeleting(null)}
+          title="Remove this image?"
+          description={deleting ? `${deleting.fileName} will be deleted.` : ''}
+          confirmLabel="Remove"
+          tone="danger"
+          isPending={remove.isPending}
+          onConfirm={confirmDelete}
+        />
+      )}
     </div>
   )
 }

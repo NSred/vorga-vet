@@ -69,3 +69,90 @@ describe('Table phone cards', () => {
     expect(screen.getAllByRole('cell')[1]).toHaveAttribute('data-label', 'Owner')
   })
 })
+
+describe('Table keyboard rows', () => {
+  const threeRows: Row[] = [
+    { id: 'r1', name: 'Bunny', owner: 'Stefan', city: 'Niš' },
+    { id: 'r2', name: 'Luna', owner: 'Ana', city: 'Novi Sad' },
+    { id: 'r3', name: 'Rex', owner: 'Milan', city: 'Beograd' },
+  ]
+
+  const actionColumns: TableColumn<Row>[] = [
+    ...plainColumns,
+    {
+      key: 'action',
+      header: '',
+      render: (row) => (
+        <button type="button" onClick={(event) => event.stopPropagation()}>
+          Retire {row.name}
+        </button>
+      ),
+    },
+  ]
+
+  function renderRows(columns = plainColumns) {
+    const onRowClick = vi.fn()
+    render(
+      <Table
+        columns={columns}
+        rows={threeRows}
+        getRowId={(row) => row.id}
+        onRowClick={onRowClick}
+      />,
+    )
+    const [, ...bodyRows] = screen.getAllByRole('row')
+    return { onRowClick, bodyRows }
+  }
+
+  it('leaves rows out of the tab order when they do not open anything', () => {
+    render(<Table columns={plainColumns} rows={threeRows} getRowId={(row) => row.id} />)
+
+    const [, firstRow] = screen.getAllByRole('row')
+    expect(firstRow).not.toHaveAttribute('tabindex')
+  })
+
+  it('reaches the first row with Tab and opens it with Enter', async () => {
+    const user = userEvent.setup()
+    const { onRowClick, bodyRows } = renderRows()
+
+    await user.tab()
+    expect(bodyRows[0]).toHaveFocus()
+    await user.keyboard('{Enter}')
+
+    expect(onRowClick).toHaveBeenCalledWith(threeRows[0])
+  })
+
+  it('opens a row with Space', async () => {
+    const user = userEvent.setup()
+    const { onRowClick, bodyRows } = renderRows()
+
+    bodyRows[1].focus()
+    await user.keyboard(' ')
+
+    expect(onRowClick).toHaveBeenCalledWith(threeRows[1])
+  })
+
+  it('moves between rows with the up and down arrows and stops at the ends', async () => {
+    const user = userEvent.setup()
+    const { onRowClick, bodyRows } = renderRows()
+
+    bodyRows[0].focus()
+    await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}')
+    expect(bodyRows[2]).toHaveFocus()
+    await user.keyboard('{ArrowUp}')
+    expect(bodyRows[1]).toHaveFocus()
+    await user.keyboard('{Enter}')
+
+    expect(onRowClick).toHaveBeenCalledWith(threeRows[1])
+  })
+
+  it('leaves Enter on a button inside a row to that button', async () => {
+    const user = userEvent.setup()
+    const { onRowClick } = renderRows(actionColumns)
+
+    screen.getByRole('button', { name: 'Retire Luna' }).focus()
+    await user.keyboard('{Enter}')
+
+    expect(onRowClick).not.toHaveBeenCalled()
+  })
+})

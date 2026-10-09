@@ -11,6 +11,10 @@ export { useCreateExamination, usePayExamination } from './hooks/useExaminationM
 export { ExaminationEditPanel } from './components/ExaminationEditPanel'
 export { ExaminationFields } from './components/ExaminationFields'
 export { VisitHistory } from './components/VisitHistory'
+export { VisitsSummary } from './components/VisitsSummary'
+export { VisitDetailPanel } from './components/VisitDetailPanel'
+export { PaymentBadge } from './components/PaymentBadge'
+export { isUnpaid } from './lib/visitLabels'
 export { emptyExaminationValues, toExaminationDetails } from './lib/examinationDetails'
 export type {
   CostSlot,

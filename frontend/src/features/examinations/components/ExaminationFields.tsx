@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Controller, type Control, type FieldErrors, type UseFormRegister } from 'react-hook-form'
 import { layout, Textarea, TextField } from '@/shared/ui'
 import type { DiagnosisFieldProps, ExaminationFormValues } from '../types'
+import styles from './ExaminationFields.module.css'
 
 export interface ExaminationFieldsProps {
   register: UseFormRegister<ExaminationFormValues>
@@ -64,15 +65,25 @@ export function ExaminationFields({
           </>
         )}
       />
-      <Textarea
-        id="therapy"
-        label="Therapy"
-        placeholder="Instructions for the owner, follow-up…"
-        {...register('therapy', { maxLength: TEXT_LIMIT })}
-        error={errors.therapy?.message}
-      />
-
-      {costSection}
+      <section className={styles.therapy} aria-labelledby="therapy-and-charges">
+        <div className={styles.heading}>
+          <span id="therapy-and-charges" className={styles.title}>
+            Therapy and charges
+          </span>
+          <span className={styles.hint}>
+            What the animal was given and what to do at home; services and medications come from the
+            price list.
+          </span>
+        </div>
+        <Textarea
+          id="therapy"
+          label="Therapy"
+          placeholder="Instructions for the owner, follow-up…"
+          {...register('therapy', { maxLength: TEXT_LIMIT })}
+          error={errors.therapy?.message}
+        />
+        {costSection}
+      </section>
     </div>
   )
 }

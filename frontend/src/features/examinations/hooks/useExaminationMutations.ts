@@ -14,7 +14,7 @@ export function useCreateExamination() {
 
   return useMutation({
     mutationFn: (request: CreateExaminationRequest) => createExamination(request),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.patients }),
   })
 }
 
@@ -23,7 +23,7 @@ export function usePayExamination() {
 
   return useMutation({
     mutationFn: (id: string) => payExamination(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.patients }),
   })
 }
 
@@ -33,7 +33,7 @@ export function useUpdateExamination() {
   return useMutation({
     mutationFn: ({ id, examination }: { id: string; examination: ExaminationDetails }) =>
       updateExamination(id, examination),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.patients }),
   })
 }
 
@@ -50,7 +50,7 @@ export function useUploadAttachment() {
       file: File
       kind: AttachmentKind
     }) => uploadAttachment(examinationId, file, kind),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.patients }),
   })
 }
 
@@ -65,6 +65,6 @@ export function useDeleteAttachment() {
       examinationId: string
       attachmentId: string
     }) => deleteAttachment(examinationId, attachmentId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: examinationKeys.patients }),
   })
 }

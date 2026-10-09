@@ -63,6 +63,18 @@ afterEach(() => {
   auth.role = 'veterinarian'
 })
 
+describe('PatientsPage keyboard', () => {
+  it('opens the new patient form on N', async () => {
+    const user = userEvent.setup()
+    renderAt('/patients')
+    await screen.findByText(/Rex/)
+
+    await user.keyboard('n')
+
+    expect(await screen.findByRole('dialog', { name: 'New patient' })).toBeInTheDocument()
+  })
+})
+
 describe('PatientsPage URL state', () => {
   it('requests the filters in the URL with no interaction', async () => {
     renderAt('/patients?species=dog&status=all&page=2')
@@ -345,8 +357,11 @@ describe('PatientsPage visit editing', () => {
 
     renderAt('/patients')
     await user.click(await screen.findByText(/Rex/))
-    const card = await screen.findByRole('article')
-    await user.click(within(card).getByRole('button', { name: /Edit/ }))
+    await user.click(await screen.findByRole('button', { name: 'Open visit history ›' }))
+    const history = await screen.findByRole('dialog', { name: /Visit history for/ })
+    await user.click(await within(history).findByText('otitis'))
+    const view = await screen.findByRole('dialog', { name: 'Visit of 17.09.2026' })
+    await user.click(within(view).getByRole('button', { name: '✎ Edit' }))
 
     const panel = await screen.findByRole('dialog', { name: /Edit visit of 17.09.2026/ })
     await user.type(within(panel).getByLabelText('Therapy'), 'drops')
@@ -367,8 +382,11 @@ describe('PatientsPage visit editing', () => {
 
     renderAt('/patients')
     await user.click(await screen.findByText(/Rex/))
-    const card = await screen.findByRole('article')
-    await user.click(within(card).getByRole('button', { name: /Edit/ }))
+    await user.click(await screen.findByRole('button', { name: 'Open visit history ›' }))
+    const history = await screen.findByRole('dialog', { name: /Visit history for/ })
+    await user.click(await within(history).findByText('otitis'))
+    const view = await screen.findByRole('dialog', { name: 'Visit of 17.09.2026' })
+    await user.click(within(view).getByRole('button', { name: '✎ Edit' }))
     const panel = await screen.findByRole('dialog', { name: /Edit visit of/ })
     await user.click(within(panel).getByRole('button', { name: 'Save' }))
 

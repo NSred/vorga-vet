@@ -1,0 +1,18 @@
+.text {
+  white-space: pre-line;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-faint);
+}

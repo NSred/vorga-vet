@@ -6,4 +6,5 @@ export const priceListKeys = {
   list: (kind: PriceListKind, filters: PriceListFilters, page: number, pageSize: number) =>
     [...priceListKeys.kind(kind), 'list', filters, page, pageSize] as const,
   charges: (examinationId: string) => [...priceListKeys.all, 'charges', examinationId] as const,
+  exchangeRate: () => [...priceListKeys.all, 'exchange-rate'] as const,
 }

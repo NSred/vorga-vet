@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
+import { useShortcut } from '@/shared/lib/useShortcut'
 import styles from './SearchInput.module.css'
+
+const ROW = 'tbody tr[tabindex="0"]'
+
+function firstRowAfter(input: HTMLElement): HTMLElement | undefined {
+  return Array.from(document.querySelectorAll<HTMLElement>(ROW)).find(
+    (row) => input.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING,
+  )
+}
 
 export interface SearchInputProps {
   value: string
@@ -13,6 +22,7 @@ export function SearchInput({ value, onChange, placeholder }: SearchInputProps) 
   const blurTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   useEffect(() => () => clearTimeout(blurTimeout.current), [])
+  useShortcut('/', () => inputRef.current?.focus())
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)
 
@@ -29,6 +39,15 @@ export function SearchInput({ value, onChange, placeholder }: SearchInputProps) 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       inputRef.current?.blur()
+      return
+    }
+
+    if (event.key === 'ArrowDown' && inputRef.current) {
+      const row = firstRowAfter(inputRef.current)
+      if (row) {
+        event.preventDefault()
+        row.focus()
+      }
     }
   }
 
@@ -61,6 +80,8 @@ export function SearchInput({ value, onChange, placeholder }: SearchInputProps) 
         placeholder={placeholder}
         className={styles.input}
         aria-label={placeholder}
+        aria-keyshortcuts="/"
+        data-search-input=""
       />
       {value.length > 0 && (
         <button

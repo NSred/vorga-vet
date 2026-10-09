@@ -7,7 +7,6 @@ import {
   DetailSection,
   Button,
   ConfirmDialog,
-  DatePicker,
   FormError,
   layout,
   SlidePanel,
@@ -22,6 +21,8 @@ import { generatePatientCardNumber } from '../lib/cardNumber'
 import { splitOwnerName } from '../lib/ownerName'
 import { toPatientWriteRequest } from '../lib/patientRequest'
 import type { PatientDetail, PatientFormValues, Species } from '../types'
+import { BirthDateField } from './BirthDateField'
+import { CoatColorField } from './CoatColorField'
 import { AllergenPicker } from './pickers/AllergenPicker'
 import { BreedPicker } from './pickers/BreedPicker'
 import { OwnerPicker } from './pickers/OwnerPicker'
@@ -336,9 +337,8 @@ export function PatientFormPanel({
                     !value || value <= todayIso() ? true : 'Date of birth cannot be in the future',
                 }}
                 render={({ field }) => (
-                  <DatePicker
+                  <BirthDateField
                     id="birthDate"
-                    label="Date of birth"
                     value={field.value}
                     onChange={field.onChange}
                     maxDate={todayIso()}
@@ -361,7 +361,13 @@ export function PatientFormPanel({
                 })}
                 error={errors.weightKg?.message}
               />
-              <TextField id="color" label="Color" {...register('color')} />
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <CoatColorField id="color" value={field.value ?? ''} onChange={field.onChange} />
+                )}
+              />
             </div>
 
             <TextField id="chipNumber" label="Chip no." {...register('chipNumber')} />

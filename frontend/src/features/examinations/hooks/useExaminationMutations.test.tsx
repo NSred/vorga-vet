@@ -40,7 +40,7 @@ describe('examination mutations', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(spy).toHaveBeenCalledWith(request)
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.patients })
   })
 
   it('usePayExamination invalidates on success and not on failure', async () => {
@@ -58,7 +58,7 @@ describe('examination mutations', () => {
     passing.result.current.mutate('e1')
 
     await waitFor(() => expect(passing.result.current.isSuccess).toBe(true))
-    expect(passing.invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+    expect(passing.invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.patients })
   })
 })
 
@@ -72,7 +72,7 @@ describe('examination and attachment writes', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(spy).toHaveBeenCalledWith('e1', examination)
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.patients })
   })
 
   it('useUploadAttachment sends the file and kind, then invalidates', async () => {
@@ -84,7 +84,7 @@ describe('examination and attachment writes', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(spy).toHaveBeenCalledWith('e1', file, 'xray')
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.patients })
   })
 
   it('useDeleteAttachment sends both ids, then invalidates', async () => {
@@ -95,7 +95,7 @@ describe('examination and attachment writes', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(spy).toHaveBeenCalledWith('e1', 'att1')
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.all })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: examinationKeys.patients })
   })
 
   it('leaves the cache alone when an upload fails', async () => {

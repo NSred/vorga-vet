@@ -1,5 +1,6 @@
 import { Badge, PagedTable, type TableColumn } from '@/shared/ui'
-import { formatPrice } from '@/shared/lib/money'
+import { formatEuro, formatPrice } from '@/shared/lib/money'
+import { useEuroRate } from '../hooks/useExchangeRate'
 import { PRICE_LIST_PAGE_SIZES } from '../lib/priceListParams'
 import type { PriceListItem, PriceListKind } from '../types'
 import styles from './PriceListTable.module.css'
@@ -40,12 +41,24 @@ const unitColumn: TableColumn<PriceListItem> = {
 const priceColumn: TableColumn<PriceListItem> = {
   key: 'price',
   header: 'Price',
+  align: 'right',
   render: (item) => <span className={styles.price}>{formatPrice(item.price)}</span>,
 }
 
-const COLUMNS: Record<PriceListKind, TableColumn<PriceListItem>[]> = {
-  service: [nameColumn, priceColumn],
-  medication: [nameColumn, unitColumn, priceColumn],
+function euroColumn(rsdPerEur: number): TableColumn<PriceListItem> {
+  return {
+    key: 'euro',
+    header: 'In euros',
+    align: 'right',
+    render: (item) => <span className={styles.euro}>{formatEuro(item.price, rsdPerEur)}</span>,
+  }
+}
+
+function columnsFor(kind: PriceListKind, rsdPerEur?: number): TableColumn<PriceListItem>[] {
+  const base = kind === 'service' ? [nameColumn] : [nameColumn, unitColumn]
+  return rsdPerEur === undefined
+    ? [...base, priceColumn]
+    : [...base, priceColumn, euroColumn(rsdPerEur)]
 }
 
 export function PriceListTable({
@@ -61,22 +74,25 @@ export function PriceListTable({
   onRowClick,
 }: PriceListTableProps) {
   const what = kind === 'service' ? 'services' : 'medications'
+  const euroRate = useEuroRate()
 
   return (
-    <PagedTable
-      columns={COLUMNS[kind]}
-      rows={items}
-      getRowId={(item) => item.id}
-      isLoading={isLoading}
-      page={page}
-      pageSize={pageSize}
-      totalCount={totalCount}
-      pageSizeOptions={PRICE_LIST_PAGE_SIZES}
-      emptyMessage={hasSearch ? `No ${what} match your search.` : `No ${what} here yet.`}
-      onPageChange={onPageChange}
-      onPageSizeChange={onPageSizeChange}
-      onRowClick={onRowClick}
-      rowClassName={(item) => (item.isActive ? undefined : styles.retiredRow)}
-    />
+    <div className={styles.frame}>
+      <PagedTable
+        columns={columnsFor(kind, euroRate)}
+        rows={items}
+        getRowId={(item) => item.id}
+        isLoading={isLoading}
+        page={page}
+        pageSize={pageSize}
+        totalCount={totalCount}
+        pageSizeOptions={PRICE_LIST_PAGE_SIZES}
+        emptyMessage={hasSearch ? `No ${what} match your search.` : `No ${what} here yet.`}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        onRowClick={onRowClick}
+        rowClassName={(item) => (item.isActive ? undefined : styles.retiredRow)}
+      />
+    </div>
   )
 }

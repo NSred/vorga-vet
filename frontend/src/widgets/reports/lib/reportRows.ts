@@ -1,4 +1,4 @@
-import type { Examination } from '@/features/examinations'
+import { isUnpaid, type Examination } from '@/features/examinations'
 import { clinicDateOf } from '@/shared/lib/clinicTime'
 import type { DayTotals, ReportRow, UnpaidTotals } from '../types'
 
@@ -23,7 +23,7 @@ export function dayRows(rows: ReportRow[], day: string): ReportRow[] {
 }
 
 export function unpaidRows(rows: ReportRow[]): ReportRow[] {
-  return rows.filter((row) => !row.examination.isPaid && costOf(row) > 0).sort(byStart)
+  return rows.filter((row) => isUnpaid(row.examination)).sort(byStart)
 }
 
 export function dayTotals(rows: ReportRow[]): DayTotals {

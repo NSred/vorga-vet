@@ -1,4 +1,7 @@
+export { BirthDateField } from './components/BirthDateField'
+export { CoatColorField } from './components/CoatColorField'
 export { PatientDetailPanel } from './components/PatientDetailPanel'
+export { PatientHeader } from './components/PatientHeader'
 export { PatientFilters } from './components/PatientFilters'
 export { PatientFormPanel } from './components/PatientFormPanel'
 export { PatientSummary } from './components/PatientSummary'
@@ -29,4 +32,4 @@ export type {
   Sex,
   Species,
 } from './types'
-export { patientDetailQuery } from './hooks/usePatientQuery'
+export { patientDetailQuery, usePatientQuery } from './hooks/usePatientQuery'

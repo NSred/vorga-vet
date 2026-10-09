@@ -104,6 +104,7 @@ internal sealed class GetPatientsQueryHandler(IApplicationDbContext context, IUs
 
         return query.Where(p =>
             EF.Functions.ILike(p.Name, $"%{term}%") ||
+            EF.Functions.ILike(p.CardNumber, $"%{term}%") ||
             p.ChipNumber != null && EF.Functions.ILike(p.ChipNumber, $"%{term}%") ||
             p.Anamnesis != null && EF.Functions.ILike(p.Anamnesis, $"%{term}%") ||
             context.Owners.Any(o => o.Id == p.OwnerId &&
