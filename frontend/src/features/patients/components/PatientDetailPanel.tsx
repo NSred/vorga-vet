@@ -3,16 +3,17 @@ import {
   Badge,
   Button,
   DetailSection,
-  EntityHeader,
   Field,
   FieldGrid,
   SlidePanel,
   Tile,
 } from '@/shared/ui'
+import { coatColorOf } from '@/shared/domain/coatColors'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
-import { calculateAge } from '../lib/patientAge'
+import { formatAge } from '../lib/patientAge'
 import type { PatientDetail } from '../types'
-import { SPECIES_EMOJI, SPECIES_LABELS } from '@/shared/domain/species'
+import { SPECIES_LABELS, SPECIES_TINT } from '@/shared/domain/species'
+import { PatientHeader } from './PatientHeader'
 import styles from './PatientDetailPanel.module.css'
 
 export interface PatientDetailPanelProps {
@@ -38,7 +39,8 @@ export function PatientDetailPanel({
   remindersSection,
   microchipSection,
 }: PatientDetailPanelProps) {
-  const age = calculateAge(patient.birthDate)
+  const age = formatAge(patient.birthDate)
+  const coat = coatColorOf(patient.color)
 
   return (
     <SlidePanel
@@ -46,31 +48,8 @@ export function PatientDetailPanel({
       onOpenChange={onOpenChange}
       ariaLabel={`Record for ${patient.name}`}
       headerTone="accent"
-      header={
-        <EntityHeader
-          eyebrow={patient.cardNumber}
-          avatar={SPECIES_EMOJI[patient.species]}
-          title={patient.name}
-          subtitle={`${patient.breedName} · ${age ?? '—'} yrs`}
-          chips={
-            <>
-              {patient.isDeleted ? (
-                <Badge tone="danger">Deleted</Badge>
-              ) : (
-                <Badge tone="accent">● Active</Badge>
-              )}
-              <Badge tone={patient.sex === 'female' ? 'female' : 'male'}>
-                {patient.sex === 'female' ? '♀ Female' : '♂ Male'}
-              </Badge>
-              {patient.allergies.map((allergen) => (
-                <Badge key={allergen.id} tone="warn">
-                  ⚠ {allergen.name}
-                </Badge>
-              ))}
-            </>
-          }
-        />
-      }
+      headerTint={SPECIES_TINT[patient.species]}
+      header={<PatientHeader patient={patient} eyebrow={patient.cardNumber} showStatus />}
       footer={
         onDelete || onEdit ? (
           <>
@@ -90,14 +69,30 @@ export function PatientDetailPanel({
     >
       <DetailSection title="Basic information">
         <div className={styles.tiles}>
-          <Tile label="Age" value={age} unit="yrs" />
+          <Tile label="Age" value={age} />
           <Tile label="Weight" value={patient.weightKg} unit="kg" />
           <Tile label="Sex" value={patient.sex === 'female' ? 'Female' : 'Male'} />
         </div>
         <FieldGrid>
           <Field label="Species" value={SPECIES_LABELS[patient.species]} />
           <Field label="Breed" value={patient.breedName} />
-          <Field label="Color" value={patient.color} />
+          <Field
+            label="Color"
+            value={
+              patient.color && (
+                <span className={styles.coat}>
+                  {coat && (
+                    <span
+                      className={styles.coatSwatch}
+                      style={{ background: coat.swatch }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  {patient.color}
+                </span>
+              )
+            }
+          />
           <Field label="Chip no." value={patient.chipNumber} />
         </FieldGrid>
       </DetailSection>

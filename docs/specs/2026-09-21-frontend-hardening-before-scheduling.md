@@ -113,8 +113,9 @@ Together with the list above, this is the whole set of app-wide changes in the a
 The rows from the nav-label row to the `widgets/reports/` row come from the legacy-gap work that
 started on 2026-10-04, the rows from `shared/lib/mockStore.ts` onward from the consolidation of
 2026-10-06, the rows from `useMediaQuery` onward from the mobile layout of the same day, the rows from
-the field shell onward from the shared visual system, and the rows from `PageHeader` onward from
-the phone patterns.
+the field shell onward from the shared visual system, the rows from `PageHeader` onward from
+the phone patterns, the next nine rows from the first three batches of client feedback on
+2026-10-09, and the last row from the visit history window of the same day.
 
 | Change | Why | Where it is explained |
 |---|---|---|
@@ -172,3 +173,13 @@ the phone patterns.
 | Pages load lazily from `app/lazyPages.ts`; `AppLayout` and `AuthLayout` wrap their `Outlet` in `Suspense`; `package.json` marks only CSS as having side effects | the whole app was one 732 kB script, and the shared UI barrel dragged every component into the first load | [code splitting](2026-10-07-code-splitting-and-lint.md) |
 | `RouteErrorPage` offers a reload when a page file fails to load; `reloadPage` in `shared/lib` | a tab left open across a deploy asks for page files that no longer exist | [code splitting](2026-10-07-code-splitting-and-lint.md) |
 | `useAuth` and the auth context moved to `context/useAuth.ts`; `patientLabel` to `features/patients/lib`; `.oxlintrc.json` turns the fast-refresh rule off for `src/test/**` | four fast-refresh lint warnings from files exporting a component and something else | [code splitting](2026-10-07-code-splitting-and-lint.md) |
+| `Table` makes clickable rows focusable: Enter and Space open a row, up and down move between rows, keys on controls inside a row are left alone | the clinic wants to work tables without the mouse; one change covers every clickable table | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `tokens.css` darkens `--text-muted` and `--text-faint`; `Table` text grows from 0.85 to 0.9375 rem | the clinic asked for larger, darker text; `--text-faint` failed WCAG AA on every surface | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `SlidePanel` gained `headerTint`; `tokens.css` gained `--species-*-soft`; `shared/domain/species.ts` gained `SPECIES_TINT` | the record header is tinted by species, and the shared panel takes a colour rather than knowing about species | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `shared/domain/coatColors.ts` added | the patient form, the visit's new-patient fields and the record all use the coat colour list | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `PatientRecord` added to `widgets/patientCard`; the patients page lost its `?patient=` link | the patients, appointments and reports pages all open the same record in place | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `useShortcut` added to `shared/lib`; `Button` gained `shortcut` with a key hint | N opens "new" on every page; one hook keeps single-key shortcuts out of fields and dialogs | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `SearchInput` takes / and moves down into the table below; `Table` moves up from its first row back to the search | search, arrow, Enter opens a record on every page without page wiring | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `money.ts` gained `formatEuro` | the price list and the charges total show euro values at the hand-kept rate | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `ChargesEditor` lost its own box and heading | `ExaminationFields` draws one "Therapy and charges" box around the therapy and the charges | [2026-10-09 changes](../changes-2026-10-09.md) |
+| `PanelFrame` holds the header, body and footer that `SlidePanel` and the new `CenteredPanel` share; both panels put overlay and content on z-index 100 | big views and forms can open centred with the same props as the side panel, and stacked panels dim in the order they open | [2026-10-09 changes](../changes-2026-10-09.md) |

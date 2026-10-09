@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { ApiError } from '@/shared/lib/apiClient'
 import * as examinationsApi from '../api/examinationsApi'
@@ -60,11 +60,41 @@ function renderPanel(slot: CostSlot = costSlot()) {
   return { ...props, slot }
 }
 
+beforeEach(() => {
+  vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([examination])
+  vi.spyOn(examinationsApi, 'getAttachmentBlob').mockReturnValue(new Promise(() => undefined))
+})
+
 afterEach(() => {
   vi.restoreAllMocks()
 })
 
 describe('ExaminationEditPanel', () => {
+  it('manages the images live from the patient visits', async () => {
+    vi.mocked(examinationsApi.getPatientExaminations).mockResolvedValue([
+      {
+        ...examination,
+        attachments: [
+          {
+            id: 'att1',
+            kind: 'xray',
+            fileName: 'chest.png',
+            contentType: 'image/png',
+            sizeBytes: 2048,
+            uploadedAt: '2026-09-17T07:32:00Z',
+          },
+        ],
+      },
+    ])
+    renderPanel()
+
+    expect(await screen.findByRole('button', { name: 'Delete chest.png' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Add image/ })).toBeInTheDocument()
+    expect(
+      screen.getByText('Images are saved as soon as they are added or removed.'),
+    ).toBeInTheDocument()
+  })
+
   it('prefills every field from the examination', () => {
     renderPanel()
 

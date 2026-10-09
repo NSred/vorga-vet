@@ -1,0 +1,29 @@
+.latest {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  color: var(--text);
+}
+
+.date {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--danger);
+}

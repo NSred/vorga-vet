@@ -172,7 +172,7 @@ export function ClientAppointmentsPage() {
         title="Your visits"
         subtitle="Book a visit and see the ones you already have."
         actions={
-          <Button variant="primary" type="button" onClick={() => setBooking(true)}>
+          <Button variant="primary" type="button" shortcut="n" onClick={() => setBooking(true)}>
             ＋ Book a visit
           </Button>
         }

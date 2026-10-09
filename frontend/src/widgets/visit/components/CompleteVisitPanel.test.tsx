@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
@@ -75,6 +75,22 @@ beforeEach(() => {
   })
   completeSpy = vi.spyOn(appointmentsApi, 'completeAppointment').mockResolvedValue('e1')
   vi.spyOn(ownersApi, 'searchOwners').mockResolvedValue([])
+  vi.spyOn(patientsApi, 'getPatient').mockResolvedValue({
+    id: 'p1',
+    cardNumber: 'C26-1',
+    name: 'Luna',
+    species: 'cat',
+    breedName: 'Chartreux',
+    sex: 'female',
+    isDeleted: false,
+    ownerId: 'o1',
+    breedId: 'b1',
+    ownerName: 'Ana Petrović',
+    phoneNumber: '062/8890021',
+    city: 'Novi Sad',
+    createdAt: '2026-08-27',
+    allergies: [{ id: 'al1', name: 'Penicillin' }],
+  })
   vi.spyOn(patientsApi, 'getPatients').mockResolvedValue({
     items: [
       {
@@ -103,6 +119,44 @@ afterEach(() => {
 })
 
 describe('CompleteVisitPanel', () => {
+  it('shows the patient record header once the patient loads', async () => {
+    renderPanel(full)
+
+    const dialog = screen.getByRole('dialog', { name: 'Complete visit · Luna · Ana Petrović' })
+    expect(await within(dialog).findByText('Complete visit · C26-1')).toBeInTheDocument()
+    expect(within(dialog).getByText('Chartreux · —')).toBeInTheDocument()
+    expect(
+      within(dialog).getByRole('link', { name: 'Call Ana Petrović, 062/8890021' }),
+    ).toBeInTheDocument()
+    expect(within(dialog).getByText('⚠ Penicillin')).toBeInTheDocument()
+    expect(within(dialog).queryByText('● Active')).not.toBeInTheDocument()
+    expect(
+      within(dialog).getByText('Record what happened at the visit. This closes the appointment.'),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the plain title while the patient is loading', () => {
+    renderPanel(full)
+
+    const dialog = screen.getByRole('dialog', { name: 'Complete visit · Luna · Ana Petrović' })
+    expect(within(dialog).getByText('Luna')).toBeInTheDocument()
+    expect(
+      within(dialog).getByText(
+        'Ana Petrović. Record what happened at the visit. This closes the appointment.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('marks the chip as a new patient when the appointment has none yet', () => {
+    const getPatient = vi.mocked(patientsApi.getPatient)
+    renderPanel(thin)
+
+    expect(getPatient).not.toHaveBeenCalled()
+
+    expect(screen.getByRole('dialog', { name: /^Complete visit/ })).toBeInTheDocument()
+    expect(screen.getByText('New patient')).toBeInTheDocument()
+  })
+
   it('prefills the performer, records the charges total as the cost and keeps the lines', async () => {
     const user = userEvent.setup()
     const props = renderPanel(full)

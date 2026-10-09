@@ -60,6 +60,16 @@ Two lists with the same shape, so two sets of endpoints: `services` and `medicat
 The frontend sends `isVaccine` and `isRabies` today; switching to `vaccineKind` changes only its
 mapping file.
 
+### Exchange rate
+
+Added on 2026-10-09 with [the 2026-10-09 changes](../changes-2026-10-09.md). One
+clinic-wide euro rate, kept by hand; dinars and euros are the only currencies.
+
+| Call | Body | Rules |
+|---|---|---|
+| `GET exchange-rate` | | `{ rsdPerEur: decimal \| null, updatedAt: string \| null }`; null until first set. Vet only. |
+| `PUT exchange-rate` | `{ rsdPerEur: decimal }` | Greater than 0, at most 1000, two decimals; `updatedAt` set by the server. Vet only. |
+
 ## Diagnoses, breeds and allergens
 
 | Call | Body or query | Rules |

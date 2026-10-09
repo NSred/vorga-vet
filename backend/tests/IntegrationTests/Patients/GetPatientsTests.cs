@@ -5,7 +5,8 @@ namespace IntegrationTests.Patients;
 
 public sealed class GetPatientsTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
-    private async Task<Guid> SeedPatientAsync(string ownerLastName, string breedName, string patientName)
+    private async Task<Guid> SeedPatientAsync(
+        string ownerLastName, string breedName, string patientName, string? cardNumber = null)
     {
         HttpResponseMessage ownerResponse = await HttpClient.PostAsJsonAsync("owners", new
         {
@@ -26,7 +27,7 @@ public sealed class GetPatientsTests(IntegrationTestWebAppFactory factory) : Bas
         {
             ownerId,
             breedId,
-            cardNumber = Guid.NewGuid().ToString("N")[..10],
+            cardNumber = cardNumber ?? Guid.NewGuid().ToString("N")[..10],
             name = patientName,
             sex = 0,
             allergenIds = Array.Empty<Guid>()
@@ -77,6 +78,26 @@ public sealed class GetPatientsTests(IntegrationTestWebAppFactory factory) : Bas
 
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync($"patients?search={uniqueBreedName[..10]}");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        GetPatientsResponseDto? result = await response.Content.ReadFromJsonAsync<GetPatientsResponseDto>();
+        result.ShouldNotBeNull();
+        result.Items.ShouldContain(p => p.Id == patientId);
+    }
+
+    [Fact]
+    public async Task GetPatients_Should_FindPatient_ByCardNumberSubstring()
+    {
+        // Arrange
+        (_, AccessTokens tokens) = await RegisterVeterinarianAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        string cardNumber = $"k{Guid.NewGuid():N}"[..12];
+        Guid patientId = await SeedPatientAsync($"Owner{Guid.NewGuid()}", $"Breed {Guid.NewGuid()}", "Fifi", cardNumber);
+
+        // Act — part of the card number, uppercase against the stored value
+        HttpResponseMessage response = await HttpClient.GetAsync($"patients?search={cardNumber.ToUpperInvariant()[..8]}");
 
         // Assert
         response.EnsureSuccessStatusCode();

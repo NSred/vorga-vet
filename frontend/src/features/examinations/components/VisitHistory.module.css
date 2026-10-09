@@ -3,3 +3,91 @@
   font-size: 0.8rem;
   color: var(--danger);
 }
+
+.outstanding {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.outstanding strong {
+  color: var(--warn);
+  font-variant-numeric: tabular-nums;
+}
+
+.visitRow > td {
+  vertical-align: top;
+}
+
+.visitRow > td:first-child {
+  width: 12rem;
+}
+
+.visitRow > td:nth-child(3) {
+  width: 15%;
+}
+
+.visitRow > td:last-child {
+  width: 9rem;
+}
+
+.dateStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.when {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.who {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.clamped {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.diagnosis {
+  font-weight: 700;
+}
+
+.muted {
+  font-size: 0.875rem;
+  color: var(--text-faint);
+}
+
+.amountStack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.cost {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  .visitRow > td:first-child,
+  .visitRow > td:nth-child(3),
+  .visitRow > td:last-child {
+    width: auto;
+  }
+
+  .amountStack {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}

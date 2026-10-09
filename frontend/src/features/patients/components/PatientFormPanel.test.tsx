@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { renderWithQuery as render } from '@/test/renderWithQuery'
 import { PatientFormPanel } from './PatientFormPanel'
+import { birthDateForAge } from '../lib/patientAge'
 import * as allergensApi from '../api/allergensApi'
 import * as breedsApi from '../api/breedsApi'
 import * as ownersApi from '../api/ownersApi'
@@ -233,6 +234,29 @@ describe('PatientFormPanel', () => {
     expect(onCreated).toHaveBeenCalledWith('Bela')
   })
 
+  it('saves the date of birth computed from a typed age', async () => {
+    const user = userEvent.setup()
+    stubLookups()
+    const createSpy = vi.spyOn(patientsApi, 'createPatient').mockResolvedValue('new-id')
+
+    render(
+      <PatientFormPanel
+        open
+        onOpenChange={vi.fn()}
+        onSaved={vi.fn()}
+        onMissing={vi.fn()}
+        mode="create"
+      />,
+    )
+
+    await fillRequiredFields(user)
+    await user.type(screen.getByLabelText('Age'), '4')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(createSpy).toHaveBeenCalledTimes(1))
+    expect(createSpy.mock.calls[0][0].birthDate).toBe(`${birthDateForAge(4)}T00:00:00Z`)
+  })
+
   it('regenerates and retries once on a duplicate card number', async () => {
     const user = userEvent.setup()
     stubLookups()
@@ -408,6 +432,23 @@ describe('PatientFormPanel in edit mode', () => {
       )
     })
     expect(onSaved).toHaveBeenCalledWith('Keti')
+  })
+
+  it('saves a coat colour picked from the swatches', async () => {
+    const user = userEvent.setup()
+    stubLookups()
+    const updateSpy = vi.spyOn(patientsApi, 'updatePatient').mockResolvedValue(undefined)
+
+    renderEdit()
+    await user.click(screen.getByRole('button', { name: 'Black and white' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => {
+      expect(updateSpy).toHaveBeenCalledWith(
+        'p1',
+        expect.objectContaining({ color: 'Black and white' }),
+      )
+    })
   })
 
   it('shows a field error rather than retrying on a duplicate card number', async () => {

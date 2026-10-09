@@ -1,9 +1,9 @@
+import { PaymentBadge } from '@/features/examinations'
 import { chargesText, useChargesForExaminations } from '@/features/priceList'
 import { addClinicDays, clinicTimeOf, clinicToday } from '@/shared/lib/clinicTime'
 import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { formatPrice } from '@/shared/lib/money'
 import {
-  Badge,
   Button,
   DatePicker,
   EmptyState,
@@ -91,8 +91,7 @@ export function DailyReport({
       key: 'status',
       header: 'Status',
       align: 'right',
-      render: (row) =>
-        row.examination.isPaid ? <Badge tone="ok">Paid</Badge> : <Badge tone="warn">Unpaid</Badge>,
+      render: (row) => <PaymentBadge examination={row.examination} />,
     },
   ]
 

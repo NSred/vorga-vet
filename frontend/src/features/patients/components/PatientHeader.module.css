@@ -1,0 +1,34 @@
+.subtitleLine {
+  display: block;
+}
+
+.ownerLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.owner {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.phone {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.phone:hover,
+.phone:focus-visible {
+  text-decoration: underline;
+}
+
+.footnote {
+  margin: 0.625rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-soft);
+}

@@ -10,6 +10,7 @@ import styles from './Reports.module.css'
 export interface DeletedCardsProps {
   printing: boolean
   onPrinted: () => void
+  onOpenPatient?: (patientId: string) => void
 }
 
 const COLUMNS: TableColumn<PatientListItem>[] = [
@@ -42,7 +43,11 @@ const COLUMNS: TableColumn<PatientListItem>[] = [
       <span className={styles.stack}>
         <span>{patient.ownerName}</span>
         {patient.phoneNumber && (
-          <a className={styles.phone} href={telHref(patient.phoneNumber)}>
+          <a
+            className={styles.phone}
+            href={telHref(patient.phoneNumber)}
+            onClick={(event) => event.stopPropagation()}
+          >
             {patient.phoneNumber}
           </a>
         )}
@@ -51,7 +56,7 @@ const COLUMNS: TableColumn<PatientListItem>[] = [
   },
 ]
 
-export function DeletedCards({ printing, onPrinted }: DeletedCardsProps) {
+export function DeletedCards({ printing, onPrinted, onOpenPatient }: DeletedCardsProps) {
   const { data, isPending, isError } = useDeletedPatients()
   const patients = data ?? []
 
@@ -72,7 +77,12 @@ export function DeletedCards({ printing, onPrinted }: DeletedCardsProps) {
         <EmptyState message="No patient card has been deleted." />
       ) : (
         <div className={styles.tableCard}>
-          <Table columns={COLUMNS} rows={patients} getRowId={(patient) => patient.id} />
+          <Table
+            columns={COLUMNS}
+            rows={patients}
+            getRowId={(patient) => patient.id}
+            onRowClick={onOpenPatient && ((patient) => onOpenPatient(patient.id))}
+          />
         </div>
       )}
 

@@ -16,7 +16,7 @@ function useInvalidateVisit() {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: appointmentKeys.all }),
       queryClient.invalidateQueries({ queryKey: patientKeys.all }),
-      queryClient.invalidateQueries({ queryKey: examinationKeys.all }),
+      queryClient.invalidateQueries({ queryKey: examinationKeys.patients }),
     ])
 }
 

@@ -14,10 +14,12 @@ import { AppointmentsPage } from './AppointmentsPage'
 import * as appointmentsApi from '@/features/appointments/api/appointmentsApi'
 import * as patientsApi from '@/features/patients/api/patientsApi'
 import * as ownersApi from '@/features/patients/api/ownersApi'
+import * as examinationsApi from '@/features/examinations/api/examinationsApi'
 import { appointmentKeys } from '@/features/appointments'
 import type { Appointment, AvailabilitySlot } from '@/features/appointments'
 
 vi.mock('@/features/auth', () => ({
+  useAuth: () => ({ user: { userId: 'u1', email: 'v@x.com', role: 'veterinarian' } }),
   useCurrentUser: () => ({
     data: { id: 'u1', firstName: 'Mira', lastName: 'Vet', email: 'v@x.com' },
   }),
@@ -489,6 +491,29 @@ describe('AppointmentsPage unresolved list', () => {
         '24.09.2026',
       ),
     )
+  })
+})
+
+describe('AppointmentsPage patient record', () => {
+  it('opens the record on top of the appointment and returns to it', async () => {
+    vi.spyOn(examinationsApi, 'getPatientExaminations').mockResolvedValue([])
+    const user = userEvent.setup()
+    const router = renderAt('/appointments?view=day&date=2026-09-17')
+
+    await user.click(await screen.findByRole('button', { name: /Luna/ }))
+    const detail = await screen.findByRole('dialog', { name: /Appointment for Luna/ })
+    await user.click(within(detail).getByRole('button', { name: 'Open record ›' }))
+
+    expect(await screen.findByRole('dialog', { name: 'Record for Luna' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/appointments')
+    expect(router.state.location.search).toBe('?view=day&date=2026-09-17')
+
+    await user.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Record for Luna' })).not.toBeInTheDocument(),
+    )
+    expect(screen.getByRole('dialog', { name: /Appointment for Luna/ })).toBeInTheDocument()
   })
 })
 

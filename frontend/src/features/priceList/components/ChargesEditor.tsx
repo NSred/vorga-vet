@@ -1,4 +1,4 @@
-import { formatPrice } from '@/shared/lib/money'
+import { formatEuro, formatPrice } from '@/shared/lib/money'
 import { addClinicDays } from '@/shared/lib/clinicTime'
 import { Button, DatePicker, fieldStyles, IconButton, TextField } from '@/shared/ui'
 import {
@@ -11,6 +11,7 @@ import {
   KIND_LABEL,
 } from '../lib/charges'
 import type { ChargeDraft } from '../types'
+import { useEuroRate } from '../hooks/useExchangeRate'
 import { PriceItemPicker } from './PriceItemPicker'
 import styles from './ChargesEditor.module.css'
 
@@ -32,17 +33,14 @@ export function ChargesEditor({ drafts, onChange, showErrors, givenOn }: Charges
     if (draft.vaccine) update(draft.key, { vaccine: { ...draft.vaccine, ...patch } })
   }
 
+  const euroRate = useEuroRate()
+
   const remove = (key: string) => onChange(drafts.filter((draft) => draft.key !== key))
 
   const totalError = showErrors ? chargesError(drafts) : undefined
 
   return (
     <section className={styles.charges} aria-label="Charges">
-      <div className={styles.heading}>
-        <span className={styles.title}>Charges</span>
-        <span className={styles.hint}>Services and medications come from the price list.</span>
-      </div>
-
       {drafts.length > 0 && (
         <ul className={styles.lines}>
           {drafts.map((draft, index) => {
@@ -183,8 +181,13 @@ export function ChargesEditor({ drafts, onChange, showErrors, givenOn }: Charges
 
       <div className={styles.footer}>
         <span>Total</span>
-        <span className={styles.total} data-testid="charges-total">
-          {drafts.length === 0 ? 'No charges' : formatPrice(chargesTotal(drafts))}
+        <span className={styles.totals}>
+          <span className={styles.total} data-testid="charges-total">
+            {drafts.length === 0 ? 'No charges' : formatPrice(chargesTotal(drafts))}
+          </span>
+          {euroRate !== undefined && drafts.length > 0 && (
+            <span className={styles.euro}>{formatEuro(chargesTotal(drafts), euroRate)}</span>
+          )}
         </span>
       </div>
       {totalError && (

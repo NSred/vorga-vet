@@ -249,6 +249,16 @@ describe('DeletedCards', () => {
     expect(screen.getByLabelText('Deleted totals')).toHaveTextContent('Deleted cards1')
   })
 
+  it('opens a deleted card from its row', async () => {
+    const user = userEvent.setup()
+    const onOpenPatient = vi.fn()
+    render(<DeletedCards {...noPrint} onOpenPatient={onOpenPatient} />)
+
+    await user.click(await screen.findByText('Rex'))
+
+    expect(onOpenPatient).toHaveBeenCalledTimes(1)
+  })
+
   it('prints them in Serbian', async () => {
     render(<DeletedCards printing onPrinted={vi.fn()} />)
 

@@ -80,7 +80,12 @@ export function DiagnosesTab() {
           <Button variant="outline" type="button" onClick={() => setImportOpen(true)}>
             Paste a list
           </Button>
-          <Button variant="primary" type="button" onClick={() => setPanel({ mode: 'create' })}>
+          <Button
+            variant="primary"
+            type="button"
+            shortcut="n"
+            onClick={() => setPanel({ mode: 'create' })}
+          >
             ＋ New diagnosis
           </Button>
         </div>

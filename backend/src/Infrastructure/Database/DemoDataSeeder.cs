@@ -1,5 +1,6 @@
 using Domain.Appointments;
 using Domain.Breeds;
+using Domain.Examinations;
 using Domain.Owners;
 using Domain.Patients;
 using Domain.Users;
@@ -81,6 +82,39 @@ public static class DemoDataSeeder
         new(5, 10, 0, 60, AppointmentType.Surgery, AppointmentStatus.Scheduled, "D25-10005", "Arthritis joint injection")
     ];
 
+    // Past visits on fixed dates rather than offsets, so a restart on another day recognises
+    // them by patient and start time and never adds them twice.
+    private static readonly ExaminationSeed[] ExaminationSeeds =
+    [
+        new(
+            "D25-10009",
+            Utc(2026, 3, 11, 8, 15),
+            30,
+            "Shaking the head and scratching the left ear for about a week.",
+            "Otitis externa, left ear",
+            "Ear cleaned at the clinic. Otifree drops twice daily for 10 days.\nRecheck in two weeks.",
+            1800m,
+            IsPaid: true),
+        new(
+            "D25-10009",
+            Utc(2026, 6, 4, 12, 0),
+            45,
+            "Limping on the front left leg since a run in the park two days ago. Eating normally.",
+            "Soft tissue strain, front left leg",
+            "Rest and short leash walks for 7 days. Meloxicam 0,1 mg/kg once daily for 5 days.\nCall if the limp is not better in a week.",
+            2300m,
+            IsPaid: true),
+        new(
+            "D25-10009",
+            Utc(2026, 8, 19, 8, 30),
+            30,
+            "Annual checkup. Eating, drinking and playing normally; owner has no concerns.",
+            "Healthy; annual vaccination",
+            "Combined vaccine and rabies vaccine given. Next vaccination in a year.",
+            4700m,
+            IsPaid: true)
+    ];
+
     public static async Task SeedAsync(
         ApplicationDbContext dbContext,
         DateTime utcNow,
@@ -95,6 +129,7 @@ public static class DemoDataSeeder
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await SeedAppointmentsAsync(dbContext, utcNow, clinicTimeZone, cancellationToken);
+        await SeedExaminationsAsync(dbContext, cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
@@ -245,6 +280,62 @@ public static class DemoDataSeeder
         }
     }
 
+    private static async Task SeedExaminationsAsync(
+        ApplicationDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        User? author = await dbContext.Users
+            .OrderByDescending(u => u.Role == Role.Veterinarian)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        string firstName = author?.FirstName ?? "Demo";
+        string lastName = author?.LastName ?? "Veterinarian";
+
+        string[] cardNumbers = ExaminationSeeds.Select(e => e.PatientCardNumber).Distinct().ToArray();
+
+        Dictionary<string, Guid> patientIds = await dbContext.Patients
+            .Where(p => cardNumbers.Contains(p.CardNumber))
+            .ToDictionaryAsync(p => p.CardNumber, p => p.Id, cancellationToken);
+
+        Guid[] ids = patientIds.Values.ToArray();
+
+        var existing = await dbContext.Examinations
+            .Where(e => ids.Contains(e.PatientId))
+            .Select(e => new { e.PatientId, e.StartedAt })
+            .ToListAsync(cancellationToken);
+
+        foreach (ExaminationSeed seed in ExaminationSeeds)
+        {
+            if (!patientIds.TryGetValue(seed.PatientCardNumber, out Guid patientId) ||
+                existing.Exists(e => e.PatientId == patientId && e.StartedAt == seed.StartedAtUtc))
+            {
+                continue;
+            }
+
+            DateTime endedAtUtc = seed.StartedAtUtc.AddMinutes(seed.DurationMinutes);
+
+            var examination = Examination.Create(
+                patientId,
+                null,
+                firstName,
+                lastName,
+                seed.StartedAtUtc,
+                endedAtUtc,
+                seed.Anamnesis,
+                seed.Diagnosis,
+                seed.Therapy,
+                seed.Cost,
+                endedAtUtc);
+
+            if (seed.IsPaid)
+            {
+                examination.MarkPaid(endedAtUtc);
+            }
+
+            dbContext.Examinations.Add(examination);
+        }
+    }
+
     private static void ApplyStatus(
         Appointment appointment,
         AppointmentSeed seed,
@@ -274,6 +365,9 @@ public static class DemoDataSeeder
 
     private static DateTime Date(int year, int month, int day) => new(year, month, day, 0, 0, 0, DateTimeKind.Utc);
 
+    private static DateTime Utc(int year, int month, int day, int hour, int minute) =>
+        new(year, month, day, hour, minute, 0, DateTimeKind.Utc);
+
     private sealed record BreedSeed(string Name, Species Species);
 
     private sealed record OwnerSeed(
@@ -293,6 +387,16 @@ public static class DemoDataSeeder
         AppointmentStatus Status,
         string PatientCardNumber,
         string Reason);
+
+    private sealed record ExaminationSeed(
+        string PatientCardNumber,
+        DateTime StartedAtUtc,
+        int DurationMinutes,
+        string Anamnesis,
+        string Diagnosis,
+        string Therapy,
+        decimal Cost,
+        bool IsPaid);
 
     private sealed record PatientSeed(
         string CardNumber,

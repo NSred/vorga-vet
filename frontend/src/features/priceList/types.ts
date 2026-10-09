@@ -123,3 +123,8 @@ export interface ChargeDraftErrors {
   batch?: string
   dueOn?: string
 }
+
+export interface ExchangeRate {
+  rsdPerEur: number | null
+  updatedAt: string | null
+}

@@ -26,7 +26,11 @@ export function PatientFilters({ filters, onChange }: PatientFiltersProps) {
   return (
     <div className={layout.toolbar}>
       <div className={layout.toolbarGroup}>
-        <SearchInput value={searchDraft} onChange={setSearchDraft} placeholder="Search" />
+        <SearchInput
+          value={searchDraft}
+          onChange={setSearchDraft}
+          placeholder="Card no., name, owner, phone"
+        />
 
         <Select
           id="filter-species"

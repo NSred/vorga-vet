@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
+import { SPECIES_TINT } from '@/shared/domain/species'
 import { isApiErrorCode } from '@/shared/lib/apiClient'
-import { DetailSection, Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
+import { Badge, DetailSection, Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import {
   appointmentErrorMessage,
   appointmentErrors,
@@ -17,7 +18,7 @@ import {
   toExaminationDetails,
   type ExaminationFormValues,
 } from '@/features/examinations'
-import { generatePatientCardNumber } from '@/features/patients'
+import { generatePatientCardNumber, PatientHeader, usePatientQuery } from '@/features/patients'
 import { DiagnosisPicker } from '@/features/diagnoses'
 import { useCompleteAppointment } from '../hooks/useVisitMutations'
 import {
@@ -64,6 +65,12 @@ export function CompleteVisitPanel({
   const charges = useVisitCharges({ open })
   const { showToast } = useToast()
   const profile = useCurrentUser()
+  const patientQuery = usePatientQuery(
+    appointment.patientId ?? '',
+    open && Boolean(appointment.patientId),
+  )
+  const patient =
+    patientQuery.data && patientQuery.data.id === appointment.patientId ? patientQuery.data : null
   const [step, setStep] = useState<Step>({ kind: 'form' })
   const [resolution, setResolution] = useState<ResolutionValues>(emptyResolution)
   const [resolutionErrors, setResolutionErrors] = useState<ResolutionErrors>({})
@@ -188,19 +195,39 @@ export function CompleteVisitPanel({
     void submitForm(event)
   }
 
-  const title = `Complete visit · ${partyLabel(appointment)}`
   const isPending = isSubmitting || complete.isPending
+  const ariaLabel = `Complete visit · ${partyLabel(appointment)}`
+  const instruction =
+    step.kind === 'form'
+      ? 'Record what happened at the visit. This closes the appointment.'
+      : 'The visit is recorded.'
+  const owner = appointment.ownerName ? `${appointment.ownerName}. ` : ''
+
+  const heading = patient
+    ? {
+        ariaLabel,
+        headerTone: 'accent' as const,
+        headerTint: SPECIES_TINT[patient.species],
+        header: (
+          <PatientHeader
+            patient={patient}
+            eyebrow={`Complete visit · ${patient.cardNumber}`}
+            footnote={instruction}
+          />
+        ),
+      }
+    : {
+        ariaLabel,
+        title: 'Complete visit',
+        badge: <Badge tone="accent">{appointment.patientName ?? 'New patient'}</Badge>,
+        subtitle: `${owner}${instruction}`,
+      }
 
   return (
     <SlidePanel
       open={open}
       onOpenChange={onOpenChange}
-      title={title}
-      subtitle={
-        step.kind === 'form'
-          ? 'Record what happened at the visit. This closes the appointment.'
-          : 'The visit is recorded.'
-      }
+      {...heading}
       footer={
         step.kind === 'form' ? (
           <>

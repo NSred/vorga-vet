@@ -30,6 +30,7 @@ export function RemindersPage() {
           <Button
             variant="primary"
             type="button"
+            shortcut="n"
             onClick={() => {
               setPatient(null)
               setAdding(true)

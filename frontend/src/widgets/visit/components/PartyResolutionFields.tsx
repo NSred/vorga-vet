@@ -1,13 +1,5 @@
 import { useRef } from 'react'
-import {
-  DatePicker,
-  DetailSection,
-  layout,
-  SegmentedControl,
-  Select,
-  Textarea,
-  TextField,
-} from '@/shared/ui'
+import { DetailSection, layout, SegmentedControl, Select, Textarea, TextField } from '@/shared/ui'
 import { SPECIES_OPTIONS } from '@/shared/domain/species'
 import { todayIso } from '@/shared/lib/dateOnly'
 import {
@@ -15,6 +7,8 @@ import {
   generatePatientCardNumber,
   OwnerPicker,
   PatientPicker,
+  BirthDateField,
+  CoatColorField,
 } from '@/features/patients'
 import type { Sex, Species } from '@/features/patients'
 import type {
@@ -141,20 +135,18 @@ export function PartyResolutionFields({
                     onChange={(sex) => patchNew({ sex: sex as Sex })}
                     options={SEX_OPTIONS}
                   />
-                  <DatePicker
+                  <BirthDateField
                     id="new-birth-date"
-                    label="Date of birth"
-                    value={value.newPatient.birthDate || undefined}
+                    value={value.newPatient.birthDate}
                     onChange={(birthDate) => patchNew({ birthDate })}
                     maxDate={todayIso()}
                   />
                 </div>
                 <div className={layout.formRow}>
-                  <TextField
+                  <CoatColorField
                     id="new-color"
-                    label="Color"
                     value={value.newPatient.color}
-                    onChange={(event) => patchNew({ color: event.target.value })}
+                    onChange={(color) => patchNew({ color })}
                   />
                   <TextField
                     id="new-chip"

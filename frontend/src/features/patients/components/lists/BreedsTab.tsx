@@ -31,7 +31,7 @@ export function BreedsTab() {
           <SegmentedControl value={species} onChange={setSpecies} options={SPECIES_OPTIONS} />
           <SearchInput value={search} onChange={setSearch} placeholder="Search breeds" />
         </div>
-        <Button variant="primary" type="button" onClick={() => setDialogOpen(true)}>
+        <Button variant="primary" type="button" shortcut="n" onClick={() => setDialogOpen(true)}>
           ＋ New breed
         </Button>
       </div>

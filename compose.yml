@@ -30,6 +30,8 @@ services:
         condition: service_healthy
     ports:
       - "5000:8080"
+    volumes:
+      - api-storage:/app/storage
 
   postgres:
     image: postgres:17
@@ -77,3 +79,4 @@ services:
 volumes:
   postgres-data:
   pgadmin-data:
+  api-storage:

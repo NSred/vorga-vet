@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useCallback, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { Button, layout, PageHeader, PrintIcon, SegmentedControl } from '@/shared/ui'
 import { clinicToday } from '@/shared/lib/clinicTime'
 import { oneOf } from '@/shared/lib/listParams'
+import { PatientRecord } from '@/widgets/patientCard'
 import { DailyReport, DeletedCards, type ReportView, UnpaidExams } from '@/widgets/reports'
 import styles from './ReportsPage.module.css'
 
@@ -20,9 +21,10 @@ function dayOf(value: string | null): string {
 }
 
 export function ReportsPage() {
-  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [printing, setPrinting] = useState(false)
+  const [recordId, setRecordId] = useState<string | null>(null)
+  const closeRecord = useCallback(() => setRecordId(null), [])
   const view = oneOf(searchParams.get('view'), VIEWS) ?? DEFAULT_VIEW
   const day = dayOf(searchParams.get('day'))
 
@@ -34,7 +36,7 @@ export function ReportsPage() {
     setSearchParams(params, { replace: true })
   }
 
-  const openPatient = (patientId: string) => navigate(`/patients?patient=${patientId}`)
+  const openPatient = (patientId: string) => setRecordId(patientId)
   const print = { printing, onPrinted: () => setPrinting(false) }
 
   return (
@@ -47,6 +49,7 @@ export function ReportsPage() {
           <Button
             variant="outline"
             type="button"
+            shortcut="p"
             className={`${styles.printButton} ${layout.hideOnPhone}`}
             disabled={printing}
             onClick={() => setPrinting(true)}
@@ -72,7 +75,9 @@ export function ReportsPage() {
         />
       )}
       {view === 'unpaid' && <UnpaidExams onOpenPatient={openPatient} {...print} />}
-      {view === 'deleted' && <DeletedCards {...print} />}
+      {view === 'deleted' && <DeletedCards onOpenPatient={openPatient} {...print} />}
+
+      <PatientRecord patientId={recordId} onClose={closeRecord} />
     </div>
   )
 }

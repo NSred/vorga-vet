@@ -6,9 +6,12 @@ import { formatDisplayDate } from '@/shared/lib/dateOnly'
 import { DetailSection, Button, FormError, layout, SlidePanel, useToast } from '@/shared/ui'
 import { examinationErrorMessage, examinationErrors } from '../api/examinationErrors'
 import { useUpdateExamination } from '../hooks/useExaminationMutations'
+import { usePatientExaminationsQuery } from '../hooks/usePatientExaminationsQuery'
 import { examinationValuesOf, toExaminationDetails } from '../lib/examinationDetails'
 import type { CostSlot, DiagnosisFieldProps, Examination, ExaminationFormValues } from '../types'
+import { AttachmentStrip } from './AttachmentStrip'
 import { ExaminationFields } from './ExaminationFields'
+import styles from './ExaminationEditPanel.module.css'
 
 export interface ExaminationEditPanelProps {
   examination: Examination
@@ -32,6 +35,10 @@ export function ExaminationEditPanel({
   const update = useUpdateExamination()
   const { showToast } = useToast()
   const [submitError, setSubmitError] = useState<string | undefined>(undefined)
+  const visits = usePatientExaminationsQuery(examination.patientId, open)
+  const attachments =
+    visits.data?.find((visit) => visit.id === examination.id)?.attachments ??
+    examination.attachments
 
   const {
     register,
@@ -122,6 +129,11 @@ export function ExaminationEditPanel({
           />
           <FormError message={submitError} />
         </form>
+      </DetailSection>
+
+      <DetailSection title="Images" count={attachments.length}>
+        <p className={styles.hint}>Images are saved as soon as they are added or removed.</p>
+        <AttachmentStrip examinationId={examination.id} attachments={attachments} />
       </DetailSection>
     </SlidePanel>
   )

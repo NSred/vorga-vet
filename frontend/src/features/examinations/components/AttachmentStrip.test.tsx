@@ -71,6 +71,17 @@ describe('AttachmentStrip', () => {
     expect(within(dialog).getByText(/X-ray · 2 KB/)).toBeInTheDocument()
   })
 
+  it('only shows and opens images when it is not editable', async () => {
+    const user = userEvent.setup()
+    render(<AttachmentStrip examinationId="e1" attachments={[xray]} editable={false} />)
+
+    expect(screen.queryByRole('button', { name: /Add image/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Delete chest.png' })).not.toBeInTheDocument()
+
+    await user.click(await screen.findByRole('button', { name: 'Open chest.png' }))
+    expect(await screen.findByRole('dialog', { name: 'chest.png' })).toBeInTheDocument()
+  })
+
   it('confirms before deleting and then calls the route', async () => {
     const deleteSpy = vi.spyOn(examinationsApi, 'deleteAttachment').mockResolvedValue(undefined)
     const user = userEvent.setup()

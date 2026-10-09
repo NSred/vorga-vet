@@ -3,6 +3,31 @@
 One entry per work session, newest first. Each entry links the feature document that holds the
 details.
 
+## 2026-10-09 — Client feedback round 1, batches 1 to 3
+
+Backend and frontend. Frontend 155 test files, 862 tests, typecheck and lint clean. Backend 134
+unit, 6 architecture and 86 integration tests pass. Checked on temporary preview pages at desktop
+and phone width.
+
+- The clinic's feedback is collected in one translated backlog, each item tied to the code it
+  touches; most of the small and medium items have landed.
+- Patients: search by card number, age in years and months, an Age box that fills the date of
+  birth, swatches for common coat colours.
+- The patient record shows owner and phone in a header tinted by species, opens on top of
+  Appointments and Reports, and Complete visit shows the same header.
+- Keyboard: table rows open with Enter and move with the arrows, / jumps to search and the down
+  arrow into the table, N opens "new" on every page, P prints a report.
+- Price list: prices sit beside the names, with euro values from a hand-kept rate under Lists.
+- The exam form groups therapy and charges in one box; table text is larger and grey text passes
+  WCAG AA.
+- Visit images survive API rebuilds locally, through a Compose volume for the image folder.
+- Visit history opens in a wide centred window over the record, built on a new shared centred
+  panel that any big view or form can use. Visits sit in the shared table; a row opens a
+  read-only visit view with Edit, images are added and removed only in the visit form, and the
+  demo seeder adds three visits for Charlie.
+
+Details: [what changed](changes-2026-10-09.md), [client requests](client-requests.md)
+
 ## 2026-10-07 — Appointment form tests
 
 Frontend only. 142 test files, 779 tests, typecheck and lint clean.

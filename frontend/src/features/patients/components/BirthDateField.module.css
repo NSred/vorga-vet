@@ -1,0 +1,27 @@
+.field {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+}
+
+@container (max-width: 15rem) {
+  .pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pair input[type='number'] {
+  appearance: textfield;
+}
+
+.pair input[type='number']::-webkit-inner-spin-button,
+.pair input[type='number']::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}

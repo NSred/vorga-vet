@@ -15,6 +15,10 @@ export function formatPrice(amount: number): string {
   return `${formatAmount(amount)} ${CURRENCY}`
 }
 
+export function formatEuro(amount: number, rsdPerEur: number): string {
+  return `≈ ${formatAmount(amount / rsdPerEur)} €`
+}
+
 const quantityFormatter = new Intl.NumberFormat('sr-RS', {
   maximumFractionDigits: 2,
   useGrouping: false,

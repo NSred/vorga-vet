@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { useSearchParams } from 'react-router'
 import { PHONE_QUERY, useMediaQuery } from '@/shared/lib/useMediaQuery'
 import { ConfirmDialog, EmptyState, layout, PageHeader, Textarea, useToast } from '@/shared/ui'
 import {
@@ -36,6 +36,7 @@ import {
 } from '@/features/appointments'
 import type { Appointment, AppointmentViewState, CalendarView } from '@/features/appointments'
 import { PatientSummary } from '@/features/patients'
+import { PatientRecord } from '@/widgets/patientCard'
 import { CheckInPanel, CompleteVisitPanel, usePartyFields, WalkInPanel } from '@/widgets/visit'
 import styles from './AppointmentsPage.module.css'
 
@@ -67,7 +68,6 @@ const ACTION_COPY = {
 
 export function AppointmentsPage() {
   const { showToast } = useToast()
-  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>({ mode: 'closed' })
@@ -76,6 +76,8 @@ export function AppointmentsPage() {
   const [unresolvedOpen, setUnresolvedOpen] = useState(false)
   const [visit, setVisit] = useState<VisitState>(null)
   const [walkInOpen, setWalkInOpen] = useState(false)
+  const [recordId, setRecordId] = useState<string | null>(null)
+  const closeRecord = useCallback(() => setRecordId(null), [])
   const { ownerField, patientField, ownerOfPatient } = usePartyFields()
   const cancel = useCancelAppointment()
   const noShow = useMarkNoShow()
@@ -286,9 +288,7 @@ export function AppointmentsPage() {
             )
           }
           onOpenPatientRecord={
-            selected.patientId
-              ? () => navigate(`/patients?patient=${selected.patientId}`)
-              : undefined
+            selected.patientId ? () => setRecordId(selected.patientId ?? null) : undefined
           }
           onReschedule={() => setForm({ mode: 'reschedule', appointment: selected })}
           onCancel={() => openAction('cancel', selected)}
@@ -354,6 +354,8 @@ export function AppointmentsPage() {
           }}
         />
       )}
+
+      <PatientRecord patientId={recordId} onClose={closeRecord} />
 
       <WalkInPanel
         open={walkInOpen}
